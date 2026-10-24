@@ -17,3 +17,5 @@ Colors, type, radii and motion now come from the app mockup (../../../../design/
 | DownloadPill | components/download-pill.md | none | final source family | 2 | implemented |
 
 All nine normalized families are implemented. The first five were approved before the remaining four were built. App-specific virtual cards, balances, decisions, and onboarding remain in the app layer.
+
+The app-layer virtual debit card is not a design-system component, but its colors are design-system tokens: `cardFace` and `cardFaceEnd` (the charcoal face gradient), `onCardFace` (text and icons on the face, 4.5:1 or better) and `cardChip` (the EMV chip), generated from `BRAND.colors` into `tokens.json`, `src/generated/tokens.tsx` and `src/brand-vars.css` (`--brand-cardFace`, ...). It never uses `signature` lime, so it reads apart from the hero balance card.

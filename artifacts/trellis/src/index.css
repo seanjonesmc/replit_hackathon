@@ -31,6 +31,10 @@
   --color-pending-bg: transparent;
   --color-chain: currentColor;
   --color-chain-bg: transparent;
+  --color-card-face: transparent;
+  --color-card-face-end: transparent;
+  --color-on-card-face: currentColor;
+  --color-card-chip: transparent;
 
   --radius-pill: 0;
   --radius-card: 0;
@@ -140,6 +144,18 @@
     background-image:
       repeating-linear-gradient(45deg, color-mix(in srgb, var(--color-on-signature) 9%, transparent) 0 1px, transparent 1px 22px),
       repeating-linear-gradient(-45deg, color-mix(in srgb, var(--color-on-signature) 9%, transparent) 0 1px, transparent 1px 22px);
+  }
+
+  /*
+   * Virtual debit card face: a diagonal BRAND card-face gradient under a soft
+   * light sheen across the top left, like brushed metal catching the light.
+   * The sheen stays at 10% or less so on-card-face text keeps 4.5:1.
+   */
+  .card-face {
+    background-image:
+      radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--color-on-card-face) 10%, transparent) 0%, transparent 55%),
+      linear-gradient(115deg, transparent 38%, color-mix(in srgb, var(--color-on-card-face) 6%, transparent) 50%, transparent 62%),
+      linear-gradient(135deg, var(--color-card-face) 0%, var(--color-card-face-end) 100%);
   }
 
   /*

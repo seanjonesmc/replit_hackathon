@@ -34,8 +34,10 @@ transactions arrive in later phases.
 Calm, friendly and trustworthy: a family tool, not a trading app.
 
 - **Lime means money.** `color.signature` marks money and the things that move
-  it: the hero balance, the virtual card and the top bar. Text on lime is dark
-  lime ink (`color.onSignature`), never white.
+  it: the hero balance, the header band and the top bar. Text on lime is dark
+  lime ink (`color.onSignature`), never white. The virtual card is the one
+  money object that is not lime: it has its own dark card face so it reads as
+  a physical debit card, apart from the hero balance below it.
 - **Sky means recorded on Monad.** `color.chainBg` / `color.chain` appear only
   on things that are, or will be, written on chain.
 - **Quiet, dark actions.** Primary buttons are near-black pills
@@ -43,6 +45,8 @@ Calm, friendly and trustworthy: a family tool, not a trading app.
   ground. They never compete with the lime money objects.
 - **Soft and layered, not shadowed.** Depth comes from stone ground, warm
   screen and white cards stepping up, plus hairlines, not from drop shadows.
+  Two exceptions: the virtual card (a physical object) and the signed-out
+  feature cards, which sit over the lime band and backdrop.
 - **Big, confident numbers.** Money is the hero of each screen: semibold
   Urbanist display type, tabular numerals, explicit currency.
 - **Plain English first.** Every decision explains itself in one everyday
@@ -79,7 +83,7 @@ app keeps its own primitives for now; it is not migrated to that package.
 
 | Token | CSS variable / utility | Current value | Use |
 | --- | --- | --- | --- |
-| `color.signature` | `--color-signature` · `bg-signature` | #dcf26e | Money and actions: top bar, hero balance card, virtual card, header band |
+| `color.signature` | `--color-signature` · `bg-signature` | #dcf26e | Money and actions: top bar, hero balance card, header band |
 | `color.onSignature` | `--color-on-signature` · `text-on-signature` | #1c2008 | Text, icons and lattice hatching on signature fills |
 | `color.primary` | `--color-primary` · `bg-primary` | #171815 | Primary button fills, selected pills, focus ring |
 | `color.primaryHover` | `--color-primary-hover` | #31332d | Hover and pressed state of primary actions |
@@ -95,6 +99,9 @@ app keeps its own primitives for now; it is not migrated to that package.
 | `color.rejected` / `color.rejectedBg` | `--color-rejected(-bg)` | #c8372d on #fbe3e0 | Declined ("no") decisions |
 | `color.pending` / `color.pendingBg` | `--color-pending(-bg)` | #b86a00 on #fcefd6 | Waiting decisions, preview labels |
 | `color.chain` / `color.chainBg` | `--color-chain(-bg)` | #12313b on #d3e7ee | Recorded on Monad: chain badges and tags |
+| `color.cardFace` / `color.cardFaceEnd` | `--color-card-face(-end)` · `.card-face` | #3a3c36 → #121310 | Virtual debit card face: diagonal charcoal gradient, top left to bottom right |
+| `color.onCardFace` | `--color-on-card-face` · `text-on-card-face` | #f6f5f1 | Text and icons on the card face (secondary labels at 80% opacity, never lower) |
+| `color.cardChip` | `--color-card-chip` · `bg-card-chip` | #d8c38e | The EMV chip on the card face |
 
 The mockup's mid sky (#1f6f8b) is too light for small text on the sky
 background (4.4:1), so `color.chain` uses the mockup's darker sky ink.
@@ -106,6 +113,7 @@ background (4.4:1), so `color.chain` uses the mockup's darker sky ink.
 | `onSignature` on `signature` | 13.5:1 |
 | `onPrimary` on `primary` | 16.3:1 (11.7:1 on `primaryHover`) |
 | `chain` on `chainBg` | 10.8:1 |
+| `onCardFace` on `cardFace` / `cardFaceEnd` | 10.2 / 17.1:1 (7.5:1 under the 10% sheen; 80% labels stay above 5:1) |
 | `ink` on `tint` | 16.3:1 |
 | `inkMuted` on `surface` / `surfaceAlt` / `surfaceGround` | 6.5 / 5.9 / 5.4:1 |
 | `approved` / `rejected` / `pending` on their backgrounds | 3.8 / 4.3 / 3.6:1 |
@@ -186,7 +194,17 @@ Today the app's phone column is still white with screen-tone cards; moving the
 column to `surfaceAlt` with white cards comes with the screen rebuilds
 (see Planned). Elevation stays flat: no drop shadows, 1px `color.hairline`
 borders where a card needs an edge. The header band (`.header-sky`) is the one
-soft gradient: solid lime easing into the screen.
+soft gradient on screens: solid lime easing into the screen.
+
+Two places lift off the page with a soft shadow in `color.ink`
+(`shadow-lg shadow-ink/*`), nowhere else:
+
+- **Signed-out feature cards.** They overlap the lime header band and the lime
+  backdrop, so each gets a solid `color.surface` fill, a firmer border
+  (`border-ink/15`) and `shadow-ink/10`.
+- **The virtual card.** It is drawn as a physical debit card on the
+  `.card-face` gradient (`color.cardFace` → `color.cardFaceEnd`, plus a light
+  sheen of `color.onCardFace` at 10% or less), with `shadow-ink/20`.
 
 The lattice texture (`.lattice`) on lime cards is a fine diagonal hatch in
 `color.onSignature` at low opacity, echoing the mockup's striped bars. It is
@@ -258,7 +276,7 @@ through props, and never import preview samples.
 | Component | Status | Notes |
 | --- | --- | --- |
 | Hero balance card | Built | `color.signature` with `color.onSignature` text, on-signature lattice hatching, `type.displayXl` amount |
-| Virtual card visual | Built | `color.signature` with `color.onSignature` text, app wordmark, holder name, last four only, “Simulated card”; a frozen card gets a dimmed face and a “Frozen” pill |
+| Virtual card visual | Built | Dark `.card-face` gradient with `color.onCardFace` text (never lime): logo mark and app name, “Simulated card” tag, EMV chip in `color.cardChip` with contact lines, contactless symbol, masked number `•••• •••• •••• 1234` (last four only), holder name, “Valid thru MM/YY” from the card's expiry and a “Debit” label. No card network logo. A frozen card gets a dimmed face and a “Frozen” pill |
 | Bucket card | Built | Icon, amount left of total, progress bar, held amount, who funds it |
 | Activity feed row | Built | Plain-English sentence, signed amount, status pill, optional steps and chain badge |
 | “Verified on Monad” badge | Built | Sky `color.chainBg` pill with `color.chain` text with `BRAND.copy.verifiedLabel`, links to the explorer; real confirmed transactions only |
@@ -330,7 +348,9 @@ Nothing moves for decoration.
 **Don't**
 - Put white text on lime, or use lime for a button's text color.
 - Use sky for anything that is not about the chain.
-- Add drop shadows, glows or looping animation.
+- Add drop shadows (beyond the virtual card and signed-out feature cards),
+  glows or looping animation.
+- Put the virtual card on lime, or add a card network logo or a full card number to it.
 - Animate anything that is not money moving, a decision landing or a chain
   confirmation.
 - Use `color.inkMuted` for primary body text.

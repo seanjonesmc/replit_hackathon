@@ -66,7 +66,14 @@ export default function ParentCardPolicy() {
   return (
     <>
       <ScreenHeader title="Card & policy" subtitle={`${card.dependentName}'s card and the rules it follows.`} />
-      <VirtualCard holderName={card.dependentName} last4={card.last4} frozen={card.status === 'frozen'} data-testid="card-dependent-card" />
+      <VirtualCard
+        holderName={card.dependentName}
+        last4={card.last4}
+        expiryMonth={card.expiryMonth}
+        expiryYear={card.expiryYear}
+        frozen={card.status === 'frozen'}
+        data-testid="card-dependent-card"
+      />
       <CardFacts card={card} />
       <CardFreezeControl card={card} leading={<ChainBadge status={chainStatusOf(card.chain)} />} className="mt-3" />
 

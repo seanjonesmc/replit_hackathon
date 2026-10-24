@@ -19,9 +19,10 @@ export function SignedOut() {
         <Wordmark onDark />
         <h1 className="type-display-md mt-14 text-on-signature" data-testid="text-tagline">{BRAND.tagline}</h1>
       </div>
-      <ul className="-mt-10 flex flex-col gap-3 px-6">
+      {/* Solid surface, firm border and soft shadow so each card reads over the lime band and backdrop. */}
+      <ul className="-mt-10 flex flex-col gap-3 px-6" data-testid="list-signed-out-points">
         {points.map(({ Icon, title, body }) => (
-          <li key={title} className="flex items-start gap-3 rounded-card-sm border bg-surface p-4">
+          <li key={title} data-testid="card-signed-out-point" className="flex items-start gap-3 rounded-card-sm border border-ink/15 bg-surface p-4 shadow-lg shadow-ink/10">
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-tint text-primary">
               <Icon className="size-5" aria-hidden="true" />
             </span>

@@ -22,7 +22,11 @@ export const brand = {
     "pending": "#b86a00",
     "pendingBg": "#fcefd6",
     "chain": "#12313b",
-    "chainBg": "#d3e7ee"
+    "chainBg": "#d3e7ee",
+    "cardFace": "#3a3c36",
+    "cardFaceEnd": "#121310",
+    "onCardFace": "#f6f5f1",
+    "cardChip": "#d8c38e"
   },
   "darkColors": {
     "signature": "#dcf26e",
@@ -44,7 +48,11 @@ export const brand = {
     "pending": "#f2b552",
     "pendingBg": "#3a2c12",
     "chain": "#e2f2f7",
-    "chainBg": "#284753"
+    "chainBg": "#284753",
+    "cardFace": "#3a3c36",
+    "cardFaceEnd": "#121310",
+    "onCardFace": "#f6f5f1",
+    "cardChip": "#d8c38e"
   },
   "radius": {
     "pill": "999px",

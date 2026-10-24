@@ -28,7 +28,12 @@ export default function DependentWallet() {
   return (
     <>
       <ScreenHeader title={`Hi, ${data.dependent.displayName}`} subtitle="Your card and what you can spend." />
-      <VirtualCard holderName={data.card.dependentName} last4={data.card.last4} frozen={data.card.status === 'frozen'} data-testid="card-dependent-card" />
+      <VirtualCard
+        holderName={data.card.dependentName}
+        last4={data.card.last4}
+        expiryMonth={data.card.expiryMonth}
+        expiryYear={data.card.expiryYear}
+        frozen={data.card.status === 'frozen'} data-testid="card-dependent-card" />
       <CardFacts card={data.card} />
       <HeroBalanceCard
         className="mt-4"

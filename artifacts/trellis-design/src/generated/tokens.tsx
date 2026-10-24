@@ -36,7 +36,11 @@ export const tokens = {
       "sidebarPrimaryForeground": "#f6f5f1",
       "sidebarAccent": "#eef8c2",
       "sidebarAccentForeground": "#171815",
-      "sidebarRing": "#171815"
+      "sidebarRing": "#171815",
+      "cardFace": "#3a3c36",
+      "cardFaceEnd": "#121310",
+      "onCardFace": "#f6f5f1",
+      "cardChip": "#d8c38e"
     },
     "dark": {
       "background": "#191a17",
@@ -70,7 +74,11 @@ export const tokens = {
       "sidebarPrimaryForeground": "#191a17",
       "sidebarAccent": "#2f3514",
       "sidebarAccentForeground": "#f1f0ea",
-      "sidebarRing": "#f1f0ea"
+      "sidebarRing": "#f1f0ea",
+      "cardFace": "#3a3c36",
+      "cardFaceEnd": "#121310",
+      "onCardFace": "#f6f5f1",
+      "cardChip": "#d8c38e"
     }
   },
   "fontFamily": {

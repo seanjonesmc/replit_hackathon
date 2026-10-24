@@ -39,6 +39,10 @@ const swatches: { name: string; token: string; cls: string; key: keyof typeof BR
   { name: 'Pending bg', token: 'pending-bg', cls: 'bg-pending-bg', key: 'pendingBg' },
   { name: 'Chain', token: 'chain', cls: 'bg-chain', key: 'chain' },
   { name: 'Chain bg', token: 'chain-bg', cls: 'bg-chain-bg', key: 'chainBg' },
+  { name: 'Card face', token: 'card-face', cls: 'bg-card-face', key: 'cardFace' },
+  { name: 'Card face end', token: 'card-face-end', cls: 'bg-card-face-end', key: 'cardFaceEnd' },
+  { name: 'On card face', token: 'on-card-face', cls: 'bg-on-card-face', key: 'onCardFace' },
+  { name: 'Card chip', token: 'card-chip', cls: 'bg-card-chip', key: 'cardChip' },
 ];
 
 const typeScale = [

@@ -12,6 +12,8 @@ export type { BucketIcon, Decision } from './domain';
 export const demo = BRAND.demo;
 export const grandparent = demo.funders[0] ?? 'Funder';
 export const coParent = demo.funders[1] ?? demo.funders[0] ?? 'Funder';
+/** Illustrative expiry for the sample virtual card. */
+export const sampleCardExpiry = { month: 9, year: 2030 };
 
 export const initials = (name: string) =>
   name.split(/\s+/).filter(Boolean).map((p) => p[0]).slice(-2).join('').toUpperCase();

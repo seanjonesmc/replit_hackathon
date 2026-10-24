@@ -17,8 +17,9 @@ interface HeroBalanceCardProps {
 }
 
 /**
- * The hero balance card. One of the three surfaces allowed to use the
- * signature color (with the header sky and the virtual card).
+ * The hero balance card. One of the surfaces allowed to use the signature
+ * color (with the header band and the top bar). The virtual card has its own
+ * dark card face so the two never look alike.
  */
 export function HeroBalanceCard({ eyebrow, amountCents, caption, badge, children, className, 'data-testid': testId }: HeroBalanceCardProps) {
   return (

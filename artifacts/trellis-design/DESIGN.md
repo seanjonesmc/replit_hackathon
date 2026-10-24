@@ -2,12 +2,13 @@
 version: alpha
 name: Trellis
 description: >-
-  Trellis is a testnet-only family spending app: a parent sets guardrails, family funders add money to spending buckets, and a dependent spends on a simulated card while every decision is explained in plain English and can be recorded on Monad. The visual language comes from the Trellis app mockup (design/reference/trellis-app-mockup.html at the workspace root). Lime `#dcf26e` marks money and actions (hero balance, virtual card, top bar) and always carries dark lime-ink `#1c2008` text. Sky `#d3e7ee` with sky-ink `#12313b` marks anything recorded on Monad. Primary buttons are near-black `#171815` pills with off-white `#f6f5f1` text on a warm stone ground `#eceae4`. Headings are Urbanist at weight 600 with tight tracking, body text is Geist, and codes are Geist Mono. Corners are soft (999px pills, 28px cards, 22px secondary cards, 14px items), surfaces layer stone, screen and white card without shadows, and motion only happens when money moves, a decision lands, or Monad confirms.
+  Trellis is a testnet-only family spending app: a parent sets guardrails, family funders add money to spending buckets, and a dependent spends on a simulated card while every decision is explained in plain English and can be recorded on Monad. The visual language comes from the Trellis app mockup (design/reference/trellis-app-mockup.html at the workspace root). Lime `#dcf26e` marks money and actions (hero balance, header band, top bar) and always carries dark lime-ink `#1c2008` text; the virtual debit card has its own dark charcoal card face (`#3a3c36` to `#121310`) with off-white `#f6f5f1` text. Sky `#d3e7ee` with sky-ink `#12313b` marks anything recorded on Monad. Primary buttons are near-black `#171815` pills with off-white `#f6f5f1` text on a warm stone ground `#eceae4`. Headings are Urbanist at weight 600 with tight tracking, body text is Geist, and codes are Geist Mono. Corners are soft (999px pills, 28px cards, 22px secondary cards, 14px items), surfaces layer stone, screen and white card without shadows (only the virtual card and the signed-out feature cards carry a soft ink shadow), and motion only happens when money moves, a decision lands, or Monad confirms.
 seo:
   title: "Trellis Design System: lime for money, sky for Monad"
   metaDescription: "Trellis tokens and components: lime money cards with lime-ink text, sky chain badges, near-black pills on warm stone, Urbanist + Geist + Geist Mono."
   highlights:
-    - "Lime means money — `#dcf26e` carries the hero balance, virtual card and top bar, always with `#1c2008` lime-ink text, never white"
+    - "Lime means money — `#dcf26e` carries the hero balance, header band and top bar, always with `#1c2008` lime-ink text, never white"
+    - "A real-looking debit card — charcoal `#3a3c36` to `#121310` card face, `#f6f5f1` text, `#d8c38e` EMV chip, last four only"
     - "Sky means recorded on Monad — `#d3e7ee` badges with `#12313b` sky-ink text, used for nothing else"
     - "Near-black actions — `#171815` pills with `#f6f5f1` text and a `#31332d` hover step"
     - "Three warm layers — stone ground `#eceae4`, screen `#f6f5f1`, white cards, no drop shadows"
@@ -35,6 +36,10 @@ colors:
   pending-bg: "#fcefd6"
   chain: "#12313b"
   chain-bg: "#d3e7ee"
+  card-face: "#3a3c36"
+  card-face-end: "#121310"
+  on-card-face: "#f6f5f1"
+  card-chip: "#d8c38e"
   dark-surface-ground: "#10110f"
   dark-surface-screen: "#191a17"
   dark-surface: "#23241f"
@@ -282,8 +287,10 @@ Trellis is a family money tool, not a trading app. The design should feel calm,
 warm and certain: big confident numbers, plain-English explanations, and a very
 small set of colors that each mean one thing.
 
-- **Lime = money and actions.** The hero balance, the virtual card and the top
+- **Lime = money and actions.** The hero balance, the header band and the top
   bar. Text on lime is always lime ink.
+- **Charcoal = the card.** The virtual debit card has its own dark card face so
+  it never looks like the lime hero balance beside it.
 - **Sky = recorded on Monad.** Chain badges, tags and records only.
 - **Near-black = do something.** Primary buttons and selected pills.
 - **Wait / ok / no.** Amber, green and red pairs for decisions, always with an
@@ -297,9 +304,21 @@ verified state without a real confirmed transaction.
 ### Signature
 
 `signature` (#dcf26e) is the lime that marks money. It fills the hero balance
-card, the virtual card, the app's top bar and the header band. `on-signature`
+card, the app's top bar and the header band. `on-signature`
 (#1c2008) is the only text and icon color allowed on it (13.5:1). `tint`
 (#eef8c2) is the pale lime for chips, feature cards and the active tab.
+
+### Card face
+
+The app's virtual debit card is drawn on its own face, never on lime:
+`card-face` (#3a3c36) easing diagonally to `card-face-end` (#121310), with a
+light sheen of `on-card-face` at 10% or less. `on-card-face` (#f6f5f1) is the
+text and icon color on it (10.2:1 on `card-face`, 17.1:1 on `card-face-end`,
+7.5:1 under the sheen; secondary labels at 80% opacity stay above 5:1).
+`card-chip` (#d8c38e) fills the EMV chip. These four come from
+`BRAND.colors` (`cardFace`, `cardFaceEnd`, `onCardFace`, `cardChip`) and are
+the same in both modes; the generated tokens carry them as `cardFace`,
+`cardFaceEnd`, `onCardFace` and `cardChip`.
 
 ### Ink
 
@@ -396,7 +415,10 @@ One idea per card, generous padding, short sentences.
 ## Elevation & Depth
 
 Flat. Depth comes from the ground → screen → card layering and 1px hairlines.
-No drop shadows or glows.
+No drop shadows or glows, with two exceptions in the app: the virtual debit
+card (a physical object, `shadow-ink/20`) and the signed-out feature cards,
+which sit over the lime header band and backdrop (solid white, `border-ink/15`,
+`shadow-ink/10`).
 
 ### Decorative Depth
 
@@ -452,6 +474,11 @@ Motion only when money moves, a decision lands, or Monad confirms.
 ### Cards
 
 - **Hero:** lime with lime-ink text, 28px corners.
+- **Virtual debit card** (app): charcoal card-face gradient with
+  `on-card-face` text, 28px corners, 1.586 aspect. EMV chip with contact lines,
+  contactless symbol, masked `•••• •••• •••• 1234` number (last four only),
+  holder name, “Valid thru MM/YY”, a “Debit” label and the “Simulated card”
+  tag. No card network logo. Frozen: dimmed face with a white “Frozen” pill.
 - **Product / photography:** white card on the screen, hairline border.
 - **Feature:** pale lime tint, 22px corners.
 
@@ -479,7 +506,9 @@ Motion only when money moves, a decision lands, or Monad confirms.
 
 - Put white text on lime.
 - Use sky decoratively.
-- Add shadows, glows or looping animation.
+- Add shadows (beyond the virtual card and signed-out feature cards), glows or
+  looping animation.
+- Put the virtual card on lime or give it a card network logo.
 - Hand-edit `tokens.json`, `src/index.css` or `src/generated/tokens.tsx`.
 
 ## Known Gaps

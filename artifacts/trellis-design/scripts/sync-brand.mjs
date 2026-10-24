@@ -20,7 +20,9 @@ const roles = (p) => {
     destructive:p.rejected,destructiveForeground:p.surface,input:line,ring:p.primary,
     chart1:p.primary,chart2:p.signature,chart3:p.approved,chart4:p.pending,chart5:p.rejected,
     sidebar:p.surfaceGround,sidebarForeground:p.ink,sidebarBorder:line,
-    sidebarPrimary:p.primary,sidebarPrimaryForeground:p.onPrimary,sidebarAccent:p.tint,sidebarAccentForeground:p.ink,sidebarRing:p.primary
+    sidebarPrimary:p.primary,sidebarPrimaryForeground:p.onPrimary,sidebarAccent:p.tint,sidebarAccentForeground:p.ink,sidebarRing:p.primary,
+    // App-layer virtual debit card face (gradient stops, text on face, EMV chip).
+    cardFace:p.cardFace,cardFaceEnd:p.cardFaceEnd,onCardFace:p.onCardFace,cardChip:p.cardChip
   };
 };
 for (const [mode, values] of Object.entries({light:roles(c),dark:roles(d)}))

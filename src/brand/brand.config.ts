@@ -6,7 +6,7 @@
  */
 
 export interface BrandColors {
-  /** Money and actions: hero balance, virtual card, top bar. */
+  /** Money and actions: hero balance, top bar, header band. */
   signature: string;
   /** Text and icons on signature fills. */
   onSignature: string;
@@ -34,6 +34,13 @@ export interface BrandColors {
   pendingBg: string;
   chain: string;
   chainBg: string;
+  /** Virtual debit card face: gradient from `cardFace` (top left) to `cardFaceEnd` (bottom right). */
+  cardFace: string;
+  cardFaceEnd: string;
+  /** Text and icons on the card face. At least 4.5:1 on both face stops. */
+  onCardFace: string;
+  /** The EMV chip on the card face. */
+  cardChip: string;
 }
 
 export interface BrandConfig {
@@ -85,6 +92,7 @@ export const BRAND: BrandConfig = {
     rejected: "#c8372d", rejectedBg: "#fbe3e0",
     pending: "#b86a00", pendingBg: "#fcefd6",
     chain: "#12313b", chainBg: "#d3e7ee",
+    cardFace: "#3a3c36", cardFaceEnd: "#121310", onCardFace: "#f6f5f1", cardChip: "#d8c38e",
   },
   darkColors: {
     signature: "#dcf26e", onSignature: "#1c2008",
@@ -96,6 +104,7 @@ export const BRAND: BrandConfig = {
     rejected: "#ff8a7f", rejectedBg: "#3d1f1c",
     pending: "#f2b552", pendingBg: "#3a2c12",
     chain: "#e2f2f7", chainBg: "#284753",
+    cardFace: "#3a3c36", cardFaceEnd: "#121310", onCardFace: "#f6f5f1", cardChip: "#d8c38e",
   },
   fonts: {
     heading: "Urbanist",

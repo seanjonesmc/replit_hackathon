@@ -5,7 +5,7 @@ import { BucketCard } from '@/components/trellis/bucket-card';
 import { HeroBalanceCard } from '@/components/trellis/hero-balance-card';
 import { InitialAvatar, PillButton } from '@/components/trellis/primitives';
 import { VirtualCard } from '@/components/trellis/virtual-card';
-import { activity, buckets, demo, potTotal } from '@/lib/preview-data';
+import { activity, buckets, demo, potTotal, sampleCardExpiry } from '@/lib/preview-data';
 import { PreviewSection, SampleLabel } from './preview-kit';
 
 /** Hero balance card, virtual card, bucket cards and activity rows. */
@@ -47,7 +47,14 @@ export function CardsSection() {
             </PillButton>
           </div>
           <div className="grid place-items-center rounded-card bg-surface p-6">
-            <VirtualCard key={cardKey} holderName={demo.dependent} last4={demo.cardLast4} data-testid="card-virtual" />
+            <VirtualCard
+              key={cardKey}
+              holderName={demo.dependent}
+              last4={demo.cardLast4}
+              expiryMonth={sampleCardExpiry.month}
+              expiryYear={sampleCardExpiry.year}
+              data-testid="card-virtual"
+            />
           </div>
         </div>
       </div>

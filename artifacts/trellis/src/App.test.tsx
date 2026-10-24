@@ -160,6 +160,20 @@ describe('sign-in gate', () => {
     expect(host.textContent).not.toMatch(/replit/i);
   });
 
+  it('lifts the welcome feature cards off the lime backdrop: solid surface, border and shadow', () => {
+    session.isAuthenticated = false;
+    open('/');
+    const cards = host.querySelectorAll<HTMLElement>('[data-testid="card-signed-out-point"]');
+    expect(cards).toHaveLength(3);
+    for (const card of cards) {
+      const cls = card.className.split(/\s+/);
+      expect(cls).toContain('bg-surface');
+      expect(cls).toContain('border');
+      expect(cls.some((c) => c.startsWith('border-ink/'))).toBe(true);
+      expect(cls.some((c) => c.startsWith('shadow-'))).toBe(true);
+    }
+  });
+
   it('shows a loading state while the session is checked', () => {
     session.isLoading = true;
     open('/parent/home');

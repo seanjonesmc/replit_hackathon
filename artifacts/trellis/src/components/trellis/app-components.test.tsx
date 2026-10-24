@@ -121,18 +121,32 @@ describe('MerchantTile', () => {
 });
 
 describe('VirtualCard', () => {
-  it('shows the app wordmark, holder and only the last four digits', () => {
-    render(<VirtualCard holderName={BRAND.demo.dependent} last4={BRAND.demo.cardLast4} />);
+  it('prints a debit card face with only the last four digits', () => {
+    render(<VirtualCard holderName="Sample Holder" last4="1234" expiryMonth={3} expiryYear={2031} data-testid="card" />);
     expect(byTestId('text-app-name')?.textContent).toContain(BRAND.appName);
-    expect(host.textContent).toContain(BRAND.demo.dependent);
-    expect(byTestId('text-card-last4')?.textContent).toBe(`•••• ${BRAND.demo.cardLast4}`);
+    expect(byTestId('text-card-holder')?.textContent).toBe('Sample Holder');
+    expect(byTestId('text-card-number')?.textContent).toBe('•••• •••• •••• 1234');
+    expect(byTestId('text-card-last4')?.textContent).toBe('1234');
+    expect(host.textContent?.replace(/\D/g, '')).toBe('1234' + '0331');
+    expect(byTestId('text-card-expiry')?.textContent).toBe('03/31');
+    expect(host.textContent).toContain('Valid thru 03/31');
+    expect(byTestId('text-card-type')?.textContent).toBe('Debit');
+    expect(byTestId('text-card-note')?.textContent).toBe('Simulated card');
+    expect(byTestId('img-card-chip')).not.toBeNull();
+    expect(byTestId('img-contactless')).not.toBeNull();
+    expect(byTestId('card')?.className).toContain('card-face');
+    expect(byTestId('card')?.className).not.toContain('bg-signature');
+    expect(byTestId('card')?.getAttribute('aria-label')).toBe(
+      'Simulated card for Sample Holder, debit card ending in 1234, valid thru 03/31',
+    );
     expect(byTestId('state-card-frozen')).toBeNull();
   });
 
   it('marks a frozen card on the art and in its label', () => {
-    render(<VirtualCard holderName="Sample" last4="0000" frozen data-testid="card" />);
+    render(<VirtualCard holderName="Sample" last4="0000" expiryMonth={12} expiryYear={2030} frozen data-testid="card" />);
     expect(byTestId('state-card-frozen')?.textContent).toBe('Frozen');
-    expect(byTestId('card')?.getAttribute('aria-label')).toContain('frozen');
+    expect(byTestId('card')?.getAttribute('aria-label')).toMatch(/, frozen$/);
+    expect(byTestId('text-card-number')?.textContent).toBe('•••• •••• •••• 0000');
   });
 });
 
