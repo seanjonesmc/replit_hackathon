@@ -27,6 +27,7 @@ vi.mock("../../src/lib/auth", async (importOriginal) => {
 });
 vi.mock("../../src/services/decisions/chain-handoff", () => ({
   handOffToChain: vi.fn(async () => {}),
+  waitForAuthorize: vi.fn(async () => {}),
 }));
 // No chain Secrets in tests: the mirror leaves everything off chain.
 vi.mock("../../src/services/blockchain", async (importOriginal) => {

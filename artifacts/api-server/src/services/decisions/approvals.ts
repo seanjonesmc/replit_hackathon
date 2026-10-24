@@ -92,13 +92,15 @@ function retryInput(original: Authorization, at: Date): SwipeInput {
  * signed-in presenter may act for them (presenter mode). That stops where an
  * account is linked: a parent linked to an account answers only from that
  * account, and an account linked to another member (say, the dependent) can
- * never answer for a parent. Non-parents can never answer.
+ * never answer for a parent. Non-parents can never answer. Also guards the
+ * other parent-only demo controls (the demo reset), named by `action`.
  */
-async function requireParent(
+export async function requireParent(
   parentId: number,
   familyId: number,
   actingUserId: string,
   executor: DbExecutor,
+  action = "approve or decline a purchase",
 ): Promise<Member> {
   const members = await executor
     .select()
@@ -114,7 +116,7 @@ async function requireParent(
   if (member.role !== "parent") {
     throw new FamilyServiceError(
       "forbidden",
-      "Only a parent can approve or decline a purchase.",
+      `Only a parent can ${action}.`,
     );
   }
   const ownMember = members.find((m) => m.userId === actingUserId);

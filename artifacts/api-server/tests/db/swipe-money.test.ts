@@ -48,6 +48,7 @@ import { resetTestDatabase } from "./test-database";
 vi.mock("../../src/services/decisions/chain-handoff", () => ({
   handOffToChain: vi.fn(async () => ({ status: "skipped", why: "test" })),
   captureOnChain: vi.fn(async () => ({ status: "skipped", why: "test" })),
+  waitForAuthorize: vi.fn(async () => {}),
 }));
 
 const NO_GUARD = { aiGuard: null } as const;

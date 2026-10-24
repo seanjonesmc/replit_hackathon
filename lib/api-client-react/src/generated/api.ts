@@ -35,6 +35,8 @@ import type {
   ConflictResponse,
   ContributionRequest,
   ContributionResult,
+  DemoResetRequest,
+  DemoResetResult,
   DependentWallet,
   DepositRequest,
   DepositResult,
@@ -2475,6 +2477,138 @@ export function useGetSettlement<
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+export const getResetDemoUrl = () => {
+  return `/api/demo/reset`;
+};
+
+/**
+ * In one database transaction, deletes the demo family and everything a run created (contributions, deposits, held and settled purchases, settlement runs, temporary passes, policy and card changes), then re-runs the seed. Afterwards no purchase is held, nothing from the script has happened yet, and every amount on screen matches the seed. Member, bank, bucket and purchase ids all change. Nothing on chain is undone; the fresh rows carry no chain records, so explorer links from earlier runs are no longer shown. Only the family's parent can reset, under the same rule as answering a purchase: 403 for anyone else, or when that parent is linked to a different account. Accounts linked to members stay linked.
+ * @summary Reset the demo to the script's starting point (parent only)
+ */
+export const resetDemo = async (
+  demoResetRequest: DemoResetRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<DemoResetResult> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<DemoResetResult>(getResetDemoUrl(), {
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(demoResetRequest),
+  });
+};
+
+export const getResetDemoMutationKey = () => ["resetDemo"] as const;
+
+export const getResetDemoMutationOptions = <
+  TError = ErrorType<
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resetDemo>>,
+    TError,
+    ResetDemoMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof resetDemo>>,
+  TError,
+  ResetDemoMutationVariables,
+  TContext
+> => {
+  const mutationKey = getResetDemoMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof resetDemo>>,
+    ResetDemoMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return resetDemo(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ResetDemoMutationResult = NonNullable<
+  Awaited<ReturnType<typeof resetDemo>>
+>;
+export type ResetDemoMutationBody = BodyType<DemoResetRequest>;
+export type ResetDemoMutationError = ErrorType<
+  | BadRequestResponse
+  | UnauthorizedResponse
+  | ForbiddenResponse
+  | NotFoundResponse
+>;
+export type ResetDemoMutationVariables = { data: BodyType<DemoResetRequest> };
+
+/**
+ * @summary Reset the demo to the script's starting point (parent only)
+ */
+export const useResetDemo = <
+  TError = ErrorType<
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof resetDemo>>,
+      TError,
+      ResetDemoMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof resetDemo>>,
+  TError,
+  ResetDemoMutationVariables,
+  TContext
+> => {
+  return useMutation(getResetDemoMutationOptions(options), queryClient);
+};
 
 export const getListMerchantsUrl = () => {
   return `/api/merchants`;

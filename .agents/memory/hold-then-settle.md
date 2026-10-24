@@ -10,4 +10,4 @@ An approved swipe only moves available → held. Money reaches spent only throug
 - "Spent this week" and "paid from" wording key off settled time, so held money never counts as spent.
 - The "latest settlement" on the parent overview ignores seed history because seed rows have no settlement run.
 - A demo reset must clear held amounts and settlement rows as well as authorizations.
-- An APPROVED live check now leaves a held amount; reset the dev family afterwards (delete the family, restart the API).
+- An APPROVED live check now leaves a held amount; afterwards use the parent's Reset demo (POST /api/demo/reset as the parent).

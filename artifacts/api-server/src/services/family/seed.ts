@@ -15,6 +15,7 @@ import {
 import { depositToBank, linkBankAccount } from "./banks";
 import { contributeToBucket } from "./contributions";
 import {
+  SEED_BANK_LAST4,
   SEED_BUCKETS,
   SEED_CONTRIBUTION_AGO_MS,
   SEED_DEPOSIT_AGO_MS,
@@ -31,6 +32,14 @@ export function memberOnchainId(seedKey: string): string {
 
 /** Arbitrary constant for the advisory lock that serializes seeding. */
 const SEED_LOCK_KEY = 72_001;
+
+/**
+ * Takes the family seed's transaction-scoped lock, so a demo reset and a
+ * seed (or two resets) never interleave. Held until the transaction ends.
+ */
+export async function lockDemoSeed(tx: DbExecutor): Promise<void> {
+  await tx.execute(sql`SELECT pg_advisory_xact_lock(${SEED_LOCK_KEY})`);
+}
 
 type SeedMemberKey = "parent" | "grandparent" | "coParent" | "dependent";
 
@@ -113,7 +122,7 @@ export type SeedResult =
  * services as the API, so every balance equals deposits minus contributions.
  * The funding is dated a few days before `now`, so the purchase history the
  * decision engine seeds afterwards (`seedSpendingDemo`) reads in order.
- * Reusable by a later "Reset demo" after it clears the family.
+ * The demo reset (services/demo) reuses it after clearing the family.
  */
 export async function seedDemoFamily(
   executor: DbExecutor = db,
@@ -123,7 +132,7 @@ export async function seedDemoFamily(
   const at = (agoMs: number) => new Date(now.getTime() - agoMs);
 
   return executor.transaction(async (tx) => {
-    await tx.execute(sql`SELECT pg_advisory_xact_lock(${SEED_LOCK_KEY})`);
+    await lockDemoSeed(tx);
 
     const [existing] = await tx
       .select({ id: familiesTable.id })
@@ -154,7 +163,11 @@ export async function seedDemoFamily(
     const bankIds = {} as Record<keyof typeof plan.banks, number>;
     for (const key of Object.keys(plan.banks) as (keyof typeof plan.banks)[]) {
       const account = await linkBankAccount(
-        { memberId: memberIds[key], bankName: plan.banks[key] },
+        {
+          memberId: memberIds[key],
+          bankName: plan.banks[key],
+          last4: SEED_BANK_LAST4[key],
+        },
         tx,
       );
       await depositToBank(

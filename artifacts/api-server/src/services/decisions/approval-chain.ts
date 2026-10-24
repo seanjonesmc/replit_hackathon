@@ -1,19 +1,22 @@
 import { eq } from "drizzle-orm";
 import {
+  authorizationsTable,
   cardsTable,
   db,
+  membersTable,
   merchantsTable,
   type Authorization,
   type Member,
   type TemporaryPass,
 } from "@workspace/db";
 import { logger } from "../../lib/logger";
+import { findChainCardId } from "../blockchain";
 import {
   submitInBackground,
   type BackgroundSubmitDeps,
   type SubmissionOutcome,
 } from "../events";
-import { handOffToChain } from "./chain-handoff";
+import { handOffToChain, waitForAuthorize } from "./chain-handoff";
 
 /**
  * Mirrors a parent's answer on Monad after its Postgres commit, in the
@@ -71,19 +74,31 @@ export function mirrorPassOnChain(
       owner: { table: "temporary_passes", id: pass.id },
       send: async (client) => {
         const [card] = await executor
-          .select({ onchainCardId: cardsTable.onchainCardId })
+          .select({
+            onchainCardId: cardsTable.onchainCardId,
+            last4: cardsTable.last4,
+            dependentOnchainId: membersTable.onchainId,
+          })
           .from(cardsTable)
+          .innerJoin(membersTable, eq(membersTable.id, cardsTable.dependentMemberId))
           .where(eq(cardsTable.id, pass.cardId));
         const [merchant] = await executor
           .select({ onchainId: merchantsTable.onchainId })
           .from(merchantsTable)
           .where(eq(merchantsTable.id, pass.merchantId));
-        if (card?.onchainCardId == null) {
-          throw new Error(`Card #${pass.cardId} has no on-chain card id.`);
-        }
+        if (!card) throw new Error(`Card #${pass.cardId} is missing.`);
         if (!merchant) throw new Error(`Merchant #${pass.merchantId} is missing.`);
+        // The seeded card (and every card after a demo reset) doesn't store its
+        // on-chain id; find it by holder and last four, as authorize does.
+        const cardId =
+          card.onchainCardId !== null
+            ? BigInt(card.onchainCardId)
+            : await findChainCardId(client, {
+                dependentOnchainId: card.dependentOnchainId,
+                last4: card.last4,
+              });
         return client.grantTemporaryPass({
-          cardId: card.onchainCardId,
+          cardId,
           merchantId: merchant.onchainId,
           maxAmount: pass.maxAmountCents,
           expiresAt: Math.floor(pass.expiresAt.getTime() / 1000),
@@ -94,19 +109,44 @@ export function mirrorPassOnChain(
   );
 }
 
+/**
+ * A parent can answer before the swipe's own `authorize` is mined. Wait for
+ * that hand-off, then re-read the row so its on-chain id is current;
+ * otherwise the answer would be left off chain while the chain still holds
+ * the swipe as pending.
+ */
+async function withOnchainId(
+  original: Authorization,
+  deps?: BackgroundSubmitDeps,
+): Promise<Authorization> {
+  if (original.onchainAuthorizationId !== null) return original;
+  try {
+    await waitForAuthorize(original.id);
+    const [fresh] = await (deps?.executor ?? db)
+      .select()
+      .from(authorizationsTable)
+      .where(eq(authorizationsTable.id, original.id));
+    return fresh ?? original;
+  } catch (err) {
+    (deps?.log ?? logger).error({ err, authorizationId: original.id }, "Could not re-read a swipe's on-chain id");
+    return original;
+  }
+}
+
 export async function mirrorParentDecisionOnChain(
   input: ParentDecisionOnChain,
   deps?: BackgroundSubmitDeps,
 ): Promise<ParentDecisionChainOutcome> {
   const log = deps?.log ?? logger;
+  const original = await withOnchainId(input.original, deps);
   // The contract can only resolve an authorization it holds.
   const resolve =
-    input.original.onchainAuthorizationId === null
+    original.onchainAuthorizationId === null
       ? null
-      : await mirrorResolveOnChain(input, deps);
+      : await mirrorResolveOnChain({ original, parent: input.parent }, deps);
   if (resolve === null) {
     log.info(
-      { authorizationId: input.original.id },
+      { authorizationId: original.id },
       "Original swipe isn't on chain; the parent's decision stays off chain",
     );
   }

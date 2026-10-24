@@ -35,7 +35,12 @@ export {
   mirrorDepositOnChain,
   mirrorSendMoneyOnChain,
 } from "./chain-mirror";
-export { memberOnchainId, seedDemoFamily, type SeedResult } from "./seed";
+export {
+  lockDemoSeed,
+  memberOnchainId,
+  seedDemoFamily,
+  type SeedResult,
+} from "./seed";
 export {
   getActivity,
   getBuckets,

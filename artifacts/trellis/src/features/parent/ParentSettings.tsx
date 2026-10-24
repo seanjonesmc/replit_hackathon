@@ -1,8 +1,8 @@
-import { ArrowRight, LogOut, RotateCcw } from 'lucide-react';
+import { ArrowRight, LogOut } from 'lucide-react';
 import { InitialAvatar, PillButton, SectionTitle, Tag } from '@/components/trellis/primitives';
-import { ComingSoonNote } from '@/components/trellis/states';
 import { ScreenHeader } from '@/features/shell/layout';
 import { useSession } from '@/features/shell/session';
+import { DemoResetControl } from './DemoResetControl';
 
 const productionMap = [
   { demo: 'Simulated bank', production: 'Plaid / ACH' },
@@ -73,10 +73,7 @@ export default function ParentSettings() {
         <SectionTitle>
           <span id="demo-title">Demo</span>
         </SectionTitle>
-        <PillButton variant="outline" block disabled icon={<RotateCcw className="size-4" aria-hidden="true" />} data-testid="button-reset-demo">
-          Reset demo
-        </PillButton>
-        <ComingSoonNote className="mt-2 justify-center">Resetting arrives in a later step of the demo.</ComingSoonNote>
+        <DemoResetControl />
       </section>
     </>
   );

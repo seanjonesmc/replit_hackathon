@@ -44,10 +44,11 @@ export async function listBankAccounts(
 
 /**
  * Links a simulated demo bank. The name must be one of BRAND.demo.banks; the
- * last four digits are generated. Each bank can be linked once per member.
+ * last four digits are generated unless given (the seed fixes them so they
+ * survive a demo reset). Each bank can be linked once per member.
  */
 export async function linkBankAccount(
-  input: { memberId: number; bankName: string },
+  input: { memberId: number; bankName: string; last4?: string },
   executor: DbExecutor = db,
 ): Promise<BankAccount> {
   const allowed = BRAND.demo.banks;
@@ -71,7 +72,7 @@ export async function linkBankAccount(
     .values({
       memberId: member.id,
       bankName: input.bankName,
-      last4: generateLast4(),
+      last4: input.last4 ?? generateLast4(),
     })
     .onConflictDoNothing({
       target: [bankAccountsTable.memberId, bankAccountsTable.bankName],

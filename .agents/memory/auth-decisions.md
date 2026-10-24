@@ -22,7 +22,7 @@ Manual signed-in checks against the dev API (curl) work by inserting a temporary
 
 Live swipe checks (curl or a browser tester) should only make swipes that end REJECTED (blocked category, or a frozen card) or PENDING: those write just an `authorizations` row, so deleting the new rows restores the demo exactly. An APPROVED swipe moves bucket money (held/spent) and needs a full demo reset. Snapshot row counts and bucket totals before, compare after.
 
-**Why:** The demo family must stay as the seed made it, and there is no one-tap reset yet.
+**Why:** The demo family must stay as the seed made it. Since the Reset demo endpoint exists, an approved swipe can also be undone by resetting as the parent.
 
 **How to apply:** Tell testers which merchant tiles they may tap; afterwards delete their authorizations, login users/sessions, unfreeze the card if needed, and restart the API to clear the OIDC override.
 

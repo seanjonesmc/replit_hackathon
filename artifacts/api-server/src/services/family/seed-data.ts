@@ -73,6 +73,17 @@ export const SEED_BUCKETS: readonly SeedBucket[] = [
   },
 ];
 
+/**
+ * Fixed last four digits for each seeded bank, so the numbers on screen are
+ * the same after every demo reset (banks linked through the API get random
+ * ones). Not brand values: plain demo account numbers.
+ */
+export const SEED_BANK_LAST4: Record<SeedFunderKey, string> = {
+  parent: "3071",
+  grandparent: "5518",
+  coParent: "8264",
+};
+
 /** How long ago the seeded deposits and contributions are dated. */
 export const SEED_DEPOSIT_AGO_MS = 7 * DAY + 12 * HOUR;
 export const SEED_CONTRIBUTION_AGO_MS = 6 * DAY;

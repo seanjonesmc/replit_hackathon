@@ -35,6 +35,8 @@ export * from "./contributionRequest";
 export * from "./contributionResult";
 export * from "./decidedBy";
 export * from "./decision";
+export * from "./demoResetRequest";
+export * from "./demoResetResult";
 export * from "./dependentWallet";
 export * from "./depositRequest";
 export * from "./depositResult";

@@ -78,6 +78,15 @@ function defaultExecutor(deps?: BackgroundSubmitDeps) {
 }
 
 /**
+ * Resolves once this swipe's `authorize` hand-off (if one is in flight in
+ * this process) has finished, so callers can re-read its on-chain id.
+ * Never rejects.
+ */
+export async function waitForAuthorize(authorizationId: number): Promise<void> {
+  await authorizeRuns.get(authorizationId)?.catch(() => undefined);
+}
+
+/**
  * Mirrors one stored swipe with `authorize`. Swipes the chain can't record
  * (a custom merchant, or a card that doesn't exist) are skipped and stay
  * `not_submitted`. Once mined, the contract's authorization id is written

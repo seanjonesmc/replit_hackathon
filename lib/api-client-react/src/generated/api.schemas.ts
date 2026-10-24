@@ -192,6 +192,23 @@ export interface ContributionResult {
   bucket: Bucket;
 }
 
+export interface DemoResetRequest {
+  /**
+   * The parent asking for the reset.
+   * @minimum 1
+   * @maximum 2147483647
+   */
+  memberId: number;
+}
+
+export interface DemoResetResult {
+  /** The re-seeded family's new id. */
+  familyId: number;
+  /** How many seeded purchases were recorded again. */
+  historyAdded: number;
+  resetAt: string;
+}
+
 export interface SendMoneyResult {
   deposit: BankDeposit;
   contribution: Contribution;

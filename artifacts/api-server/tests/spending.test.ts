@@ -47,6 +47,7 @@ const SPENDING_ROUTES = [
   { method: "POST", path: "/api/card/freeze" },
   { method: "POST", path: "/api/card/unfreeze" },
   { method: "GET", path: "/api/policy" },
+  { method: "POST", path: "/api/demo/reset", body: { memberId: 1 } },
 ] as const;
 
 let server: Server;

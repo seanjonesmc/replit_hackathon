@@ -23,6 +23,10 @@ tags:
       The dependent's card, the simulated merchants, the decision engine
       (swipes), the activity feed and pending approvals, and the family's
       spending policy. Every route requires sign-in.
+  - name: Demo
+    description: >-
+      Presenter controls for rehearsing the demo script. Every route requires
+      sign-in.
 paths:
   /healthz:
     get:
@@ -386,6 +390,44 @@ paths:
                 $ref: "#/components/schemas/Settlement"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /demo/reset:
+    post:
+      tags: [Demo]
+      operationId: resetDemo
+      summary: Reset the demo to the script's starting point (parent only)
+      description: >-
+        In one database transaction, deletes the demo family and everything a
+        run created (contributions, deposits, held and settled purchases,
+        settlement runs, temporary passes, policy and card changes), then
+        re-runs the seed. Afterwards no purchase is held, nothing from the
+        script has happened yet, and every amount on screen matches the seed.
+        Member, bank, bucket and purchase ids all change. Nothing on chain is
+        undone; the fresh rows carry no chain records, so explorer links from
+        earlier runs are no longer shown. Only the family's parent can reset,
+        under the same rule as answering a purchase: 403 for anyone else, or
+        when that parent is linked to a different account. Accounts linked to
+        members stay linked.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DemoResetRequest"
+      responses:
+        "200":
+          description: The demo was reset.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoResetResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
   /merchants:
@@ -1054,6 +1096,28 @@ components:
           $ref: "#/components/schemas/BankAccount"
         bucket:
           $ref: "#/components/schemas/Bucket"
+    DemoResetRequest:
+      type: object
+      required: [memberId]
+      properties:
+        memberId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+          description: The parent asking for the reset.
+    DemoResetResult:
+      type: object
+      required: [familyId, historyAdded, resetAt]
+      properties:
+        familyId:
+          type: integer
+          description: The re-seeded family's new id.
+        historyAdded:
+          type: integer
+          description: How many seeded purchases were recorded again.
+        resetAt:
+          type: string
+          format: date-time
     SendMoneyResult:
       type: object
       required: [deposit, contribution, bankAccount, bucket]

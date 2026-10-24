@@ -29,6 +29,7 @@ export {
 } from "./authorizations";
 export {
   PASS_MINUTES,
+  requireParent,
   resolveApproval,
   type ParentDecision,
   type ResolveApprovalInput,

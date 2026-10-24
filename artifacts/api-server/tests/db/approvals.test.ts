@@ -22,7 +22,9 @@ import {
   seedSpendingDemo,
   type SwipeInput,
 } from "../../src/services/decisions";
+import { waitForAuthorize } from "../../src/services/decisions/chain-handoff";
 import type { BackgroundSubmitDeps } from "../../src/services/events";
+import { resetDemo } from "../../src/services/demo";
 import { FamilyServiceError, seedDemoFamily } from "../../src/services/family";
 import { resetTestDatabase } from "./test-database";
 
@@ -35,6 +37,7 @@ import { resetTestDatabase } from "./test-database";
 
 vi.mock("../../src/services/decisions/chain-handoff", () => ({
   handOffToChain: vi.fn(async () => {}),
+  waitForAuthorize: vi.fn(async () => {}),
 }));
 
 const NO_GUARD = { aiGuard: null } as const;
@@ -44,16 +47,22 @@ const PRESENTER = "presenter-account";
 let swipe: (merchant: string, amount: number, time?: string) => SwipeInput;
 let parent: Member;
 let funder: Member;
+let dependentMember: Member;
 
 beforeEach(async () => {
   await resetTestDatabase();
   await seedDemoFamily();
   await seedSpendingDemo();
+  await loadFamily();
+});
 
+/** Reads the seeded family (again after a demo reset, which changes every id). */
+async function loadFamily() {
   const members = await db.select().from(membersTable);
   const dependent = members.find((m) => m.role === "dependent")!;
   parent = members.find((m) => m.role === "parent")!;
   funder = members.find((m) => m.role === "funder")!;
+  dependentMember = dependent;
   const [card] = await db.select().from(cardsTable).where(eq(cardsTable.dependentMemberId, dependent.id));
   const merchants = new Map((await db.select().from(merchantsTable)).map((m) => [m.slug, m]));
 
@@ -73,7 +82,7 @@ beforeEach(async () => {
       timestamp: `2026-10-23T${time}:00`,
     };
   };
-});
+}
 
 afterAll(() => pool.end());
 
@@ -332,7 +341,10 @@ describe("answering a request that isn't waiting", () => {
 
 const ADDRESS = "0x0b7d36cdb2af14db03ae947bb845d8bdf4aa9e17";
 
-function fakeChain(options: { failPass?: boolean } = {}) {
+/** Cards the fake contract holds, in id order (the first id is 1). */
+type ChainCard = { dependentId: string; last4: string };
+
+function fakeChain(options: { failPass?: boolean; cards?: ChainCard[] } = {}) {
   const calls: string[] = [];
   let n = 0;
   const hash = () => `0x${(++n).toString(16).padStart(64, "0")}`;
@@ -347,7 +359,10 @@ function fakeChain(options: { failPass?: boolean } = {}) {
     ids: {},
     events: [{ eventName, contractAddress: ADDRESS, txHash, blockNumber: 200 + n, logIndex: 0, args: {} }],
   });
+  const cards = options.cards ?? [];
   const client = {
+    getCounts: async () => ({ cards: BigInt(cards.length) }),
+    getCard: async (id: bigint) => cards[Number(id) - 1]!,
     resolvePending: async (p: { authorizationId: number; approved: boolean; parentId: string }) => {
       calls.push(`resolvePending ${p.authorizationId} ${p.approved} ${p.parentId}`);
       const txHash = hash();
@@ -435,5 +450,69 @@ describe("mirroring a parent's answer on chain", () => {
     expect(off.calls).toEqual([]);
     const [row] = await db.select().from(authorizationsTable).where(eq(authorizationsTable.id, approved.original.id));
     expect(row!.resolveChainStatus).toBe("not_submitted");
+  });
+
+  describe("with the seeded card, which doesn't store its on-chain id", () => {
+    /** Another holder's card first, so the lookup must match holder and last four. */
+    async function chainWithSeededCard() {
+      const [card] = await db.select().from(cardsTable).where(eq(cardsTable.dependentMemberId, dependentMember.id));
+      expect(card!.onchainCardId).toBeNull();
+      return fakeChain({
+        cards: [
+          { dependentId: `0x${"9".repeat(64)}`, last4: card!.last4 },
+          { dependentId: dependentMember.onchainId, last4: card!.last4 },
+        ],
+      });
+    }
+
+    async function approveOnChain() {
+      const original = await pendingSwipe("Apple Store", 129_00);
+      await db.update(authorizationsTable).set({ onchainAuthorizationId: 7 }).where(eq(authorizationsTable.id, original.id));
+      return resolveApproval({ authorizationId: original.id, parentId: parent.id, actingUserId: PRESENTER, decision: "approve" });
+    }
+
+    it("finds the card by holder and last four and grants the pass on it", async () => {
+      const chain = await chainWithSeededCard();
+      const outcome = await approveOnChain();
+
+      const result = await mirrorParentDecisionOnChain(outcome, chain.deps());
+
+      expect(result.pass?.status).toBe("confirmed");
+      expect(chain.calls[1]).toMatch(/^grantTemporaryPass 2 /);
+      const [retry] = await db.select().from(authorizationsTable).where(eq(authorizationsTable.id, outcome.retry!.id));
+      expect(retry!.decision).toBe("APPROVED");
+    });
+
+    it("still grants the pass on the same chain card after a demo reset", async () => {
+      await resetDemo({ memberId: parent.id, actingUserId: PRESENTER });
+      await loadFamily();
+      const chain = await chainWithSeededCard();
+      const outcome = await approveOnChain();
+
+      const result = await mirrorParentDecisionOnChain(outcome, chain.deps());
+
+      expect(result.resolve?.status).toBe("confirmed");
+      expect(result.pass?.status).toBe("confirmed");
+      expect(chain.calls[1]).toMatch(/^grantTemporaryPass 2 /);
+    });
+  });
+
+  it("waits for a swipe's authorize still being mined, then resolves it on chain", async () => {
+    const original = await pendingSwipe("Apple Store", 129_00);
+    await db.update(cardsTable).set({ onchainCardId: 1 }).where(eq(cardsTable.id, original.cardId!));
+    // The parent answers before authorize() is mined: no on-chain id yet.
+    const outcome = await resolveApproval({ authorizationId: original.id, parentId: parent.id, actingUserId: PRESENTER, decision: "approve" });
+    expect(outcome.original.onchainAuthorizationId).toBeNull();
+    // ...and the in-flight authorize lands as #9 while the mirror waits.
+    vi.mocked(waitForAuthorize).mockImplementationOnce(async () => {
+      await db.update(authorizationsTable).set({ onchainAuthorizationId: 9 }).where(eq(authorizationsTable.id, original.id));
+    });
+    const chain = fakeChain();
+
+    const result = await mirrorParentDecisionOnChain(outcome, chain.deps());
+
+    expect(waitForAuthorize).toHaveBeenCalledWith(original.id);
+    expect(chain.calls[0]).toBe(`resolvePending 9 true ${parent.onchainId}`);
+    expect(result.resolve?.status).toBe("confirmed");
   });
 });

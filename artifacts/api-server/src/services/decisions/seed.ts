@@ -84,12 +84,16 @@ interface HistoryEntry {
  * through the real rule engine, so balances and reasons match the rules.
  * Food keeps $118.75, School all $200 and Transit all $50, enough to run the
  * presets several times.
+ *
+ * Nothing here repeats a live step of the demo script: there is no $18.40
+ * Trader Joe's purchase (the dependent makes that one live) and nothing happens today,
+ * so after a seed or a demo reset the script's swipe is always new.
  */
 const SEED_HISTORY: readonly HistoryEntry[] = [
-  { daysAgo: 4, time: "12:15", merchant: "trader-joes", amountCents: 18_40, items: ["bananas", "oat milk", "pasta"], location: "Westwood, Los Angeles", expect: "approved" },
+  { daysAgo: 4, time: "12:15", merchant: "trader-joes", amountCents: 21_15, items: ["bananas", "oat milk", "pasta"], location: "Westwood, Los Angeles", expect: "approved" },
   { daysAgo: 4, time: "17:30", merchant: "tipsy-tavern", amountCents: 27_50, items: ["burger", "fries"], location: "Westwood, Los Angeles", expect: "blocked_category" },
   { daysAgo: 3, time: "10:40", merchant: "campus-bookstore", amountCents: 165_00, items: ["chemistry textbook", "lab manual"], location: "On campus", expect: "over_limit" },
-  { daysAgo: 3, time: "18:20", merchant: "trader-joes", amountCents: 12_85, items: ["rice", "eggs", "spinach"], location: "Westwood, Los Angeles", expect: "approved" },
+  { daysAgo: 3, time: "18:20", merchant: "trader-joes", amountCents: 10_10, items: ["rice", "eggs", "spinach"], location: "Westwood, Los Angeles", expect: "approved" },
   { daysAgo: 2, time: "15:45", merchant: "steam", amountCents: 9_99, items: ["indie game"], location: "Online", expect: "blocked_category" },
   { daysAgo: 2, time: "19:00", merchant: "amc", amountCents: 35_00, items: ["movie ticket", "popcorn"], location: "Century City, Los Angeles", expect: "needs_approval", parentApproves: true },
   { daysAgo: 1, time: "13:10", merchant: "trader-joes", amountCents: 72_00, items: ["groceries for a study group"], location: "Westwood, Los Angeles", expect: "over_limit" },
@@ -115,6 +119,7 @@ export interface SpendingSeedResult {
 
 export async function seedSpendingDemo(
   executor: DbExecutor = db,
+  now: Date = new Date(),
 ): Promise<SpendingSeedResult> {
   return executor.transaction(async (tx) => {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(${SPENDING_SEED_LOCK_KEY})`);
@@ -157,7 +162,6 @@ export async function seedSpendingDemo(
     // The card and its history are created together, exactly once.
     if (existingCard) return result;
 
-    const now = new Date();
     const [card] = await tx
       .insert(cardsTable)
       .values({

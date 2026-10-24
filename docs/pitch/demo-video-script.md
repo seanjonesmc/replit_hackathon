@@ -94,7 +94,7 @@ Cast (from the brand config; update here if the names change there): **Maya**
 
 ## Recording and edit tips
 
-- Use **Reset demo → Reset with seeded family** before every take.
+- Use **Reset demo** (parent → Settings) before every take. It returns the app to the script's starting point; nothing on chain is undone.
 - Record at the phone-width layout (390px). Zoom in on each decision card.
 - Shoot the bar decline after the rules are set, so it shows the real rule
   text, then move it to the front in the edit.

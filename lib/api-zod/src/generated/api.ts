@@ -887,6 +887,30 @@ export const GetSettlementResponse = zod.object({
 });
 
 /**
+ * In one database transaction, deletes the demo family and everything a run created (contributions, deposits, held and settled purchases, settlement runs, temporary passes, policy and card changes), then re-runs the seed. Afterwards no purchase is held, nothing from the script has happened yet, and every amount on screen matches the seed. Member, bank, bucket and purchase ids all change. Nothing on chain is undone; the fresh rows carry no chain records, so explorer links from earlier runs are no longer shown. Only the family's parent can reset, under the same rule as answering a purchase: 403 for anyone else, or when that parent is linked to a different account. Accounts linked to members stay linked.
+ * @summary Reset the demo to the script's starting point (parent only)
+ */
+export const resetDemoBodyMemberIdMax = 2147483647;
+
+export const ResetDemoBody = zod.object({
+  memberId: zod
+    .number()
+    .int()
+    .min(1)
+    .max(resetDemoBodyMemberIdMax)
+    .describe("The parent asking for the reset."),
+});
+
+export const ResetDemoResponse = zod.object({
+  familyId: zod.number().int().describe("The re-seeded family's new id."),
+  historyAdded: zod
+    .number()
+    .int()
+    .describe("How many seeded purchases were recorded again."),
+  resetAt: zod.coerce.date(),
+});
+
+/**
  * The simulated merchants for the swipe grid, in seed order.
  * @summary List the seeded merchants
  */
