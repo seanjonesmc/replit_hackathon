@@ -3,6 +3,7 @@ import { Router, useLocation } from 'wouter';
 import { memoryLocation } from 'wouter/memory-location';
 import { ComingSoonScreen } from '@/components/trellis/coming-soon-screen';
 import { RoleSwitcher } from '@/components/trellis/role-switcher';
+import { RoleSwitcherSlot } from '@/components/trellis/role-switcher-slot';
 import { TabBar } from '@/components/trellis/tab-bar';
 import { ROLES, firstTabPath, matchTab, type RoleId, type TabPath } from '@/lib/route-map';
 import { PhoneFrame, PreviewSection, SampleLabel, Specimen } from './preview-kit';
@@ -16,11 +17,10 @@ function ShellSample() {
   if (!tab) return null;
   return (
     <div className="flex h-full flex-col">
-      <div className="bg-signature px-4 py-3">
-        <RoleSwitcher activeRole={tab.role} />
-      </div>
       <div className="flex flex-1 flex-col overflow-y-auto">
-        <ComingSoonScreen tab={tab} body={`Preview only. In the app this tab lives at ${tab.path}.`} />
+        <RoleSwitcherSlot activeRole={tab.role} fallback={() => null}>
+          <ComingSoonScreen tab={tab} body={`Preview only. In the app this tab lives at ${tab.path}.`} />
+        </RoleSwitcherSlot>
       </div>
       <TabBar role={tab.role} activeTab={tab.path} badges={{ '/parent/approvals': SAMPLE_BADGE }} />
     </div>
@@ -70,7 +70,7 @@ export function ShellSection() {
           <h3 className="type-label mt-4 px-1 text-ink-muted">Role switcher, each role active</h3>
           <ul className="flex flex-col gap-2">
             {ROLES.map((role) => (
-              <li key={role.id} inert className="mx-auto w-full max-w-[390px] rounded-card-sm bg-signature px-4 py-3" data-testid={`specimen-switcher-${role.id}`}>
+              <li key={role.id} inert className="mx-auto flex w-full max-w-[390px] justify-end rounded-card-sm border px-4 py-3" data-testid={`specimen-switcher-${role.id}`}>
                 <RoleSwitcher activeRole={role.id} />
               </li>
             ))}

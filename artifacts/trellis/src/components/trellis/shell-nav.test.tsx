@@ -6,6 +6,8 @@ import { memoryLocation } from 'wouter/memory-location';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { BRAND } from '@brand/brand.config';
 import { RoleSwitcher } from './role-switcher';
+import { RoleSwitcherSlot } from './role-switcher-slot';
+import { ScreenHeader } from '@/features/shell/layout';
 import { TabBar } from './tab-bar';
 
 let root: Root | null = null;
@@ -56,6 +58,54 @@ describe('RoleSwitcher', () => {
   it('keeps links under the base path', () => {
     render(<RoleSwitcher activeRole="parent" />, '/sub/path');
     expect(links('Switch role')[2].getAttribute('href')).toBe('/sub/path/dependent/wallet');
+  });
+
+  it('shows who is being viewed and opens and closes the role list', () => {
+    render(<RoleSwitcher activeRole="funder" />);
+    const button = host.querySelector<HTMLButtonElement>('[data-testid="button-role-switcher"]')!;
+    const panel = host.querySelector<HTMLElement>('[data-testid="panel-role-switcher"]')!;
+    expect(button.getAttribute('aria-label')).toBe(`Viewing as ${BRAND.demo.funders[0]}, Grandparent. Switch role`);
+    expect(button.textContent).toContain('Grandparent');
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(panel.hidden).toBe(true);
+
+    act(() => button.click());
+    expect(button.getAttribute('aria-expanded')).toBe('true');
+    expect(panel.hidden).toBe(false);
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    });
+    expect(panel.hidden).toBe(true);
+    expect(document.activeElement).toBe(button);
+
+    act(() => button.click());
+    act(() => {
+      document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    });
+    expect(panel.hidden).toBe(true);
+  });
+});
+
+describe('RoleSwitcherSlot', () => {
+  const switchers = () => host.querySelectorAll('[data-testid="nav-role-switcher"]');
+  const slot = (ui: ReactNode) => (
+    <RoleSwitcherSlot activeRole="parent" fallback={(switcher) => <div data-testid="fallback-row">{switcher}</div>}>
+      {ui}
+    </RoleSwitcherSlot>
+  );
+
+  it('puts the switcher on the screen heading line, once', () => {
+    render(slot(<ScreenHeader title="Hi" />));
+    expect(switchers()).toHaveLength(1);
+    expect(host.querySelector('[data-testid="fallback-row"]')).toBeNull();
+    expect(switchers()[0].parentElement?.parentElement?.contains(host.querySelector('h1'))).toBe(true);
+  });
+
+  it('keeps a switcher on screen while no heading is shown (loading or error)', () => {
+    render(slot(<p>Loading</p>));
+    expect(switchers()).toHaveLength(1);
+    expect(host.querySelector('[data-testid="fallback-row"]')).not.toBeNull();
   });
 });
 

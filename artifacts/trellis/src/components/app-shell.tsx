@@ -1,13 +1,13 @@
 import { useEffect, type ReactNode } from 'react';
 import { useLocation } from 'wouter';
-import { RoleSwitcher } from '@/components/trellis/role-switcher';
+import { RoleSwitcherSlot } from '@/components/trellis/role-switcher-slot';
 import { TabBar } from '@/components/trellis/tab-bar';
 import { matchTab, saveLastRole, type TabDef, type TabPath } from '@/lib/route-map';
 
 /**
- * Wraps the router. On a role tab URL it draws the phone-width shell: the role
- * switcher pinned at the top, the screen, and that role's tab bar pinned at
- * the bottom. Any other URL (/brand, not found) renders on its own.
+ * Wraps the router. On a role tab URL it draws the phone-width shell: the
+ * screen, with the role switcher on its heading's line, and that role's tab
+ * bar pinned at the bottom. Any other URL (/brand, not found) renders on its own.
  */
 interface AppShellProps {
   children: ReactNode;
@@ -42,10 +42,14 @@ function ShellLayout({ tab, badges, children }: { tab: TabDef; badges?: AppShell
     <div className="min-h-[100dvh] bg-surface-ground">
       {/* Sticky bars stay in the column's flow, so at the end of a scroll nothing is hidden behind them. */}
       <div className="mx-auto flex min-h-[100dvh] max-w-phone flex-col bg-surface" data-testid="app-shell">
-        <header className="pt-safe sticky top-0 z-30 bg-signature px-4 pb-3">
-          <RoleSwitcher activeRole={tab.role} />
-        </header>
-        <main className="flex flex-1 flex-col">{children}</main>
+        <main className="pt-safe flex flex-1 flex-col">
+          <RoleSwitcherSlot
+            activeRole={tab.role}
+            fallback={(switcher) => <div className="flex justify-end px-4 pt-5">{switcher}</div>}
+          >
+            {children}
+          </RoleSwitcherSlot>
+        </main>
         <TabBar role={tab.role} activeTab={tab.path} badges={badges} className="sticky bottom-0 z-30" />
       </div>
     </div>

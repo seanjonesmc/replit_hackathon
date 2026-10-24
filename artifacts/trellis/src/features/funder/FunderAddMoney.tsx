@@ -45,7 +45,7 @@ export default function FunderAddMoney() {
   const list = buckets.data ?? [];
   return (
     <>
-      <ScreenHeader title="Add money" subtitle={name ? `Hi ${name}. Pick a bucket to top up.` : 'Pick a bucket to top up.'} />
+      <ScreenHeader title={name ? `Hi, ${name}` : 'Add money'} subtitle="Pick a bucket to top up." />
 
       <section aria-labelledby="bank-title">
         <SectionTitle>
