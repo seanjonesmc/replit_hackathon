@@ -126,6 +126,7 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | `trellis`    | `artifacts/trellis/vite-brand-plugin.test.ts`          | BRAND-filled `index.html`, base-path asset URLs, SVG output  |
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
 | `workspace`  | `scripts/tests/design-reference.test.ts`               | reference checksum; no code references the reference        |
+| `workspace`  | `scripts/tests/product-spec.test.ts`                   | `docs/product-spec.md` size and checksum (never edit it)     |
 
 A production build smoke check is opt-in because it runs a real `vite build`
 (a few seconds). Run it with `pnpm test:build` (root `vitest.build.config.ts`)
