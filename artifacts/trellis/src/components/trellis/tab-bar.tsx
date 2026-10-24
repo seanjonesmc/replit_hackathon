@@ -42,7 +42,7 @@ export function TabBar({ role, activeTab, badges, className }: TabBarProps) {
                   {showBadge && (
                     <span
                       aria-hidden="true"
-                      className="tnum absolute -top-1 right-1 grid h-5 min-w-5 place-items-center rounded-pill bg-primary px-1 text-[11px] font-bold leading-none text-surface ring-2 ring-surface"
+                      className="tnum absolute -top-1 right-1 grid h-5 min-w-5 place-items-center rounded-pill bg-primary px-1 text-[11px] font-bold leading-none text-on-primary ring-2 ring-surface"
                       data-testid={`badge-tab-${tab.role}-${tab.id}`}
                     >
                       {badgeText(count)}

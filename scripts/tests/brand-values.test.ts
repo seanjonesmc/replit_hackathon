@@ -142,9 +142,9 @@ function brandLiterals(brand: BrandConfig): BrandLiteral[] {
       value,
     })),
     ...demo.banks.map((value) => ({ kind: "bank name" as Kind, value })),
-    ...[fonts.heading, fonts.body, fonts.googleFontsUrl].map((value) => ({ kind: "font" as Kind, value })),
+    ...[fonts.heading, fonts.body, fonts.mono, fonts.googleFontsUrl].map((value) => ({ kind: "font" as Kind, value })),
     // Hex colors are caught by HEX_COLOR; this covers BRAND colors in other notations.
-    ...Object.values(brand.colors)
+    ...[...Object.values(brand.colors), ...Object.values(brand.darkColors ?? {})]
       .filter((value) => !IS_HEX_COLOR.test(value))
       .map((value) => ({ kind: "brand color" as Kind, value })),
   ].filter(({ value }) => value.trim() !== "");
@@ -284,7 +284,7 @@ const REBRANDED: BrandConfig = {
   ...BRAND,
   appName: "Probe Rebrand",
   colors: { ...BRAND.colors, hairline: "rgba(1,2,3,0.5)" },
-  fonts: { heading: "Probe Serif", body: "Probe Sans", googleFontsUrl: "https://fonts.example.test/probe.css" },
+  fonts: { heading: "Probe Serif", body: "Probe Sans", mono: "Probe Mono", googleFontsUrl: "https://fonts.example.test/probe.css" },
   demo: {
     ...BRAND.demo,
     familyName: "The Probe Family",
@@ -304,7 +304,7 @@ describe("brand values come only from BRAND", () => {
     expect(values).toEqual(expect.arrayContaining([BRAND.demo.parent, BRAND.demo.dependent]));
     expect(values).toEqual(expect.arrayContaining(BRAND.demo.funders));
     expect(values).toEqual(expect.arrayContaining(BRAND.demo.banks));
-    expect(values).toEqual(expect.arrayContaining([BRAND.fonts.heading, BRAND.fonts.body]));
+    expect(values).toEqual(expect.arrayContaining([BRAND.fonts.heading, BRAND.fonts.body, BRAND.fonts.mono]));
   });
 
   it("has every current BRAND value recorded in the brand history", () => {

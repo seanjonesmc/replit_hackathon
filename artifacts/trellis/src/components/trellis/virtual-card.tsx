@@ -21,7 +21,7 @@ export function VirtualCard({ holderName, last4, note = 'Simulated card', animat
   return (
     <figure
       className={cn(
-        'lattice relative flex aspect-[1.586] w-full max-w-[358px] flex-col justify-between overflow-hidden rounded-card bg-signature p-6 text-surface',
+        'lattice relative flex aspect-[1.586] w-full max-w-[358px] flex-col justify-between overflow-hidden rounded-card bg-signature p-6 text-on-signature',
         animateIn && motion.cardIn,
         className,
       )}

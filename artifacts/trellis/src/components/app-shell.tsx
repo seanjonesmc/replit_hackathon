@@ -39,7 +39,7 @@ function ShellLayout({ tab, badges, children }: { tab: TabDef; badges?: AppShell
   }, [tab.path]);
 
   return (
-    <div className="min-h-[100dvh] bg-surface-alt">
+    <div className="min-h-[100dvh] bg-surface-ground">
       {/* Sticky bars stay in the column's flow, so at the end of a scroll nothing is hidden behind them. */}
       <div className="mx-auto flex min-h-[100dvh] max-w-phone flex-col bg-surface" data-testid="app-shell">
         <header className="pt-safe sticky top-0 z-30 bg-signature px-4 pb-3">

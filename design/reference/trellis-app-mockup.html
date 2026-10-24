@@ -1,0 +1,630 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Trellis App Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a gallery of five phone screens in demo order, on a warm stone ground; lime marks money and action, sky marks anything recorded on Monad. */
+:root {
+  --ground: #eceae4;
+  --screen: #f6f5f1;
+  --card: #ffffff;
+  --ink: #171815;
+  --ink-soft: #5d5f58;
+  --line: rgba(23, 24, 21, 0.10);
+  --lime: #dcf26e;
+  --lime-ink: #1c2008;
+  --sky: #d3e7ee;
+  --sky-ink: #12313b;
+  --chain: #1f6f8b;
+  --ok: #1d8a4a;
+  --ok-bg: #dff3e6;
+  --no: #c8372d;
+  --no-bg: #fbe3e0;
+  --wait: #b86a00;
+  --wait-bg: #fcefd6;
+  --bezel: #1b1c19;
+  --nav: #1b1c19;
+  --nav-fg: #f6f5f1;
+  --display: "Urbanist", "Avenir Next", "Segoe UI", sans-serif;
+  --body: "Geist", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #10110f; --screen: #191a17; --card: #23241f; --ink: #f1f0ea; --ink-soft: #a5a69d;
+    --line: rgba(241, 240, 234, 0.12); --sky: #284753; --sky-ink: #e2f2f7; --chain: #8fd0e6;
+    --ok: #6fd294; --ok-bg: #1d3526; --no: #ff8a7f; --no-bg: #3d1f1c; --wait: #f2b552; --wait-bg: #3a2c12;
+    --bezel: #000000; --nav: #f1f0ea; --nav-fg: #191a17; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #10110f; --screen: #191a17; --card: #23241f; --ink: #f1f0ea; --ink-soft: #a5a69d;
+  --line: rgba(241, 240, 234, 0.12); --sky: #284753; --sky-ink: #e2f2f7; --chain: #8fd0e6;
+  --ok: #6fd294; --ok-bg: #1d3526; --no: #ff8a7f; --no-bg: #3d1f1c; --wait: #f2b552; --wait-bg: #3a2c12;
+  --bezel: #000000; --nav: #f1f0ea; --nav-fg: #191a17; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 56px;
+}
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 36px; }
+
+header.intro { display: grid; gap: 10px; max-width: 62ch; }
+.mark { display: inline-flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: -0.3px; }
+.mark i { width: 30px; height: 30px; border-radius: 10px; background: var(--lime); display: grid; place-items: center; }
+.mark i svg { width: 18px; height: 18px; }
+header.intro h1 { font-family: var(--display); font-weight: 600; font-size: clamp(30px, 4.4vw, 46px); line-height: 1.05; letter-spacing: -1.2px; margin: 6px 0 0; text-wrap: balance; }
+header.intro p { margin: 0; color: var(--ink-soft); font-size: 15px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 5px 10px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
+.legend b { width: 10px; height: 10px; border-radius: 50%; }
+
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px 28px; justify-items: center; }
+figure { margin: 0; display: grid; gap: 14px; justify-items: center; width: 100%; max-width: 312px; }
+figcaption { display: grid; gap: 2px; width: 100%; padding-inline: 6px; }
+figcaption .step { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); letter-spacing: 0.4px; }
+figcaption strong { font-family: var(--display); font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+figcaption span { color: var(--ink-soft); font-size: 13px; }
+
+/* ---------- phone ---------- */
+.phone { width: 100%; max-width: 312px; aspect-ratio: 312 / 660; background: var(--bezel); border-radius: 46px; padding: 9px; box-shadow: 0 30px 60px -30px rgba(0,0,0,0.45); }
+.screen { position: relative; height: 100%; background: var(--screen); border-radius: 38px; overflow: hidden; display: flex; flex-direction: column; }
+.status { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px 0; font-size: 12px; font-weight: 600; font-family: var(--body); }
+.status .notch { width: 84px; height: 24px; background: var(--bezel); border-radius: 14px; }
+.status .icons { display: flex; gap: 4px; align-items: center; }
+.status .icons i { display: block; width: 14px; height: 9px; border-radius: 2px; border: 1.5px solid currentColor; }
+.body { flex: 1; padding: 14px 16px 84px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+
+.top { display: flex; justify-content: space-between; align-items: flex-start; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--lime); color: var(--lime-ink); display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 15px; }
+.avatar.sky { background: var(--sky); color: var(--sky-ink); }
+.round { width: 36px; height: 36px; border-radius: 50%; background: var(--card); border: 1px solid var(--line); display: grid; place-items: center; }
+.round svg { width: 16px; height: 16px; }
+.hello { font-family: var(--display); font-weight: 500; font-size: 30px; line-height: 1.02; letter-spacing: -0.9px; margin: 2px 0 0; }
+.meta { font-size: 12px; color: var(--ink-soft); }
+
+.seg { display: flex; gap: 6px; }
+.seg span { flex: 1; text-align: center; font-size: 12px; padding: 8px 0; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
+.seg span.on { background: var(--ink); color: var(--screen); border-color: var(--ink); }
+
+.card { border-radius: 24px; padding: 14px; display: grid; gap: 10px; }
+.card.lime { background: var(--lime); color: var(--lime-ink); }
+.card.sky { background: var(--sky); color: var(--sky-ink); }
+.card.plain { background: var(--card); border: 1px solid var(--line); }
+.card-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 500; }
+.card-head .l { display: flex; align-items: center; gap: 6px; }
+.card-head .arrow { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.75); display: grid; place-items: center; color: #171815; }
+.card-head .arrow svg { width: 12px; height: 12px; }
+.big { font-family: var(--display); font-weight: 600; font-size: 34px; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums; }
+.big small { font-size: 15px; font-weight: 500; letter-spacing: 0; opacity: 0.7; }
+
+/* hatched bars, after the reference's striped chart */
+.bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; align-items: end; height: 74px; position: relative; }
+.bars div { border-radius: 6px 6px 3px 3px; background: repeating-linear-gradient(135deg, rgba(28,32,8,0.55) 0 2px, transparent 2px 5px); border: 1px solid rgba(28,32,8,0.35); min-height: 4px; }
+.bars div.hot { background: var(--lime-ink); border-color: var(--lime-ink); }
+.bars .tip { position: absolute; top: -4px; transform: translateX(-50%); font-family: var(--mono); font-size: 10px; background: #fff; color: #171815; padding: 2px 6px; border-radius: 999px; }
+.days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 10px; opacity: 0.7; }
+
+.buckets { display: grid; gap: 9px; }
+.bucket { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; font-size: 12px; }
+.bucket .track { grid-column: 1 / -1; height: 7px; border-radius: 999px; background: rgba(18,49,59,0.15); overflow: hidden; }
+.bucket .fill { height: 100%; border-radius: 999px; background: var(--sky-ink); }
+.bucket b { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.streak { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 9px 12px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); }
+.streak svg { width: 16px; height: 16px; color: var(--wait); flex: none; }
+
+/* bottom nav, after the reference's dark pill dock */
+.dock { position: absolute; left: 14px; right: 14px; bottom: 14px; height: 56px; border-radius: 999px; background: var(--nav); display: flex; align-items: center; justify-content: space-around; padding: 0 8px; }
+.dock span { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; color: var(--nav-fg); opacity: 0.6; }
+.dock span.on { background: var(--lime); color: #1c2008; opacity: 1; }
+.dock svg { width: 17px; height: 17px; }
+
+/* decision screen */
+.decision { border-radius: 28px; padding: 16px; display: grid; gap: 12px; background: var(--wait-bg); }
+.pill { display: inline-flex; align-items: center; gap: 6px; width: fit-content; font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 999px; }
+.pill.wait { background: var(--wait); color: #fff; }
+.pill.ok { background: var(--ok-bg); color: var(--ok); }
+.pill.no { background: var(--no-bg); color: var(--no); }
+.pill.chain { background: var(--sky); color: var(--sky-ink); }
+.merchant { display: flex; justify-content: space-between; align-items: baseline; }
+.merchant h3 { margin: 0; font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+.merchant .amt { font-family: var(--display); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.mcc { font-family: var(--mono); font-size: 10.5px; color: var(--ink-soft); }
+.items { display: grid; gap: 6px; }
+.item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; padding: 9px 10px; border-radius: 14px; background: var(--card); }
+.item i { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.item i svg { width: 11px; height: 11px; }
+.item.good i { background: var(--ok-bg); color: var(--ok); }
+.item.bad { outline: 1.5px solid var(--no); }
+.item.bad i { background: var(--no-bg); color: var(--no); }
+.item .p { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+.reason { font-size: 13px; line-height: 1.4; }
+.note { border-radius: 18px; background: var(--card); border: 1px solid var(--line); padding: 10px 12px; font-size: 12.5px; display: grid; gap: 4px; }
+.note label { font-size: 10.5px; color: var(--ink-soft); }
+.btn { display: flex; justify-content: center; align-items: center; height: 44px; border-radius: 999px; font-weight: 600; font-size: 14px; }
+.btn.dark { background: var(--ink); color: var(--screen); }
+.btn.lime { background: var(--lime); color: var(--lime-ink); }
+.btn.ghost { background: var(--card); border: 1px solid var(--line); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* approvals */
+.req { border-radius: 22px; padding: 12px; display: grid; gap: 9px; background: var(--card); border: 1px solid var(--line); }
+.req .who { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.req .who .avatar { width: 28px; height: 28px; font-size: 11px; }
+.req .quote { font-size: 12.5px; padding: 8px 10px; border-radius: 12px; background: var(--screen); }
+.req .row2 .btn { height: 36px; font-size: 13px; }
+
+/* savings */
+.goal-card { border-radius: 28px; background: var(--lime); color: var(--lime-ink); padding: 16px; display: grid; gap: 12px; }
+.goal-card h3 { margin: 0; font-family: var(--display); font-weight: 600; font-size: 20px; letter-spacing: -0.4px; line-height: 1.1; }
+.meter { height: 16px; border-radius: 999px; background: rgba(28,32,8,0.12); overflow: hidden; display: flex; }
+.meter .saved { background: var(--lime-ink); }
+.meter .match { background: repeating-linear-gradient(135deg, var(--lime-ink) 0 2px, transparent 2px 5px); }
+.split { display: flex; justify-content: space-between; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.toast { border-radius: 24px; background: var(--card); border: 1px solid var(--line); padding: 16px 14px; display: grid; gap: 8px; justify-items: center; text-align: center; }
+.toast .check { width: 44px; height: 44px; border-radius: 50%; background: var(--lime); display: grid; place-items: center; color: #1c2008; box-shadow: 0 0 0 8px color-mix(in srgb, var(--lime) 35%, transparent); }
+.toast .check svg { width: 20px; height: 20px; }
+.toast strong { font-family: var(--display); font-size: 18px; font-weight: 600; }
+.toast span { font-size: 12px; color: var(--ink-soft); }
+
+/* record */
+.feed { display: grid; gap: 7px; }
+.fr { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; padding: 10px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); font-size: 12px; }
+.fr .dot { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; font-family: var(--display); }
+.fr .dot.ok { background: var(--ok-bg); color: var(--ok); }
+.fr .dot.no { background: var(--no-bg); color: var(--no); }
+.fr .txt { min-width: 0; }
+.fr .txt b { display: block; font-weight: 600; }
+.fr .txt em { font-style: normal; color: var(--ink-soft); font-size: 11px; }
+.fr .v { font-variant-numeric: tabular-nums; font-weight: 600; }
+.fr .chainline { grid-column: 2 / -1; display: flex; gap: 6px; align-items: center; font-family: var(--mono); font-size: 10px; color: var(--chain); }
+.tamper { border-radius: 22px; background: var(--sky); color: var(--sky-ink); padding: 12px; display: grid; gap: 6px; font-size: 12px; }
+.tamper .mono { font-family: var(--mono); font-size: 10.5px; }
+.tamper strong { font-family: var(--display); font-size: 15px; font-weight: 600; }
+
+footer { color: var(--ink-soft); font-size: 12px; max-width: 70ch; }
+
+/* ---------- Sprig, the mascot ----------
+   Line art on lime only, so the dark outline reads in both themes.
+   It appears where guidance happens: welcome, the AI guard, the streak. */
+.screen.welcome { background: var(--lime); color: var(--lime-ink); }
+.welcome .body { padding-bottom: 20px; gap: 6px; }
+.stage { position: relative; height: 47%; display: grid; place-items: center; }
+.stage .disc { position: absolute; width: 72%; aspect-ratio: 1; border-radius: 50%; background: rgba(28, 32, 8, 0.10); }
+.stage .hero-sprig { position: relative; width: 78%; max-width: 220px; overflow: visible; }
+.doodle { position: absolute; width: 34px; height: 34px; color: var(--lime-ink); }
+.doodle svg { width: 100%; height: 100%; }
+.welcome h2 { margin: 0; font-family: var(--display); font-weight: 600; font-size: 31px; line-height: 1.08; letter-spacing: -0.9px; }
+.welcome h2 .go { display: inline-flex; vertical-align: middle; align-items: center; justify-content: center; width: 54px; height: 28px; border-radius: 999px; background: var(--lime-ink); color: var(--lime); margin: 0 2px 4px; }
+.welcome h2 .go svg { width: 16px; height: 16px; }
+.welcome .sub { font-size: 12.5px; opacity: 0.75; margin: 4px 0 0; }
+.wfoot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; }
+.wfoot .start { display: flex; align-items: center; gap: 10px; }
+.wfoot .start i { width: 52px; height: 52px; border-radius: 50%; background: var(--lime-ink); color: var(--lime); display: grid; place-items: center; }
+.wfoot .start i svg { width: 18px; height: 18px; }
+.guide { display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: start; }
+.badge-sprig { width: 40px; height: 40px; border-radius: 50%; background: var(--lime); display: grid; place-items: center; overflow: hidden; }
+.badge-sprig svg { width: 32px; height: 32px; }
+.streak .badge-sprig { width: 30px; height: 30px; flex: none; }
+.streak .badge-sprig svg { width: 26px; height: 26px; }
+
+/* ---------- motion system ----------
+   Motion only happens when money moves, a decision lands, or Monad confirms.
+   One easing curve, short distances, no overshoot, nothing loops. */
+:root { --ease: cubic-bezier(0.2, 0.8, 0.2, 1); --t-quick: 0.35s; --t-base: 0.6s; --t-slow: 0.9s; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 6px; }
+.replay { font: 600 13px var(--body); color: var(--screen); background: var(--ink); border: 0; border-radius: 999px; padding: 10px 16px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.replay:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.replay svg { width: 14px; height: 14px; }
+.controls small { color: var(--ink-soft); font-size: 12px; }
+.req { position: relative; }
+.resolved { position: absolute; left: 12px; right: 12px; bottom: 12px; height: 36px; border-radius: 999px; background: var(--ok-bg); color: var(--ok); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12.5px; font-weight: 600; }
+.resolved .pill { padding: 3px 8px; font-size: 10px; }
+.item { position: relative; }
+.item .strike { position: absolute; left: 36px; right: 64px; top: 50%; height: 1.5px; background: var(--no); transform-origin: left; }
+.typed { display: inline-block; }
+.struck { position: relative; display: inline-block; }
+.struck::after { content: ""; position: absolute; left: -2px; right: -2px; top: 52%; height: 1.5px; background: currentColor; transform-origin: left; }
+.live { position: relative; display: inline-grid; place-items: center; }
+.live::before { content: ""; position: absolute; width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--chain); opacity: 0; }
+
+.motion { display: grid; gap: 14px; }
+.motion h2 { margin: 0; font-family: var(--display); font-weight: 600; font-size: 24px; letter-spacing: -0.5px; }
+.motion > p { margin: 0; color: var(--ink-soft); max-width: 62ch; }
+.mtable { overflow-x: auto; border-radius: 20px; border: 1px solid var(--line); background: var(--card); }
+.mtable table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 620px; }
+.mtable th, .mtable td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.mtable tr:last-child td { border-bottom: 0; }
+.mtable th { font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+.mtable td:last-child { font-family: var(--mono); font-size: 11.5px; color: var(--ink-soft); white-space: nowrap; }
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes growY { from { transform: scaleY(0); } }
+  @keyframes growX { from { transform: scaleX(0); } }
+  @keyframes tipIn { from { opacity: 0; transform: translate(-50%, -6px); } }
+  @keyframes flag { from { outline-color: transparent; } }
+  @keyframes type { from { clip-path: inset(0 100% 0 0); } }
+  @keyframes press { 50% { transform: scale(0.98); } }
+  @keyframes settle { from { opacity: 0; transform: translateY(4px); } }
+  @keyframes pop { from { opacity: 0; transform: scale(0.97); } }
+  @keyframes ring { 0% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 0; transform: scale(1.7); } }
+
+  /* 00 welcome: Sprig and the headline settle in; nothing moves after */
+  .play .stage .disc { animation: fade var(--t-slow) var(--ease) backwards; }
+  .play .hero-sprig { animation: fade var(--t-slow) var(--ease) 0.1s backwards; }
+  .play .hero-sprig .vine { stroke-dasharray: 1; animation: draw 1.4s var(--ease) 0.3s backwards; }
+  .play .hero-sprig .leaf { animation: fade var(--t-base) var(--ease) 1.1s backwards; }
+  @keyframes draw { from { stroke-dashoffset: 1; } }
+  .play .doodle { animation: fade var(--t-slow) var(--ease) 0.4s backwards; }
+  .play .welcome h2 { animation: rise var(--t-base) var(--ease) 0.5s backwards; }
+  .play .guide .badge-sprig, .play .streak .badge-sprig { animation: fade var(--t-base) var(--ease) 1.5s backwards; }
+
+  /* 01 wallet: the week's spending draws itself */
+  .play .hello { animation: rise var(--t-base) var(--ease) backwards; }
+  .play .bars div { transform-origin: bottom; animation: growY var(--t-slow) var(--ease) backwards; }
+  .play .bars div:nth-child(2) { animation-delay: 0.06s; } .play .bars div:nth-child(3) { animation-delay: 0.12s; }
+  .play .bars div:nth-child(4) { animation-delay: 0.18s; } .play .bars div:nth-child(5) { animation-delay: 0.24s; }
+  .play .bars div:nth-child(6) { animation-delay: 0.30s; } .play .bars div:nth-child(7) { animation-delay: 0.36s; }
+  .play .bars .tip { animation: tipIn var(--t-quick) var(--ease) 0.9s backwards; }
+  .play .bucket .fill { transform-origin: left; animation: growX var(--t-slow) var(--ease) 0.4s backwards; }
+
+  /* 02 decision: items arrive one by one; the problem item is flagged and struck */
+  .play .decision { animation: rise var(--t-base) var(--ease) backwards; }
+  .play .item:nth-child(1) { animation: rise var(--t-quick) var(--ease) 0.4s backwards; }
+  .play .item.bad { animation: rise var(--t-quick) var(--ease) 0.6s backwards, flag var(--t-base) var(--ease) 1.1s backwards; }
+  .play .item .strike { animation: growX var(--t-base) var(--ease) 1.3s backwards; }
+  .play .decision .reason { animation: rise var(--t-quick) var(--ease) 1.6s backwards; }
+  .play .typed { animation: type 1.1s var(--ease) 2.0s backwards; }
+
+  /* 03 approvals: one tap, and the request settles into Approved */
+  .play .req { animation: rise var(--t-base) var(--ease) backwards; }
+  .play .req + .req { animation-delay: 0.15s; }
+  .play .req .btn.lime { animation: press 0.3s var(--ease) 1.5s; }
+  .play .resolved { animation: settle var(--t-quick) var(--ease) 1.8s backwards; }
+
+  /* 04 savings: Leo's part fills, then Maya's match follows */
+  .play .meter .saved { transform-origin: left; animation: growX var(--t-slow) var(--ease) 0.3s backwards; }
+  .play .meter .match { transform-origin: left; animation: growX var(--t-base) var(--ease) 1.3s backwards; }
+  .play .toast { animation: rise var(--t-base) var(--ease) 1.7s backwards; }
+  .play .toast .check { animation: pop var(--t-base) var(--ease) 1.9s backwards; }
+  .play .streak { animation: rise var(--t-quick) var(--ease) 2.2s backwards; }
+
+  /* 05 record: rows land in order; each Monad confirmation rings once */
+  .play .fr { animation: rise var(--t-quick) var(--ease) backwards; }
+  .play .fr:nth-child(2) { animation-delay: 0.2s; } .play .fr:nth-child(3) { animation-delay: 0.4s; }
+  .play .fr .live::before { animation: ring 0.9s var(--ease) 0.9s 1 both; }
+  .play .fr:nth-child(2) .live::before { animation-delay: 1.1s; }
+  .play .tamper .struck::after { animation: growX var(--t-base) var(--ease) 1.7s backwards; }
+  .play .tamper strong, .play .tamper .why { animation: rise var(--t-quick) var(--ease) 2.1s backwards; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18"/></symbol>
+  <symbol id="i-pig" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a7 6 0 0 1 13-2h2v4l-2 1v3h-3v-2H9v2H6v-3a5 5 0 0 1-1-3z"/><circle cx="15" cy="10" r=".6" fill="currentColor"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s5 4.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 1-3.5s.5 2 2 2.5C10 8 12 2 12 2z"/></symbol>
+  <symbol id="i-chain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 13a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1 1M14 11a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1-1"/></symbol>
+  <!-- Trellis guide mark: a sprout crossing a lattice, no face -->
+  <symbol id="sprig" viewBox="0 0 40 40">
+    <g fill="none" stroke="#171815" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8 32 L20 20 L32 32 M8 20 L20 8 L32 20 M8 20 L20 32 M20 8 L32 20" opacity="0.35"/>
+      <path d="M20 34 C20 27 19 22 20 15"/>
+      <path d="M20 21 C14 21 11 17 11 12 C17 12 20 16 20 21 Z" fill="#dcf26e"/>
+      <path d="M20 17 C23 12 27 10 31 11 C30 16 26 18 20 17 Z" fill="#dcf26e"/>
+    </g>
+  </symbol>
+  <symbol id="i-sprout" viewBox="0 0 24 24" fill="none" stroke="#1c2008" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V10M12 10c0-4-3-6-7-6 0 4 3 6 7 6zM12 13c0-3 2.5-5 6-5 0 3.5-2.5 5-6 5z"/></symbol>
+</svg>
+
+<main class="wrap">
+  <header class="intro">
+    <div class="mark"><i><svg><use href="#i-sprout"/></svg></i>Trellis</div>
+    <h1>Family money, with guardrails.</h1>
+    <p>A welcome screen plus five screens from the demo, in the order the video shows them. Leo, 19, is an international student in Boston. Maya and Grandma Rose fund him from Mexico City.</p>
+    <div class="legend">
+      <span><b style="background: var(--lime)"></b>Money and actions</span>
+      <span><b style="background: var(--sky)"></b>Recorded on Monad</span>
+      <span><b style="background: var(--wait)"></b>Waiting on a parent</span>
+    </div>
+    <div class="controls">
+      <button class="replay" id="replay" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Replay motion</button>
+      <small>Motion is off when your device asks for reduced motion.</small>
+    </div>
+  </header>
+
+  <section class="gallery" aria-label="App screens">
+
+    <!-- 0. Welcome with Sprig -->
+    <figure>
+      <div class="phone"><div class="screen welcome">
+        <div class="status"><span>9:41</span><span class="notch"></span><span class="icons"><i></i></span></div>
+        <div class="body">
+          <div class="stage">
+            <span class="disc"></span>
+            <svg class="hero-sprig" viewBox="0 0 200 200" role="img" aria-label="A vine climbing a garden trellis, with a payment card and a coin at its base">
+              <defs>
+                <clipPath id="arch"><path d="M52 186 V86 A48 48 0 0 1 148 86 V186 Z"/></clipPath>
+              </defs>
+              <g fill="none" stroke="#171815" stroke-linecap="round" stroke-linejoin="round">
+                <!-- the trellis: an arched lattice -->
+                <path d="M52 186 V86 A48 48 0 0 1 148 86 V186" stroke-width="2.2" fill="#fffdf3"/>
+                <g clip-path="url(#arch)" stroke-width="1.3" opacity="0.55">
+                  <path d="M20 186 L148 58 M44 186 L148 82 M68 186 L148 106 M92 186 L148 130 M116 186 L148 154 M52 154 L148 58 M52 130 L124 58 M52 106 L100 58 M52 82 L76 58"/>
+                  <path d="M180 186 L52 58 M156 186 L52 82 M132 186 L52 106 M108 186 L52 130 M84 186 L52 154 M148 154 L52 58 M148 130 L76 58 M148 106 L100 58 M148 82 L124 58"/>
+                </g>
+                <!-- the vine, growing up through it -->
+                <path class="vine" pathLength="1" d="M98 186 C92 168 108 156 100 140 C92 124 110 112 102 96 C96 84 106 72 104 56" stroke-width="2.2"/>
+                <g fill="#dcf26e" stroke-width="1.8">
+                  <path class="leaf" d="M97 164 C86 166 78 160 76 152 C86 150 94 154 97 164 Z"/>
+                  <path class="leaf" d="M103 146 C112 140 122 142 126 148 C118 154 108 153 103 146 Z"/>
+                  <path class="leaf" d="M99 120 C88 122 80 116 78 108 C88 106 96 110 99 120 Z"/>
+                  <path class="leaf" d="M104 100 C112 92 122 92 127 98 C120 105 110 106 104 100 Z"/>
+                  <path class="leaf" d="M104 70 C96 66 94 58 96 50 C104 54 107 62 104 70 Z"/>
+                  <path class="leaf" d="M105 62 C110 54 118 52 124 55 C120 62 112 65 105 62 Z"/>
+                </g>
+                <!-- the card and coin at its base -->
+                <g transform="rotate(-10 150 172)">
+                  <rect x="122" y="156" width="54" height="34" rx="5" fill="#fffdf3" stroke-width="2"/>
+                  <path d="M122 166 H176" stroke-width="2"/>
+                  <path d="M130 180 H146" stroke-width="1.6"/>
+                </g>
+                <circle cx="42" cy="178" r="11" fill="#fffdf3" stroke-width="2"/>
+                <path d="M42 172 V184 M45 174.5 C44 173 40 173 39.5 175.5 C39 178 45 178 45 180.5 C45 183 40 183 39 181.5" stroke-width="1.4"/>
+                <path d="M24 192 H178" stroke-width="2"/>
+              </g>
+            </svg>
+          </div>
+          <h2>Family money, with <span class="go"><svg><use href="#i-arrow"/></svg></span> guardrails.</h2>
+          <p class="sub">One shared pot from everyone who funds you, with rules set before money moves.</p>
+          <div class="wfoot"><span>Skip</span><span class="start">Let's start<i><svg><use href="#i-arrow"/></svg></i></span></div>
+        </div>
+      </div></div>
+      <figcaption><span class="step">00 · WELCOME</span><strong>Support that lets you grow</strong><span>A vine on a trellis: structure from the family, growth that's the kid's own.</span></figcaption>
+    </figure>
+
+    <!-- 1. Leo's wallet -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="status"><span>9:41</span><span class="notch"></span><span class="icons"><i></i></span></div>
+        <div class="body">
+          <div class="top">
+            <div class="avatar">L</div>
+            <div class="round"><svg><use href="#i-bell"/></svg></div>
+          </div>
+          <div>
+            <p class="hello">Hello<br>Leo!</p>
+            <div class="meta">Boston · funded from Mexico City and Houston</div>
+          </div>
+          <div class="seg"><span class="on">Weekly</span><span>Monthly</span><span>Semester</span></div>
+          <div class="card lime">
+            <div class="card-head"><span class="l">Left to spend this week</span><span class="arrow"><svg><use href="#i-arrow"/></svg></span></div>
+            <div class="big"><span data-count="142.60" data-from="210" data-decimals="2" data-prefix="$">$142.60</span> <small>of $210</small></div>
+            <div class="bars" aria-label="Spending by day">
+              <div style="height:40%"></div>
+              <div style="height:6%"></div>
+              <div class="hot" style="height:61%"></div>
+              <div style="height:20%"></div>
+              <div style="height:30%"></div>
+              <div style="height:6%"></div>
+              <div style="height:6%"></div>
+              <span class="tip" style="left:35.7%">$18.40</span>
+            </div>
+            <div class="days"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+          </div>
+          <div class="card sky">
+            <div class="card-head"><span class="l">Buckets</span><span class="arrow"><svg><use href="#i-arrow"/></svg></span></div>
+            <div class="buckets">
+              <div class="bucket"><span>Food</span><b>$94.20 left</b><div class="track"><div class="fill" style="width:63%"></div></div></div>
+              <div class="bucket"><span>School</span><b>$29.40 left</b><div class="track"><div class="fill" style="width:15%"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <nav class="dock" aria-hidden="true"><span class="on"><svg><use href="#i-home"/></svg></span><span><svg><use href="#i-card"/></svg></span><span><svg><use href="#i-pig"/></svg></span><span><svg><use href="#i-list"/></svg></span></nav>
+      </div></div>
+      <figcaption><span class="step">01 · DEPENDENT</span><strong>Leo's wallet</strong><span>What's left this week, by day and by bucket.</span></figcaption>
+    </figure>
+
+    <!-- 2. AI guard decision -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="status"><span>9:43</span><span class="notch"></span><span class="icons"><i></i></span></div>
+        <div class="body">
+          <div class="decision">
+            <span class="pill wait">Waiting for Maya</span>
+            <div>
+              <div class="merchant"><h3>Target</h3><span class="amt">$46.50</span></div>
+              <div class="mcc">MCC 5310 · General merchandise</div>
+            </div>
+            <div class="items">
+              <div class="item good"><i><svg><use href="#i-check"/></svg></i>Intro to Psychology textbook<span class="p">$28.00</span></div>
+              <div class="item bad"><i><svg><use href="#i-x"/></svg></i>Smirnoff vodka 750ml<span class="p">$18.50</span><span class="strike" aria-hidden="true"></span></div>
+            </div>
+            <div class="reason guide"><span class="badge-sprig" aria-hidden="true"><svg><use href="#sprig"/></svg></span><span><b>Trellis AI guard:</b> This includes alcohol. You're 19, and your family's rules don't allow it.</span></div>
+            <div class="mcc">Decided in 412 ms (example)</div>
+          </div>
+          <div class="note">
+            <label for="n1">Why do you need this?</label>
+            <span id="n1" class="typed">The textbook's for Psych 101, I'll buy it alone.</span>
+          </div>
+          <div class="btn dark">Ask Maya</div>
+          <div class="btn ghost">Buy the textbook only</div>
+        </div>
+        <nav class="dock" aria-hidden="true"><span><svg><use href="#i-home"/></svg></span><span class="on"><svg><use href="#i-card"/></svg></span><span><svg><use href="#i-pig"/></svg></span><span><svg><use href="#i-list"/></svg></span></nav>
+      </div></div>
+      <figcaption><span class="step">02 · DEPENDENT</span><strong>The vodka in the cart</strong><span>The category code sees a store. The AI guard sees the items.</span></figcaption>
+    </figure>
+
+    <!-- 3. Maya's parent home -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="status"><span>21:14</span><span class="notch"></span><span class="icons"><i></i></span></div>
+        <div class="body">
+          <div class="top">
+            <div class="avatar sky">M</div>
+            <div class="round"><svg><use href="#i-bell"/></svg></div>
+          </div>
+          <div>
+            <p class="hello">1 request<br>from Leo</p>
+            <div class="meta">Your approval keeps the weekly plan on track</div>
+          </div>
+          <div class="req">
+            <div class="who"><span class="avatar">L</span><span><b>Apple Store · $129.00</b><br><span class="meta">12 min ago · School bucket</span></span></div>
+            <div class="quote">Over the $100 School limit. Your approval is needed.</div>
+            <div class="row2"><span class="btn ghost">Decline</span><span class="btn lime">Approve</span></div>
+          </div>
+          <div class="card sky">
+            <div class="card-head"><span class="l">Left for Leo to spend</span><span class="arrow"><svg><use href="#i-arrow"/></svg></span></div>
+            <div class="big">$348.41 <small>of $410</small></div>
+            <div class="buckets">
+              <div class="bucket"><span>Food · Grandma Rose</span><b>$94.20 left</b><div class="track"><div class="fill" style="width:63%"></div></div></div>
+              <div class="bucket"><span>School · Maya</span><b>$29.40 left</b><div class="track"><div class="fill" style="width:15%"></div></div></div>
+              <div class="bucket"><span>Social · Carlos</span><b>$224.81 left</b><div class="track"><div class="fill" style="width:74%"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <nav class="dock" aria-hidden="true"><span><svg><use href="#i-home"/></svg></span><span class="on"><svg><use href="#i-bell"/></svg></span><span><svg><use href="#i-card"/></svg></span><span><svg><use href="#i-list"/></svg></span></nav>
+      </div></div>
+      <figcaption><span class="step">03 · PARENT HOME</span><strong>Maya's family overview</strong><span>One request, then the money Leo has left across each bucket.</span></figcaption>
+    </figure>
+
+    <!-- 4. Savings -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="status"><span>9:50</span><span class="notch"></span><span class="icons"><i></i></span></div>
+        <div class="body">
+          <div class="top">
+            <div class="avatar">L</div>
+            <div class="round"><svg><use href="#i-pig"/></svg></div>
+          </div>
+          <p class="hello">Your<br>savings</p>
+          <div class="goal-card">
+            <div class="card-head"><span class="l">Goal</span><span class="arrow"><svg><use href="#i-arrow"/></svg></span></div>
+            <h3>Flight home for winter break</h3>
+            <div class="big"><span data-count="300" data-from="270" data-decimals="0" data-prefix="$" data-delay="1300">$300</span> <small>of $450</small></div>
+            <div class="meter"><div class="saved" style="width:62.2%"></div><div class="match" style="width:4.5%"></div></div>
+            <div class="split"><span>Saved by Leo $280</span><span>Matched by Maya $20</span></div>
+          </div>
+          <div class="toast">
+            <div class="check"><svg><use href="#i-check"/></svg></div>
+            <strong>Maya matched +$10</strong>
+            <span>You moved $20 of leftover Food money to savings.</span>
+          </div>
+          <div class="streak"><span class="badge-sprig" aria-hidden="true"><svg><use href="#sprig"/></svg></span><span><b>7 in a row</b> within your rules. Maya can raise your limits.</span></div>
+        </div>
+        <nav class="dock" aria-hidden="true"><span><svg><use href="#i-home"/></svg></span><span><svg><use href="#i-card"/></svg></span><span class="on"><svg><use href="#i-pig"/></svg></span><span><svg><use href="#i-list"/></svg></span></nav>
+      </div></div>
+      <figcaption><span class="step">04 · DEPENDENT</span><strong>Leftover money becomes Leo's</strong><span>Savings toward a goal, with a parent match.</span></figcaption>
+    </figure>
+
+    <!-- 5. Record on Monad -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="status"><span>9:52</span><span class="notch"></span><span class="icons"><i></i></span></div>
+        <div class="body">
+          <div class="top">
+            <div class="avatar sky">R</div>
+            <div class="round"><svg><use href="#i-chain"/></svg></div>
+          </div>
+          <div>
+            <p class="hello">Where my<br>money went</p>
+            <div class="meta">Grandma Rose · Mexico City</div>
+          </div>
+          <div class="feed">
+            <div class="fr"><span class="dot ok">+</span><span class="txt"><b>You added $50 to Food</b><em>Mexico City → Boston · no fees</em></span><span class="v">$50.00</span><span class="chainline"><span class="live"><svg width="11" height="11"><use href="#i-chain"/></svg></span>Verified on Monad · <span data-count="0.6" data-from="0" data-decimals="1" data-delay="300">0.6</span> s</span></div>
+            <div class="fr"><span class="dot ok">✓</span><span class="txt"><b>Groceries, Trader Joe's</b><em>Paid from your $50</em></span><span class="v">$18.40</span><span class="chainline"><span class="live"><svg width="11" height="11"><use href="#i-chain"/></svg></span>Verified on Monad · <span data-count="0.5" data-from="0" data-decimals="1" data-delay="500">0.5</span> s</span></div>
+            <div class="fr"><span class="dot no">✕</span><span class="txt"><b>The Tipsy Tavern</b><em>Bars are off-limits</em></span><span class="v">$32.00</span><span class="chainline"><svg width="11" height="11"><use href="#i-chain"/></svg>Declined on Monad</span></div>
+          </div>
+          <div class="tamper">
+            <span class="mono">TAMPER TEST · server said <span class="struck">APPROVE</span></span>
+            <strong>The contract said no.</strong>
+            <span class="why">Enforced on-chain: this merchant's category is blocked.</span>
+          </div>
+        </div>
+        <nav class="dock" aria-hidden="true"><span><svg><use href="#i-home"/></svg></span><span><svg><use href="#i-pig"/></svg></span><span class="on"><svg><use href="#i-list"/></svg></span><span><svg><use href="#i-chain"/></svg></span></nav>
+      </div></div>
+      <figcaption><span class="step">05 · FUNDER</span><strong>One record every funder can read</strong><span>Each row links to its Monad transaction.</span></figcaption>
+    </figure>
+
+  </section>
+
+  <section class="motion" aria-labelledby="motion-h">
+    <h2 id="motion-h">Motion</h2>
+    <p>Every animation means something happened to money: it moved, a decision landed, or Monad confirmed it. Things fade or rise a few pixels on one easing curve. Nothing bounces, overshoots or loops.</p>
+    <div class="mtable">
+      <table>
+        <thead><tr><th>Moment</th><th>What moves</th><th>Why it's there</th><th>Timing</th></tr></thead>
+        <tbody>
+          <tr><td>Welcome</td><td>The trellis fades in, the vine draws itself up through it once, then the leaves fade in.</td><td>The brand idea in one gesture: structure, then growth</td><td>1.4s draw · 0.6s fade</td></tr>
+          <tr><td>Wallet opens</td><td>Day bars grow from the baseline left to right. The balance counts down from $210 to what's left.</td><td>Spending reads as a week, not a number</td><td>0.9s · 60ms stagger</td></tr>
+          <tr><td>AI guard decides</td><td>Cart items arrive one by one. The vodka row is outlined, then a line strikes through it. The guard's sprout mark fades in beside the reason.</td><td>Shows exactly which item caused the hold</td><td>0.35s each · strike 0.6s</td></tr>
+          <tr><td>Leo explains</td><td>The note reveals smoothly left to right.</td><td>The kid's voice is part of the decision</td><td>1.1s</td></tr>
+          <tr><td>Parent approves</td><td>The Approve button presses, then the row settles into an Approved strip with the Monad pill.</td><td>One tap, visible outcome</td><td>0.3s press · 0.35s settle</td></tr>
+          <tr><td>Savings and match</td><td>Leo's share fills first, then Maya's striped match fills after it. The confirmation fades in.</td><td>Separates what Leo saved from what was matched</td><td>0.9s · then 0.6s</td></tr>
+          <tr><td>Monad confirms</td><td>Rows land in order. The chain icon rings once and the confirmation time counts up.</td><td>Makes "recorded on Monad" a visible event</td><td>0.9s ring · once</td></tr>
+          <tr><td>Tamper test</td><td>"APPROVE" is struck through, then "The contract said no." rises in.</td><td>The rule beats our own server, on screen</td><td>0.6s strike · 0.35s rise</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>Mockup with example data for the Rivera family. Timings and amounts are illustrative. Testnet-only demo, no real money. Layout ideas (greeting header, lime overview card, striped bars, dark pill dock) are inspired by the Finly concept on Behance.</footer>
+</main>
+
+<script>
+(() => {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const ease = (t) => 1 - Math.pow(1 - t, 3);
+
+  // Numbers count from data-from to their final value; the final value is
+  // already in the markup, so the page reads correctly without this script.
+  function countUp(el) {
+    const to = parseFloat(el.dataset.count);
+    const from = parseFloat(el.dataset.from ?? "0");
+    const decimals = parseInt(el.dataset.decimals ?? "0", 10);
+    const prefix = el.dataset.prefix ?? "";
+    const delay = parseInt(el.dataset.delay ?? "200", 10);
+    const duration = 900;
+    const fmt = (v) => prefix + v.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    el.textContent = fmt(from);
+    const start = performance.now() + delay;
+    function frame(now) {
+      const t = Math.min(1, Math.max(0, (now - start) / duration));
+      el.textContent = fmt(from + (to - from) * ease(t));
+      if (t < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function play() {
+    if (reduce.matches) return;
+    document.body.classList.remove("play");
+    void document.body.offsetWidth; // restart CSS animations
+    document.body.classList.add("play");
+    document.querySelectorAll("[data-count]").forEach(countUp);
+  }
+
+  document.getElementById("replay").addEventListener("click", play);
+  play();
+})();
+</script>
+
+</body></html>

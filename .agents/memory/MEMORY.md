@@ -13,3 +13,4 @@
 - [API codegen quirks](api-codegen-quirks.md) — generated client date-times are ISO strings while server Zod schemas use Date.
 - [Changing the demo seed](demo-seed-changes.md) — app and deploy seeds change together; old DBs/contract need reseed; Food's $60<$75 kept on purpose.
 - [Monad testnet deploy](monad-testnet-deploy.md) — ~1 MON per deploy+seed, Sourcify verify works, addresses are env vars, typechecking contracts scripts.
+- [Design token decisions](design-tokens.md) — chain uses sky ink for contrast; decision pairs are mockup-exact; darkColors is top-level, design-system only.

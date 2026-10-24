@@ -17,7 +17,7 @@ export function SignedOut() {
     <PhoneColumn>
       <div className="header-sky px-6 pb-20 pt-12">
         <Wordmark onDark />
-        <h1 className="type-display-md mt-14 text-surface" data-testid="text-tagline">{BRAND.tagline}</h1>
+        <h1 className="type-display-md mt-14 text-on-signature" data-testid="text-tagline">{BRAND.tagline}</h1>
       </div>
       <ul className="-mt-10 flex flex-col gap-3 px-6">
         {points.map(({ Icon, title, body }) => (

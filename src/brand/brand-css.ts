@@ -2,7 +2,10 @@ import { BRAND } from "./brand.config";
 
 const kebab = (s: string) => s.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
 
-/** Every CSS variable the app uses, generated from BRAND. */
+/**
+ * Every CSS variable the app uses, generated from BRAND. Light palette only:
+ * BRAND.darkColors feeds the design-system tokens, not the app.
+ */
 export function brandCssVariables(): Record<string, string> {
   const vars: Record<string, string> = {};
   for (const [k, v] of Object.entries(BRAND.colors)) vars[`--color-${kebab(k)}`] = v;
@@ -10,6 +13,7 @@ export function brandCssVariables(): Record<string, string> {
   BRAND.spacing.forEach((n, i) => (vars[`--space-${i + 1}`] = `${n}px`));
   vars["--font-heading"] = `"${BRAND.fonts.heading}", ui-sans-serif, system-ui, sans-serif`;
   vars["--font-body"] = `"${BRAND.fonts.body}", ui-sans-serif, system-ui, sans-serif`;
+  vars["--font-mono"] = `"${BRAND.fonts.mono}", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
   return vars;
 }
 

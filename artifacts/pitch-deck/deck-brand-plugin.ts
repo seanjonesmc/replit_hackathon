@@ -17,6 +17,7 @@ export function deckBrandVariables(): Record<string, string> {
   for (const [k, v] of Object.entries(BRAND.radius)) vars[`--brand-radius-${kebab(k)}`] = pxToVw(v);
   vars['--brand-font-heading'] = `"${BRAND.fonts.heading}", ui-sans-serif, system-ui, sans-serif`;
   vars['--brand-font-body'] = `"${BRAND.fonts.body}", ui-sans-serif, system-ui, sans-serif`;
+  vars['--brand-font-mono'] = `"${BRAND.fonts.mono}", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
   return vars;
 }
 

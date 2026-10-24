@@ -22,7 +22,7 @@ interface HeroBalanceCardProps {
  */
 export function HeroBalanceCard({ eyebrow, amountCents, caption, badge, children, className, 'data-testid': testId }: HeroBalanceCardProps) {
   return (
-    <article className={cn('lattice relative overflow-hidden rounded-card bg-signature p-6 text-surface md:p-8', className)} data-testid={testId}>
+    <article className={cn('lattice relative overflow-hidden rounded-card bg-signature p-6 text-on-signature md:p-8', className)} data-testid={testId}>
       <div className="flex items-start justify-between gap-3">
         <p className="type-label">{eyebrow}</p>
         {badge}

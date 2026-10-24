@@ -4,7 +4,7 @@ import type { TabDef } from '@/lib/route-map';
 /** A centred phone-width column for the signed-out screens; on desktop it sits on the sand background. */
 export function PhoneColumn({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-[100dvh] bg-surface-alt">
+    <div className="min-h-[100dvh] bg-surface-ground">
       <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-phone flex-col bg-surface md:border-x">{children}</div>
     </div>
   );

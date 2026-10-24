@@ -16,7 +16,7 @@ export function Wordmark({ onDark, className }: { onDark?: boolean; className?: 
   return (
     <span className={cn('inline-flex items-center gap-2.5', className)} data-testid="text-app-name">
       <LogoMark className={onDark ? 'ring-2 ring-surface/70' : undefined} />
-      <span className={cn('font-heading text-[24px] font-semibold tracking-[-0.6px]', onDark ? 'text-surface' : 'text-ink')}>
+      <span className={cn('font-heading text-[24px] font-semibold tracking-[-0.6px]', onDark ? 'text-on-signature' : 'text-ink')}>
         {BRAND.appName}
       </span>
     </span>
@@ -35,7 +35,7 @@ interface PillProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantCls: Record<Variant, string> = {
-  primary: 'bg-primary text-surface hover:bg-primary-hover',
+  primary: 'bg-primary text-on-primary hover:bg-primary-hover',
   outline: 'bg-surface text-ink border border-ink hover:bg-ink/[0.04]',
   tint: 'bg-tint text-primary hover:bg-primary/15',
   onDark: 'bg-surface text-ink hover:bg-surface/90',

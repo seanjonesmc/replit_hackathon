@@ -12,13 +12,16 @@
  */
 @theme {
   --color-signature: transparent;
+  --color-on-signature: currentColor;
   --color-primary: transparent;
   --color-primary-hover: transparent;
+  --color-on-primary: currentColor;
   --color-tint: transparent;
   --color-ink: currentColor;
   --color-ink-muted: currentColor;
   --color-surface: transparent;
   --color-surface-alt: transparent;
+  --color-surface-ground: transparent;
   --color-hairline: transparent;
   --color-approved: currentColor;
   --color-approved-bg: transparent;
@@ -37,6 +40,10 @@
 
   --font-heading: ui-sans-serif, system-ui, sans-serif;
   --font-body: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
+
+  /* Motion, not brand: the one easing curve (DESIGN.md -> Motion). */
+  --ease-settle: cubic-bezier(0.2, 0.8, 0.2, 1);
 
   /* Layout, not brand: the phone-width app column (DESIGN.md -> App layer). */
   --container-phone: 430px;
@@ -55,16 +62,16 @@
   --color-popover: var(--color-surface);
   --color-popover-foreground: var(--color-ink);
   --color-popover-border: var(--color-hairline);
-  --color-primary-foreground: var(--color-surface);
+  --color-primary-foreground: var(--color-on-primary);
   --color-primary-border: var(--color-primary-hover);
   --color-secondary: var(--color-tint);
-  --color-secondary-foreground: var(--color-primary);
+  --color-secondary-foreground: var(--color-ink);
   --color-muted: var(--color-surface-alt);
   --color-muted-foreground: var(--color-ink-muted);
   --color-accent: var(--color-tint);
-  --color-accent-foreground: var(--color-primary);
+  --color-accent-foreground: var(--color-ink);
   --color-destructive: var(--color-rejected);
-  --color-destructive-foreground: var(--color-surface);
+  --color-destructive-foreground: var(--color-on-primary);
 
   --font-sans: var(--font-body);
   --radius-sm: var(--radius-tag);
@@ -82,9 +89,12 @@
   }
   body {
     font-family: var(--font-body);
-    background: var(--color-surface-alt);
+    background: var(--color-surface-ground);
     color: var(--color-ink);
     -webkit-font-smoothing: antialiased;
+  }
+  code, kbd, samp {
+    font-family: var(--font-mono);
   }
   :focus-visible {
     outline: 2px solid var(--color-primary);
@@ -95,11 +105,15 @@
 @layer utilities {
   .tnum { font-variant-numeric: tabular-nums; }
 
-  /* Type scale: reference sizes, BRAND heading font, negative heading tracking */
-  .type-display-xxl { font-family: var(--font-heading); font-size: 63px; font-weight: 500; line-height: 1; letter-spacing: -1.89px; }
-  .type-display-xl  { font-family: var(--font-heading); font-size: 51px; font-weight: 500; line-height: 1.05; letter-spacing: -1.02px; }
-  .type-display-md  { font-family: var(--font-heading); font-size: 33px; font-weight: 500; line-height: 1.05; letter-spacing: -0.67px; }
-  .type-title       { font-family: var(--font-heading); font-size: 22px; font-weight: 600; line-height: 1.2; letter-spacing: -0.44px; }
+  /*
+   * Type scale: established sizes, BRAND heading font set the way the mockup
+   * sets it (semibold, about -0.03em tracking on display sizes, tighter on
+   * larger ones). Body sizes keep normal tracking.
+   */
+  .type-display-xxl { font-family: var(--font-heading); font-size: 63px; font-weight: 600; line-height: 1; letter-spacing: -2.2px; }
+  .type-display-xl  { font-family: var(--font-heading); font-size: 51px; font-weight: 600; line-height: 1.02; letter-spacing: -1.6px; }
+  .type-display-md  { font-family: var(--font-heading); font-size: 33px; font-weight: 600; line-height: 1.05; letter-spacing: -0.9px; }
+  .type-title       { font-family: var(--font-heading); font-size: 22px; font-weight: 600; line-height: 1.2; letter-spacing: -0.5px; }
   .type-body-lg     { font-size: 22px; font-weight: 400; line-height: 1.4; }
   .type-body-md     { font-size: 18px; font-weight: 400; line-height: 1.4; }
   .type-body-lead   { font-size: 18px; font-weight: 500; line-height: 1.4; }
@@ -109,16 +123,19 @@
   .type-caption     { font-size: 14px; font-weight: 400; line-height: 1.43; }
   .type-label       { font-size: 12px; font-weight: 600; line-height: 1.3; letter-spacing: 0.06em; text-transform: uppercase; }
 
-  /* Atmospheric signature blue: header sky only */
+  /*
+   * Header band: solid signature behind the title, easing into the screen
+   * below. Text on it uses on-signature, which reads on both ends.
+   */
   .header-sky {
-    background: linear-gradient(180deg, var(--color-signature) 0%, var(--color-signature) 55%, var(--color-surface) 100%);
+    background: linear-gradient(180deg, var(--color-signature) 0%, var(--color-signature) 62%, var(--color-surface) 100%);
   }
 
-  /* Brand lattice texture, used on hero card + virtual card */
+  /* Brand lattice texture on signature cards: fine on-signature hatching, like the mockup's striped bars */
   .lattice {
     background-image:
-      repeating-linear-gradient(45deg, color-mix(in srgb, var(--color-surface) 13%, transparent) 0 1px, transparent 1px 26px),
-      repeating-linear-gradient(-45deg, color-mix(in srgb, var(--color-surface) 13%, transparent) 0 1px, transparent 1px 26px);
+      repeating-linear-gradient(45deg, color-mix(in srgb, var(--color-on-signature) 9%, transparent) 0 1px, transparent 1px 22px),
+      repeating-linear-gradient(-45deg, color-mix(in srgb, var(--color-on-signature) 9%, transparent) 0 1px, transparent 1px 22px);
   }
 
   /*

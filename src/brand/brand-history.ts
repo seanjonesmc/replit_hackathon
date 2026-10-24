@@ -18,7 +18,7 @@ export interface BrandHistory {
   bankNames: string[];
   /** Font family names and font stylesheet URLs. */
   fonts: string[];
-  /** BRAND colors written in a non-hex notation, such as rgba(). */
+  /** BRAND colors (light and dark) written in a non-hex notation, such as rgba(). */
   colors: string[];
 }
 
@@ -29,6 +29,10 @@ export const BRAND_HISTORY: BrandHistory = {
   fonts: [
     "Inter",
     "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "Urbanist",
+    "Geist",
+    "Geist Mono",
+    "https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap",
   ],
-  colors: ["rgba(0,0,0,0.12)"],
+  colors: ["rgba(0,0,0,0.12)", "rgba(23,24,21,0.10)", "rgba(241,240,234,0.12)"],
 };

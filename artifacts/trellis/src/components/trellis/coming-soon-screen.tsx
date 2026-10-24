@@ -16,7 +16,7 @@ export function ComingSoonScreen({ tab, body }: ComingSoonScreenProps) {
   return (
     <section aria-labelledby="screen-title" className="flex flex-1 flex-col" data-testid={`screen-${tab.role}-${tab.id}`}>
       <div className="header-sky px-6 pb-16 pt-4">
-        <h1 id="screen-title" className="type-display-md text-surface" data-testid="text-screen-title">
+        <h1 id="screen-title" className="type-display-md text-on-signature" data-testid="text-screen-title">
           {tab.label}
         </h1>
       </div>

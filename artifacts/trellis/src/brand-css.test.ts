@@ -38,10 +38,17 @@ describe('brandCssVariables', () => {
     );
   });
 
-  it('uses the BRAND heading and body fonts', () => {
+  it('uses the BRAND heading, body and mono fonts', () => {
     const vars = brandCssVariables();
     expect(vars['--font-heading']).toContain(`"${BRAND.fonts.heading}"`);
     expect(vars['--font-body']).toContain(`"${BRAND.fonts.body}"`);
+    expect(vars['--font-mono']).toContain(`"${BRAND.fonts.mono}"`);
+  });
+
+  it('injects the light palette only', () => {
+    const vars = brandCssVariables();
+    expect(vars['--color-surface']).toBe(BRAND.colors.surface);
+    expect(Object.keys(vars).some((k) => k.includes('dark'))).toBe(false);
   });
 });
 

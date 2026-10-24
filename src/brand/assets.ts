@@ -22,7 +22,7 @@ const lattice = (stroke: string) => `
 export function logoMarkSvg() {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><!-- ${ASSET_MARKER} -->
   <title>${esc(BRAND.logo.alt)}</title>
-  <rect width="64" height="64" rx="18" fill="${BRAND.colors.signature}"/>${lattice(BRAND.colors.surface)}
+  <rect width="64" height="64" rx="18" fill="${BRAND.colors.signature}"/>${lattice(BRAND.colors.onSignature)}
 </svg>
 `;
 }
@@ -35,7 +35,7 @@ export function logoWordmarkSvg() {
   const width = 84 + BRAND.appName.length * 25;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} 64" width="${width}" height="64"><!-- ${ASSET_MARKER} -->
   <title>${esc(BRAND.logo.alt)}</title>
-  <rect width="64" height="64" rx="18" fill="${BRAND.colors.signature}"/>${lattice(BRAND.colors.surface)}
+  <rect width="64" height="64" rx="18" fill="${BRAND.colors.signature}"/>${lattice(BRAND.colors.onSignature)}
   <text x="78" y="44" font-family="${esc(BRAND.fonts.heading)}, ui-sans-serif, system-ui, sans-serif" font-size="38" font-weight="600" letter-spacing="-1.2" fill="${BRAND.colors.ink}">${esc(BRAND.appName)}</text>
 </svg>
 `;

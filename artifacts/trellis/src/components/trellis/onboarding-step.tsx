@@ -77,7 +77,7 @@ export function ChoicePills({ options, value, onChange, label, className }: Choi
             onKeyDown={(e) => onKeyDown(e, i)}
             className={cn(
               'h-11 rounded-pill border px-5 type-link-sm transition-[background-color,color,border-color,transform] duration-150 ease-out active:scale-[0.97]',
-              checked ? 'border-primary bg-primary text-surface' : 'border-ink bg-surface text-ink hover:bg-ink/[0.04]',
+              checked ? 'border-primary bg-primary text-on-primary' : 'border-ink bg-surface text-ink hover:bg-ink/[0.04]',
             )}
             data-testid={`choice-${o.value}`}
           >

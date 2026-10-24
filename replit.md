@@ -49,7 +49,8 @@ test locations, and phase gates.
 - `src/brand/brand.config.ts` — the single brand source
 - `public/brand/` — canonical brand assets served by the frontend
 - `contracts/` — Solidity contracts on Hardhat 3 with its ethers toolbox (MockUSD and FamilyCardNetwork: simulated bank, pot buckets, cards, merchants and authorizations)
-- `design/reference/venmo.DESIGN.md` — immutable reference, never a runtime import
+- `design/reference/trellis-app-mockup.html` — immutable current visual source (app mockup), never a runtime import
+- `design/reference/venmo.DESIGN.md` — immutable historical reference, never a runtime import
 
 ## Architecture and scope
 

@@ -13,7 +13,7 @@ export default function Cover() {
         <div className="col-span-7 flex flex-col justify-between">
           <div className="flex items-center gap-[1.2vw]">
             <img src={logoMark} crossOrigin="anonymous" alt={BRAND.logo.alt} className="w-[4.4vw] h-[4.4vw] rounded-[1vw] ring-[0.2vw] ring-surface" />
-            <span className="text-[1.6vw] font-bold tracking-[0.1em] uppercase text-surface">Hackathon pitch</span>
+            <span className="text-[1.6vw] font-bold tracking-[0.1em] uppercase text-on-signature">Hackathon pitch</span>
           </div>
 
           <div>

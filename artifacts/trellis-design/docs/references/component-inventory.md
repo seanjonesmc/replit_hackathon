@@ -2,6 +2,8 @@
 
 Source: ../../../../design/reference/venmo.DESIGN.md, curated visual specification from https://www.shadcn.io/design/venmo/raw. No third-party implementation code is copied. Internal scaffold primitives supply behavior.
 
+Colors, type, radii and motion now come from the app mockup (../../../../design/reference/trellis-app-mockup.html) through root BRAND; the per-family notes below still cite the Venmo reference for structure and measurements.
+
 | Family | Reference | Dependencies | Evidence/order | Chunk | Status |
 |---|---|---|---|---|---|
 | HeaderGradient | components/header-gradient.md | none | first source family | 1 | implemented |

@@ -1,6 +1,6 @@
 .browser {display:grid;grid-template-columns:260px 1fr;min-height:100vh}
 .browser aside {padding:36px 24px;background:hsl(var(--sidebar));border-right:1px solid hsl(var(--border));position:sticky;top:0;height:100vh;overflow:auto}
-.wordmark{font-size:32px;letter-spacing:-1px;font-weight:600;display:block;text-decoration:none;color:inherit}
+.wordmark{font-family:var(--app-font-serif);font-size:32px;letter-spacing:-1px;font-weight:600;display:block;text-decoration:none;color:inherit}
 .wordmark span{display:block;font-size:13px;letter-spacing:0;font-weight:400;margin-top:4px}
 .source-note{font-size:9px;letter-spacing:1px;margin:30px 0;color:hsl(var(--muted-foreground))}
 .nav-heading,.eyebrow{font-size:11px;letter-spacing:1.3px;text-transform:uppercase;font-weight:600;margin-bottom:14px}
@@ -10,8 +10,8 @@
 .theme-toggle{padding:12px 16px;border:1px solid hsl(var(--border));border-radius:1000px;margin:24px 0 12px;font-size:13px;cursor:pointer}
 .browser main{padding:0 64px 32px;max-width:1250px;min-width:0}
 .page-header{display:flex;justify-content:space-between;border-bottom:1px solid hsl(var(--border));padding:25px 0;margin-bottom:50px;font-size:11px;color:hsl(var(--muted-foreground))}
-.browser h1{font-size:clamp(36px,5vw,63px);line-height:1.05;letter-spacing:-1.89px;font-weight:500;margin:0 0 24px}
-.browser h2{font-size:28px;font-weight:500;letter-spacing:-.6px}
+.browser h1{font-family:var(--app-font-serif);font-size:clamp(36px,5vw,63px);line-height:1.02;letter-spacing:-.035em;font-weight:600;margin:0 0 24px}
+.browser h2{font-family:var(--app-font-serif);font-size:28px;font-weight:600;letter-spacing:-.8px}
 .browser h3{font-size:16px;font-weight:500;margin-bottom:20px}
 .lead{font-size:18px;line-height:1.5;max-width:580px;color:hsl(var(--muted-foreground))}
 .caption{font-size:12px;line-height:1.6;color:hsl(var(--muted-foreground));margin:12px 0}
@@ -29,4 +29,5 @@
 .media-slot{display:flex;align-items:center;justify-content:center;min-height:180px;background:hsl(var(--secondary));border-radius:var(--brand-radius-cardSm);font-size:14px;padding:24px;margin-bottom:24px}
 @media(max-width:1000px){.card-gallery{grid-template-columns:1fr}}
 .money{font-variant-numeric:tabular-nums}
+.caption code,.swatches .caption{font-family:var(--app-font-mono)}
 @media(max-width:760px){.browser{display:block}.browser aside{position:relative;height:auto;padding:20px}.browser nav{display:flex;flex-wrap:wrap;gap:24px}.browser nav section{margin:16px 0}.browser main{padding:0 24px 24px}.swatches{grid-template-columns:repeat(2,1fr)}}

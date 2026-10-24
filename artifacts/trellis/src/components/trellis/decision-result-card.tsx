@@ -75,7 +75,7 @@ export function DecisionResultCard({
         <div>
           <p className="type-body-md" data-testid="text-decision-reason">{reason}</p>
           <p className="type-caption mt-1 text-ink-muted">
-            Reason code: <code className="font-body tnum" data-testid="text-reason-code">{reasonCode}</code>
+            Reason code: <code className="font-mono tnum" data-testid="text-reason-code">{reasonCode}</code>
           </p>
         </div>
 

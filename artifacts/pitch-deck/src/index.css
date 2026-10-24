@@ -8,13 +8,16 @@
  */
 @theme inline {
   --color-signature: var(--brand-signature);
+  --color-on-signature: var(--brand-on-signature);
   --color-primary: var(--brand-primary);
   --color-primary-hover: var(--brand-primary-hover);
+  --color-on-primary: var(--brand-on-primary);
   --color-tint: var(--brand-tint);
   --color-ink: var(--brand-ink);
   --color-muted: var(--brand-ink-muted);
   --color-surface: var(--brand-surface);
   --color-sand: var(--brand-surface-alt);
+  --color-ground: var(--brand-surface-ground);
   --color-hairline: var(--brand-hairline);
   --color-approved: var(--brand-approved);
   --color-approved-bg: var(--brand-approved-bg);
@@ -30,6 +33,7 @@
   --radius-tag: var(--brand-radius-tag);
   --font-display: var(--brand-font-heading);
   --font-body: var(--brand-font-body);
+  --font-mono: var(--brand-font-mono);
 }
 
 :root {

@@ -76,8 +76,9 @@ Read `docs/references/component-inventory.md` and the linked per-family referenc
 before modifying components. HeaderGradient, TopNav, Link, Button, HeroBand, Card, Badge, Footer, and DownloadPill
 are shipped. All source-backed families are complete. Stock
 scaffold files are archived under `docs/scaffold`, not exported or rendered.
-The preview intentionally uses plain elements for its shell. Dark mode is derived.
-`DESIGN.md` is a retained reference copy; root design/reference remains unchanged.
+The preview intentionally uses plain elements for its shell. Dark mode uses the
+explicit `BRAND.darkColors` palette from the app mockup. `DESIGN.md` describes
+the Trellis tokens and components; root design/reference files remain unchanged.
 
 Every user-facing web component under `src/components/ui/` must have a family
 story in `src/preview/demos/` covering its variants, sizes, and important states.

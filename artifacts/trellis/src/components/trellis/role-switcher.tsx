@@ -27,12 +27,12 @@ export function RoleSwitcher({ activeRole, className }: RoleSwitcherProps) {
                 aria-label={`${role.name}, ${role.roleLabel}`}
                 className={cn(
                   'flex h-12 min-w-0 flex-1 flex-col items-center justify-center rounded-pill px-2 text-center transition-colors duration-200 ease-out',
-                  active ? 'bg-primary text-surface' : 'text-ink hover:bg-surface-alt',
+                  active ? 'bg-primary text-on-primary' : 'text-ink hover:bg-surface-alt',
                 )}
                 data-testid={`link-role-${role.id}`}
               >
                 <span className="w-full truncate text-[14px] font-bold leading-tight">{role.name}</span>
-                <span className={cn('w-full truncate text-[11px] font-medium leading-tight', active ? 'text-surface' : 'text-ink-muted')}>
+                <span className={cn('w-full truncate text-[11px] font-medium leading-tight', active ? 'text-on-primary' : 'text-ink-muted')}>
                   {role.roleLabel}
                 </span>
               </Link>

@@ -11,7 +11,7 @@ export default function Close() {
       <div className="relative h-full px-[6vw] py-[8vh] flex flex-col">
         <div className="flex items-center gap-[1.2vw]">
           <img src={logoMark} crossOrigin="anonymous" alt={BRAND.logo.alt} className="w-[4.4vw] h-[4.4vw] rounded-[1vw] ring-[0.2vw] ring-surface" />
-          <span className="text-[2.4vw] font-bold text-surface">{BRAND.appName}</span>
+          <span className="text-[2.4vw] font-bold text-on-signature">{BRAND.appName}</span>
         </div>
 
         <div className="mt-auto">

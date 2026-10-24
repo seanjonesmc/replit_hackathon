@@ -20,13 +20,16 @@ import { StatesSection } from './StatesSection';
 
 const swatches: { name: string; token: string; cls: string; key: keyof typeof BRAND.colors }[] = [
   { name: 'Signature', token: 'signature', cls: 'bg-signature', key: 'signature' },
+  { name: 'On signature', token: 'on-signature', cls: 'bg-on-signature', key: 'onSignature' },
   { name: 'Primary', token: 'primary', cls: 'bg-primary', key: 'primary' },
   { name: 'Primary hover', token: 'primary-hover', cls: 'bg-primary-hover', key: 'primaryHover' },
+  { name: 'On primary', token: 'on-primary', cls: 'bg-on-primary', key: 'onPrimary' },
   { name: 'Tint', token: 'tint', cls: 'bg-tint', key: 'tint' },
   { name: 'Ink', token: 'ink', cls: 'bg-ink', key: 'ink' },
   { name: 'Ink muted', token: 'ink-muted', cls: 'bg-ink-muted', key: 'inkMuted' },
   { name: 'Surface', token: 'surface', cls: 'bg-surface', key: 'surface' },
   { name: 'Surface alt', token: 'surface-alt', cls: 'bg-surface-alt', key: 'surfaceAlt' },
+  { name: 'Surface ground', token: 'surface-ground', cls: 'bg-surface-ground', key: 'surfaceGround' },
   { name: 'Hairline', token: 'hairline', cls: 'bg-hairline', key: 'hairline' },
   { name: 'Approved', token: 'approved', cls: 'bg-approved', key: 'approved' },
   { name: 'Approved bg', token: 'approved-bg', cls: 'bg-approved-bg', key: 'approvedBg' },
@@ -103,8 +106,8 @@ export default function BrandPreview() {
       <header className="header-sky px-4 pb-16 pt-10 md:px-8">
         <div className="mx-auto max-w-6xl">
           <Wordmark onDark />
-          <h1 className="type-display-md mt-8 text-surface md:type-display-xl">Brand preview</h1>
-          <p className="type-body-md mt-3 max-w-2xl text-surface">{BRAND.tagline}</p>
+          <h1 className="type-display-md mt-8 text-on-signature md:type-display-xl">Brand preview</h1>
+          <p className="type-body-md mt-3 max-w-2xl text-on-signature">{BRAND.tagline}</p>
           <nav aria-label="Preview sections" className="no-scrollbar mt-6 flex gap-2 overflow-x-auto">
             {nav.map(([id, label]) => (
               <a key={id} href={`#${id}`} className="shrink-0 rounded-pill bg-surface px-4 py-2 type-link-sm text-ink" data-testid={`link-section-${id}`}>
@@ -137,7 +140,7 @@ export default function BrandPreview() {
             <div><dt className="type-label text-ink-muted">App name</dt><dd data-testid="text-brand-name">{BRAND.appName}</dd></div>
             <div><dt className="type-label text-ink-muted">Tagline</dt><dd>{BRAND.tagline}</dd></div>
             <div><dt className="type-label text-ink-muted">Favicon</dt><dd>{BRAND.favicon}</dd></div>
-            <div><dt className="type-label text-ink-muted">Fonts</dt><dd>{BRAND.fonts.heading} / {BRAND.fonts.body}</dd></div>
+            <div><dt className="type-label text-ink-muted">Fonts</dt><dd>{BRAND.fonts.heading} / {BRAND.fonts.body} / <span className="font-mono">{BRAND.fonts.mono}</span></dd></div>
           </dl>
         </Panel>
 

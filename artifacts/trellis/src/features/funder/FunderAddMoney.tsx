@@ -124,7 +124,7 @@ export default function FunderAddMoney() {
                   <span
                     className={cn(
                       'grid size-6 shrink-0 place-items-center rounded-full border-2',
-                      isSelected ? 'border-primary bg-primary text-surface' : 'border-hairline',
+                      isSelected ? 'border-primary bg-primary text-on-primary' : 'border-hairline',
                     )}
                     aria-hidden="true"
                   >
