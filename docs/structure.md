@@ -101,10 +101,24 @@ of these later features merely to populate the reserved folders.
   in `lib/db/tests/` and must use an explicit test database.
 - Solidity: `contracts/test/`, once the testnet toolchain is approved.
 
-These are locations, not existing test suites. There is currently no configured
-feature-test command. Future test tooling must typecheck its tests explicitly;
-the current frontend TS config excludes `*.test.ts`. For the baseline use
-`pnpm run typecheck`, managed service startup, and proxy health/frontend checks.
+Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
+`pnpm test`; select one project with `pnpm test --project <name>`:
+
+| Project      | File                                                   | Guards                                                      |
+| ------------ | ------------------------------------------------------ | ----------------------------------------------------------- |
+| `api-server` | `artifacts/api-server/tests/health.test.ts`            | `GET /api/healthz` status and contract-valid payload         |
+| `trellis`    | `artifacts/trellis/vite-brand-plugin.test.ts`          | BRAND-filled `index.html`, base-path asset URLs, SVG output  |
+| `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
+| `workspace`  | `scripts/tests/design-reference.test.ts`               | reference checksum; no code references the reference        |
+
+Tests derive expected values from `BRAND`, so rebranding does not break them.
+The reference checksum must never be updated to accommodate an edit.
+
+Vitest does not typecheck. Each package with tests has a `tsconfig.test.json`
+(the frontend's main config excludes `*.test.ts`), and its `typecheck` script
+checks both configs, so `pnpm run typecheck` covers tests. A new test location
+in another package needs a Vitest project entry and a matching test TS config.
+For startup, still use managed services and proxy health/frontend checks.
 
 ## Generated files and credentials
 

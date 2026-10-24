@@ -10,7 +10,8 @@ Use the existing managed workflows; they supply `PORT` and the frontend
 - `pnpm --filter @workspace/trellis run dev` — frontend, preview `/`
 - `pnpm --filter @workspace/api-server run dev` — build and start API, `/api`
 - `pnpm --filter @workspace/mockup-sandbox run dev` — existing design sandbox, `/__mockup`
-- `pnpm run typecheck` — build shared library declarations, then check all apps and scripts
+- `pnpm run typecheck` — build shared library declarations, then check all apps, scripts, and their tests
+- `pnpm test` — baseline regression checks (Vitest, root `vitest.config.ts`); add `--project api-server|trellis|workspace` to run one
 - `pnpm run build` — typecheck and build workspace packages (frontend needs `PORT` and `BASE_PATH`)
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API client and validation schemas after OpenAPI changes
 - `curl --fail http://localhost:80/api/healthz` — API health through the shared proxy
@@ -53,7 +54,8 @@ Phase 0 is partial: brand configuration/assets, styling, shared primitives, and
 sample data exist; the homepage still displays the scaffold placeholder. The API
 currently exposes health only and the database schema is empty. Directory READMEs
 reserve responsibilities, not implemented functionality or authorization boundaries.
-No blockchain tooling or feature test runner is installed by the structure task.
+Baseline Vitest checks cover API health, BRAND asset URLs under the frontend
+base path, and the byte-for-byte reference checksum. No blockchain tooling.
 
 ## Stack
 

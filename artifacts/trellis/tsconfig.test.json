@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/**/*",
+    "tests/**/*",
+    "../../src/brand/**/*",
+    "vite-brand-plugin.ts",
+    "*.test.ts"
+  ],
+  "exclude": ["node_modules", "build", "dist"]
+}
