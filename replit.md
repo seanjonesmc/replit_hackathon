@@ -1,45 +1,62 @@
-# [Project name]
+# Trellis
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A phased, testnet-only family-spending demo with parent guardrails.
 
-## Run & Operate
+## Run & check
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+Use the existing managed workflows; they supply `PORT` and the frontend
+`BASE_PATH`. Do not create replacement services.
+
+- `pnpm --filter @workspace/trellis run dev` — frontend, preview `/`
+- `pnpm --filter @workspace/api-server run dev` — build and start API, `/api`
+- `pnpm --filter @workspace/mockup-sandbox run dev` — existing design sandbox, `/__mockup`
+- `pnpm run typecheck` — build shared library declarations, then check all apps and scripts
+- `pnpm run build` — typecheck and build workspace packages (frontend needs `PORT` and `BASE_PATH`)
+- `pnpm --filter @workspace/api-spec run codegen` — regenerate API client and validation schemas after OpenAPI changes
+- `curl --fail http://localhost:80/api/healthz` — API health through the shared proxy
+
+For manual frontend commands outside the workflow, supply `PORT=20757 BASE_PATH=/`;
+for the API supply `PORT=8080`. Keep these aligned with the managed artifact
+configuration. The API dev command builds once; restart it after server edits.
+`DATABASE_URL` is required when using `@workspace/db`, not by the current health
+route. Never commit credentials. Schema push (`pnpm --filter @workspace/db run push`)
+is a separate, explicitly authorized development operation, not a startup step.
+
+## Folder map and implementation boundaries
+
+See [docs/structure.md](docs/structure.md) for the full map, planned modules,
+test locations, and phase gates.
+
+- `artifacts/trellis/` — existing React/Vite frontend
+- `artifacts/api-server/` — existing Express API
+- `lib/` — API specification, generated client/validators, database, future shared logic
+- `src/brand/brand.config.ts` — the single brand source
+- `public/brand/` — canonical brand assets served by the frontend
+- `contracts/` — reserved Solidity area; no toolchain or contracts yet
+- `design/reference/venmo.DESIGN.md` — immutable reference, never a runtime import
+
+## Architecture and scope
+
+- Preserve this pnpm workspace and partial Phase 0 work; extend rather than rebuild.
+- Frontend and API must not import one another. Shared cross-package code belongs
+  in `lib/`; leaf applications and scripts are not shared libraries.
+- Brand names, visual tokens, asset paths, copy, and demo identities come from the
+  root brand configuration. Do not create a second theme/configuration source.
+- Testnet only (Monad); bank/card behavior is simulated. No real money or bank/card
+  linking, refunds, receipt uploads, recurring allowances, push notifications, or
+  multiple families.
+- Verify each phase before moving on. Preview samples are not on-chain proof.
+
+## Current baseline
+
+Phase 0 is partial: brand configuration/assets, styling, shared primitives, and
+sample data exist; the homepage still displays the scaffold placeholder. The API
+currently exposes health only and the database schema is empty. Directory READMEs
+reserve responsibilities, not implemented functionality or authorization boundaries.
+No blockchain tooling or feature test runner is installed by the structure task.
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
-
-## Where things live
-
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
-
-## Architecture decisions
-
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
-
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
-
-## User preferences
-
-_Populate as you build — explicit user instructions worth remembering across sessions._
-
-## Gotchas
-
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+pnpm workspaces, Node.js, TypeScript, React/Vite, Express 5, PostgreSQL/Drizzle,
+OpenAPI/Orval, Zod, and esbuild. Keep existing package choices and workspace
+security settings.
