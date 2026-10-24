@@ -53,3 +53,20 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Local credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.keystore
+
+# Generated verification and smart-contract output (not application sources)
+/generated-artifacts/
+**/coverage/
+/contracts/artifacts/
+/contracts/cache/
+/contracts/typechain/
+/contracts/typechain-types/
+/contracts/deployments/
