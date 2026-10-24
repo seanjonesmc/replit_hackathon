@@ -5,7 +5,7 @@
 - [Database-backed tests](db-tests.md) — own `<dev db>_test` via maintenance DB; env set per Vitest project; files run serially; globalSetup reads project.config.env.
 - [Sign-in decisions](auth-decisions.md) — web-only Replit Auth; stubbed session store in tests; manual checks via temp session; live swipes only rejected/pending.
 - [/brand route vs asset folder](brand-route-asset-folder.md) — /brand route and public/brand/ share a path; published-site behavior unverified.
-- [On-chain authorize constraints](chain-authorize-contract.md) — approve needs a bucket and a matching code; categories must be lowercase; matters when wiring the engine.
+- [On-chain authorize constraints](chain-authorize-contract.md) — approve needs a bucket + matching code; lowercase categories; merchant payouts = card issuer.
 - [pnpm installs here](pnpm-workspace-installs.md) — never `pnpm add` with catalog:; peers listed explicitly; vite type clash → frozen offline reinstall.
 - [happy-dom quirks](happy-dom-quirks.md) — to fake blocked storage, spy on the window.localStorage getter; Storage.prototype spies do nothing.
 - [Effect return values](effect-return-values.md) — Chrome's scrollTo returns a Promise; expression-bodied effects crash on cleanup. Use braces.
@@ -17,3 +17,4 @@
 - [Design token decisions](design-tokens.md) — chain uses sky ink for contrast; decision pairs are mockup-exact; darkColors is top-level, design-system only.
 - [Brand logo](brand-logo.md) — sprout paths hand-traced from a PNG; in-app lockup drawn inline because SVG-in-img text loses the web font.
 - [Screen background and nav](screen-backdrop.md) — background faint (35%); cards plain surface + border; tab bar stays black per user.
+- [Hold then settle](hold-then-settle.md) — approvals only hold; money reaches spent via a settlement run or seed history; resets must clear holds.

@@ -10,7 +10,10 @@ import { isChainInFlight } from '@/lib/chain';
 export default function ParentActivity() {
   // Poll while a chain write is in flight so its badge turns into a link once mined.
   const { data, isLoading, isError, refetch, isFetching } = useListActivity({
-    query: { refetchInterval: (q) => (q.state.data?.some((a) => isChainInFlight(a.chain)) ? 2000 : false) },
+    query: {
+      refetchInterval: (q) =>
+        q.state.data?.some((a) => isChainInFlight(a.chain) || isChainInFlight(a.captureChain)) ? 2000 : false,
+    },
   });
   return (
     <>

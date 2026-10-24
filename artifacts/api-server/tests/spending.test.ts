@@ -32,6 +32,8 @@ const SPENDING_ROUTES = [
       timestamp: "2026-10-24T14:30:00-07:00",
     },
   },
+  { method: "POST", path: "/api/settlements" },
+  { method: "GET", path: "/api/settlements/1" },
   { method: "GET", path: "/api/merchants" },
   { method: "GET", path: "/api/authorizations" },
   { method: "GET", path: "/api/approvals" },

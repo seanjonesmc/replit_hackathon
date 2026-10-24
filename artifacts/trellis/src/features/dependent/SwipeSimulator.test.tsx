@@ -58,6 +58,31 @@ const pendingRide: SwipeResult = {
   bucketId: null,
   bucketName: null,
   decisionMs: 0.42,
+  trace: [
+    { label: 'Visa asked the card issuer to approve $22.00 at Uber', state: 'done' },
+    { label: 'Family rules checked', state: 'done' },
+    { label: 'Nothing held, no money moved', state: 'skipped' },
+    { label: "Waiting for a parent's OK", state: 'pending' },
+  ],
+  chain,
+};
+
+const heldGroceries: SwipeResult = {
+  authorizationId: 42,
+  decision: 'APPROVED',
+  reasonCode: 'approved',
+  reason: 'Groceries fit the Food bucket.',
+  decidedBy: 'Rule',
+  aiConfidence: null,
+  bucketId: 1,
+  bucketName: 'Food',
+  decisionMs: 3.1,
+  trace: [
+    { label: "Visa asked the card issuer to approve $18.40 at Trader Joe's", state: 'done' },
+    { label: 'Family rules checked', state: 'done' },
+    { label: '18.40 USDC held in Food, not paid yet', state: 'held' },
+    { label: 'Approved', state: 'approved' },
+  ],
   chain,
 };
 
@@ -86,6 +111,10 @@ const storedRide = (body: { amount: number; timestamp: string }): Authorization 
   nextAuthorizationId: null,
   resolvedAt: null,
   settledAt: null,
+  settlement: null,
+  settlementId: null,
+  issuerRedeemedAt: null,
+  trace: pendingRide.trace,
   createdAt: new Date().toISOString(),
   chain,
   captureChain: chain,
@@ -194,6 +223,20 @@ describe('swipe simulator', () => {
     expect(body.amount).toBe(18_40);
     expect(Date.parse(body.timestamp)).toBeGreaterThanOrEqual(before - 1000);
     expect(body.timestamp.endsWith('Z')).toBe(true);
+  });
+
+  it("shows an approval's step trace with the hold, and says nothing is paid until settlement", async () => {
+    demoApi({ 'POST /api/swipes': { status: 201, body: heldGroceries } });
+    renderWithApi(<SwipeSimulator />);
+    await settle();
+
+    tileFor("Trader Joe's").click();
+    await settle();
+
+    const steps = [...byTestId('list-decision-trace')!.querySelectorAll('li')].map((li) => li.textContent);
+    expect(steps).toEqual(heldGroceries.trace.map((t) => t.label));
+    expect(byTestId('text-decision-ms')?.textContent).toBe('3.1 ms');
+    expect(byTestId('text-held-note')?.textContent).toContain('Nothing is paid until settlement');
   });
 
   it('shows a frozen card before any swipe', async () => {

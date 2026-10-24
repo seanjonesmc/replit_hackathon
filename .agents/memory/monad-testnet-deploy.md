@@ -27,3 +27,5 @@ description: Cost, verification and config facts for deploying/seeding the contr
   A redeploy costs ~0.7 MON; afterwards set the dev address env vars and
   re-verify both contracts on Sourcify.
   **Why:** adding Transit (2026-10-24) found Food topped up by $50 on chain.
+- The dev contracts were redeployed on 2026-10-24 so merchant payouts point at the card issuer. The one testnet swipe + settlement check afterwards left 1 authorization on chain and Food $18.40 lower than the seed plan, so readBackDemoFamily would no longer match that deployment exactly.
+  **How to apply:** expect the live chain to drift from the seed after demo runs; redeploy (not patch) when an exact match is needed.

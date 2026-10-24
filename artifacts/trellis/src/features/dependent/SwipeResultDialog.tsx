@@ -59,12 +59,17 @@ function ResultCard({ shown, onDone }: { shown: ShownSwipe; onDone: () => void }
       decidedBy={DECIDED_BY[result.decidedBy]}
       aiConfidence={result.aiConfidence}
       decisionMs={result.decisionMs}
+      trace={result.trace}
       decidedAt={decidedAt}
       chain={chainStatusOf(result.chain)}
       titleAs="h2"
       onDone={onDone}
       footer={
-        decision === 'approved' ? undefined : (
+        decision === 'approved' ? (
+          <p className="type-caption text-center text-ink-muted" data-testid="text-held-note">
+            Approved and held. Nothing is paid until settlement.
+          </p>
+        ) : (
           <div className="flex flex-col items-center gap-1 text-center">
             {decision === 'pending' && (
               <p className="type-caption text-ink-muted" data-testid="text-waiting-approval">

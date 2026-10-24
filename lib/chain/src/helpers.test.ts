@@ -19,7 +19,7 @@ import {
   chainId,
   memberChainId,
   merchantChainId,
-  merchantPayoutAddress,
+  cardIssuerAddress,
 } from "./ids";
 import { toJsonSafe } from "./json";
 
@@ -46,14 +46,13 @@ describe("chain IDs", () => {
   });
 });
 
-describe("merchant payout addresses", () => {
-  it("are the last 20 bytes of a namespaced SHA-256, checksummed", () => {
-    const hash = sha256Hex("demo-family:merchant-payout:trader-joes");
-    const address = merchantPayoutAddress("trader-joes");
+describe("the card issuer address", () => {
+  it("is the last 20 bytes of a namespaced SHA-256, checksummed and stable", () => {
+    const hash = sha256Hex("demo-family:card-issuer");
+    const address = cardIssuerAddress();
     expect(address.toLowerCase()).toBe(`0x${hash.slice(-40)}`);
     expect(address).not.toBe(address.toLowerCase());
-    expect(merchantPayoutAddress("trader-joes")).toBe(address);
-    expect(merchantPayoutAddress("steam")).not.toBe(address);
+    expect(cardIssuerAddress()).toBe(address);
   });
 });
 

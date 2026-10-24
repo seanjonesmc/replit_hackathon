@@ -31,3 +31,9 @@ export {
   seedSpendingDemo,
   type SpendingSeedResult,
 } from "./seed";
+export {
+  getSettlement,
+  runSettlement,
+  type SettlementDetail,
+} from "./settlement";
+export { settlementState, settlementSteps, swipeTrace } from "./trace";

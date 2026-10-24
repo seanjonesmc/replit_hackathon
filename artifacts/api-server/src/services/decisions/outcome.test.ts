@@ -19,7 +19,7 @@ const BUCKETS = [FOOD, SCHOOL, SOCIAL];
 const SUSPICIOUS_IN_FOOD: RuleResult = {
   decision: "APPROVED",
   reasonCode: "approved",
-  reason: "Approved and paid from Food.",
+  reason: "Approved and held in Food until settlement.",
   bucket: FOOD,
   passId: null,
   sendToAiGuard: "suspicious",

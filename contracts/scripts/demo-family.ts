@@ -15,8 +15,8 @@ import {
   DEMO_MERCHANTS,
   chainId,
   memberChainId,
+  cardIssuerAddress,
   merchantChainId,
-  merchantPayoutAddress,
   type Bytes32,
   type ChainClient,
   type DemoMemberRole,
@@ -136,7 +136,9 @@ export function demoFamilyPlan(now: Date = new Date()): DemoFamilyPlan {
     merchants: DEMO_MERCHANTS.map((merchant) => ({
       ...merchant,
       id: merchantChainId(merchant.slug),
-      payoutAddress: merchantPayoutAddress(merchant.slug),
+      // Settlement repays the card issuer, not the merchant (the card network
+      // pays the merchant in dollars from the issuer's account).
+      payoutAddress: cardIssuerAddress(),
     })),
     card: {
       last4: demo.cardLast4,

@@ -15,4 +15,12 @@ export interface ParentOverview {
   potTotalCents: number;
   buckets: BucketSummary[];
   pendingApprovalsCount: number;
+  /** Approved purchases still held, waiting for settlement. */
+  heldPurchasesCount: number;
+  heldTotalCents: number;
+  /**
+   * The most recent settlement run, if any.
+   * @nullable
+   */
+  latestSettlementId: number | null;
 }

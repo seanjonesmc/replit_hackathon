@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { db as defaultDb, type Database } from "@workspace/db";
 import {
   authorizationsTable,
@@ -8,6 +8,7 @@ import {
   familiesTable,
   membersTable,
   policiesTable,
+  settlementsTable,
   type Authorization as AuthorizationRow,
   type Card as CardRow,
   type DecidedBy as DecidedByRow,
@@ -25,6 +26,7 @@ import type {
   ParentOverview,
   TimelineStep,
 } from "@workspace/api-zod";
+import { settlementState } from "../decisions/trace";
 import { toChainRecord } from "../events/chain-record";
 import { describePolicy } from "../policies/plain-english";
 import { contributionNote } from "./contributions";
@@ -166,6 +168,27 @@ export async function getParentOverview(familyId: number, now: Date = new Date()
     .select({ id: authorizationsTable.id })
     .from(authorizationsTable)
     .where(and(eq(authorizationsTable.familyId, familyId), eq(authorizationsTable.status, "pending")));
+  // Approved purchases still holding money, waiting for a settlement run.
+  const [held] = await database
+    .select({
+      count: sql<number>`count(*)::int`,
+      total: sql<number>`coalesce(sum(${authorizationsTable.amountCents}), 0)::int`,
+    })
+    .from(authorizationsTable)
+    .where(
+      and(
+        eq(authorizationsTable.familyId, familyId),
+        eq(authorizationsTable.decision, "APPROVED"),
+        isNotNull(authorizationsTable.bucketId),
+        isNull(authorizationsTable.settledAt),
+      ),
+    );
+  const [latest] = await database
+    .select({ id: settlementsTable.id })
+    .from(settlementsTable)
+    .where(eq(settlementsTable.familyId, familyId))
+    .orderBy(desc(settlementsTable.settledAt), desc(settlementsTable.id))
+    .limit(1);
   return {
     familyName: family.name,
     parentName: parent.displayName,
@@ -173,6 +196,9 @@ export async function getParentOverview(familyId: number, now: Date = new Date()
     potTotalCents: buckets.reduce((sum, b) => sum + b.availableCents + b.heldCents, 0),
     buckets,
     pendingApprovalsCount: pending.length,
+    heldPurchasesCount: held?.count ?? 0,
+    heldTotalCents: held?.total ?? 0,
+    latestSettlementId: latest?.id ?? null,
   };
 }
 
@@ -185,7 +211,8 @@ function purchaseItem(
   nameOf: (id: number | null) => string | undefined,
 ): ActivityItem {
   const amount = formatAmount(a.amountCents);
-  const paidFrom = bucketName ? ` — paid from ${bucketName}` : "";
+  // Held money isn't paid yet; it's paid from the bucket once it settles.
+  const paidFrom = bucketName ? (a.settledAt ? ` — paid from ${bucketName}` : ` — held in ${bucketName}`) : "";
   const approverName = nameOf(original?.resolvedByMemberId ?? a.resolvedByMemberId) ?? "a parent";
   const spentOn = spentOnPhrase(a.merchantCategory);
 
@@ -241,7 +268,13 @@ function purchaseItem(
     mcc: a.mcc,
     category: a.merchantCategory,
     timeline,
+    settlement: settlementState(a),
     chain: chain(a),
+    captureChain: chain({
+      chainStatus: a.captureChainStatus,
+      chainTxHash: a.captureChainTxHash,
+      chainConfirmedAt: a.captureChainConfirmedAt,
+    }),
   };
 }
 
@@ -293,7 +326,9 @@ export async function getActivity(familyId: number, database: Database = default
       mcc: null,
       category: null,
       timeline: [],
+      settlement: null,
       chain: chain(c),
+      captureChain: { status: "not_submitted", txHash: null, confirmedAt: null, explorerUrl: null },
     });
   }
 

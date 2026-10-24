@@ -1,10 +1,26 @@
 import { useId, type ReactNode } from 'react';
+import { CheckCircle2, Clock, Lock, MinusCircle, XCircle, type LucideIcon } from 'lucide-react';
 import { BRAND } from '@brand/brand.config';
 import { cn } from '@/lib/utils';
 import { formatCents, formatDecisionTime, formatDurationMs } from '@/lib/format';
 import type { ChainStatus, DecidedBy, Decision } from '@/lib/domain';
 import { motion } from './motion';
 import { ChainBadge, PillButton, decisionMeta } from './primitives';
+
+/** One step of what happened during the swipe, in plain words. */
+export interface DecisionTraceStep {
+  label: string;
+  state: 'done' | 'held' | 'skipped' | 'approved' | 'rejected' | 'pending';
+}
+
+const traceIcon: Record<DecisionTraceStep['state'], { Icon: LucideIcon; cls: string }> = {
+  done: { Icon: CheckCircle2, cls: 'text-ink-muted' },
+  held: { Icon: Lock, cls: 'text-pending' },
+  skipped: { Icon: MinusCircle, cls: 'text-ink-muted' },
+  approved: { Icon: CheckCircle2, cls: 'text-approved' },
+  rejected: { Icon: XCircle, cls: 'text-rejected' },
+  pending: { Icon: Clock, cls: 'text-pending' },
+};
 
 interface DecisionResultCardProps {
   decision: Decision;
@@ -25,6 +41,8 @@ interface DecisionResultCardProps {
   aiConfidence?: number | null;
   /** Measured decision time. Omit when it wasn't measured; never invent one. */
   decisionMs?: number | null;
+  /** What happened, in order: the card network's ask, the checks, the hold, the decision. */
+  trace?: DecisionTraceStep[];
   /**
    * Shown for declined and pending decisions only. Without a handler the
    * button stays visible but disabled (explain why in `footer`).
@@ -59,6 +77,7 @@ export function DecisionResultCard({
   decidedBy,
   aiConfidence,
   decisionMs,
+  trace,
   onAskParent,
   onDone,
   footer,
@@ -99,6 +118,23 @@ export function DecisionResultCard({
             Reason code: <code className="font-mono tnum" data-testid="text-reason-code">{reasonCode}</code>
           </p>
         </div>
+
+        {trace && trace.length > 0 && (
+          <div>
+            <h3 className="type-caption font-semibold text-ink-muted">What happened</h3>
+            <ol className="mt-2 flex flex-col gap-2" aria-label="What happened" data-testid="list-decision-trace">
+              {trace.map((step, i) => {
+                const { Icon, cls } = traceIcon[step.state];
+                return (
+                  <li key={i} className="flex items-start gap-2" data-testid={`trace-step-${i + 1}`}>
+                    <Icon className={cn('mt-0.5 size-4 shrink-0', cls)} strokeWidth={2.4} aria-hidden="true" />
+                    <span className={cn('type-body-sm', step.state === 'held' && 'font-semibold')}>{step.label}</span>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        )}
 
         <dl className="flex flex-col divide-y border-y">
           {decidedBy && (

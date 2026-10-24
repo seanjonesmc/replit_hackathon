@@ -19,7 +19,7 @@ export const DEMO_MEMBER_KEYS = {
 export type DemoMemberRole = keyof typeof DEMO_MEMBER_KEYS;
 
 export interface DemoMerchant {
-  /** Stable key passed to `merchantChainId` and `merchantPayoutAddress`. */
+  /** Stable key passed to `merchantChainId`; matches the backend seed's slug. */
   slug: string;
   name: string;
   /** The real-world merchant category code. */
@@ -32,7 +32,7 @@ export interface DemoMerchant {
 export const DEMO_MERCHANTS: readonly DemoMerchant[] = [
   { slug: "trader-joes", name: "Trader Joe's", mcc: 5411, category: "grocery" },
   { slug: "campus-bookstore", name: "Campus Bookstore", mcc: 5942, category: "bookstore" },
-  { slug: "the-tipsy-tavern", name: "The Tipsy Tavern", mcc: 5813, category: "bar" },
+  { slug: "tipsy-tavern", name: "The Tipsy Tavern", mcc: 5813, category: "bar" },
   { slug: "liquor-barn", name: "Liquor Barn", mcc: 5921, category: "liquor" },
   { slug: "lucky-star-casino", name: "Lucky Star Casino", mcc: 7995, category: "gambling" },
   { slug: "steam", name: "Steam", mcc: 5816, category: "gaming" },

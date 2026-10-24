@@ -6,32 +6,48 @@ import {
   db,
   membersTable,
   merchantsTable,
+  authorizationsTable,
   pool,
+  settlementsTable,
   temporaryPassesTable,
   type Authorization,
 } from "@workspace/db";
-import { processSwipe, seedSpendingDemo, type SwipeInput } from "../../src/services/decisions";
+import {
+  getSettlement,
+  processSwipe,
+  runSettlement,
+  seedSpendingDemo,
+  type SwipeInput,
+} from "../../src/services/decisions";
 import { insufficientFundsReason } from "../../src/services/decisions/rules";
 import {
   decideSwipe,
   loadSwipeContext,
   recordDecision,
 } from "../../src/services/decisions/swipes";
-import { seedDemoFamily } from "../../src/services/family";
+import {
+  FamilyServiceError,
+  getActivity,
+  getDemoFamily,
+  getParentOverview,
+  seedDemoFamily,
+} from "../../src/services/family";
 import { resetTestDatabase } from "./test-database";
 
 /**
  * The money side of the decision engine, against the test database: an
- * approval moves the amount available → held → spent before the swipe
- * returns, rejected and pending swipes move nothing, swipes racing for one
- * bucket or one temporary pass never overspend it, and the spending seed
+ * approval only holds its amount (available → held) and a settlement run
+ * later moves it held → spent; rejected and pending swipes move nothing;
+ * swipes racing for one bucket or one temporary pass never overspend it, two
+ * settlement runs never settle a purchase twice, and the spending seed
  * leaves the balances the demo script relies on. The AI guard is off
  * throughout, so the rules alone decide.
  */
 
 // These tests check the database only; never send anything to the chain.
 vi.mock("../../src/services/decisions/chain-handoff", () => ({
-  handOffToChain: vi.fn(async () => {}),
+  handOffToChain: vi.fn(async () => ({ status: "skipped", why: "test" })),
+  captureOnChain: vi.fn(async () => ({ status: "skipped", why: "test" })),
 }));
 
 const NO_GUARD = { aiGuard: null } as const;
@@ -88,10 +104,16 @@ async function balances(): Promise<Balances> {
   );
 }
 
-/** The seeded balances with `cents` moved from available to spent in one bucket. */
-function seededAfterSpending(bucket: string, cents: number): Balances {
+/** The seeded balances with `cents` moved from available to held in one bucket. */
+function seededAfterHolding(bucket: string, cents: number): Balances {
   const b = seeded[bucket]!;
-  return { ...seeded, [bucket]: { available: b.available - cents, held: b.held, spent: b.spent + cents } };
+  return { ...seeded, [bucket]: { available: b.available - cents, held: b.held + cents, spent: b.spent } };
+}
+
+/** The seeded balances with `cents` moved from available to spent (settled) in one bucket. */
+function seededAfterSpending(bucket: string, cents: number, from: Balances = seeded): Balances {
+  const b = from[bucket]!;
+  return { ...from, [bucket]: { available: b.available - cents, held: b.held, spent: b.spent + cents } };
 }
 
 async function bucketId(name: string) {
@@ -123,7 +145,7 @@ describe("the spending seed", () => {
 });
 
 describe("a swipe's money movement", () => {
-  it("moves an approval's amount from available to spent before the swipe returns", async () => {
+  it("holds an approval's amount (available → held) and pays nothing yet", async () => {
     const { authorization, bucketName } = await processSwipe(swipe("trader-joes", 20_00), NO_GUARD);
 
     expect(authorization).toMatchObject({
@@ -133,8 +155,9 @@ describe("a swipe's money movement", () => {
       bucketId: await bucketId("Food"),
     });
     expect(bucketName).toBe("Food");
-    expect(authorization.settledAt).not.toBeNull();
-    expect(await balances()).toEqual(seededAfterSpending("Food", 20_00));
+    expect(authorization.settledAt).toBeNull();
+    expect(authorization.settlementId).toBeNull();
+    expect(await balances()).toEqual(seededAfterHolding("Food", 20_00));
   });
 
   it.each([
@@ -178,7 +201,7 @@ describe("swipes racing for one bucket", () => {
     // $118.75 covers two $50 purchases, never a third.
     expect(decisions(stored)).toEqual(["APPROVED", "APPROVED", "REJECTED", "REJECTED", "REJECTED"]);
     expect(stored.filter((a) => a.decision === "REJECTED").every((a) => a.reasonCode === "insufficient_funds")).toBe(true);
-    expect(await balances()).toEqual(seededAfterSpending("Food", 100_00));
+    expect(await balances()).toEqual(seededAfterHolding("Food", 100_00));
   });
 
   it("re-checks the locked bucket when swipes the rules all approved are stored together", async () => {
@@ -197,7 +220,7 @@ describe("swipes racing for one bucket", () => {
         settledAt: null,
       });
     }
-    expect(await balances()).toEqual(seededAfterSpending("Social", 20_00));
+    expect(await balances()).toEqual(seededAfterHolding("Social", 20_00));
   });
 });
 
@@ -211,11 +234,11 @@ describe("a temporary pass", () => {
     expect(first.authorization).toMatchObject({ decision: "APPROVED", reasonCode: "approved" });
     const [used] = await db.select().from(temporaryPassesTable).where(eq(temporaryPassesTable.id, pass.id));
     expect(used!.usedAt).not.toBeNull();
-    expect(await balances()).toEqual(seededAfterSpending("Food", 10_00));
+    expect(await balances()).toEqual(seededAfterHolding("Food", 10_00));
 
     const second = await processSwipe(lateNight, NO_GUARD);
     expect(second.authorization).toMatchObject({ decision: "PENDING", reasonCode: "outside_hours" });
-    expect(await balances()).toEqual(seededAfterSpending("Food", 10_00));
+    expect(await balances()).toEqual(seededAfterHolding("Food", 10_00));
   });
 
   it("pays for only one of two swipes that both counted on it", async () => {
@@ -233,6 +256,84 @@ describe("a temporary pass", () => {
       reasonCode: "needs_approval",
       settledAt: null,
     });
-    expect(await balances()).toEqual(seededAfterSpending("Food", 10_00));
+    expect(await balances()).toEqual(seededAfterHolding("Food", 10_00));
+  });
+});
+
+describe("settlement", () => {
+  /** Approves $18.40 at Trader Joe's and $20 at AMC, and sends one swipe to a parent. */
+  async function holdTwoAndAskOnce() {
+    const groceries = (await processSwipe(swipe("trader-joes", 18_40), NO_GUARD)).authorization;
+    const movie = (await processSwipe(swipe("amc", 20_00), NO_GUARD)).authorization;
+    const pending = (await processSwipe(swipe("campus-bookstore", 120_00), NO_GUARD)).authorization;
+    expect([groceries.decision, movie.decision, pending.decision]).toEqual(["APPROVED", "APPROVED", "PENDING"]);
+    return { groceries, movie, pending };
+  }
+
+  it("moves every held purchase to spent, records the run and sends each capture", async () => {
+    const { groceries, movie, pending } = await holdTwoAndAskOnce();
+    const at = new Date("2026-10-24T19:00:00Z");
+    const capture = vi.fn();
+
+    const detail = await runSettlement({ now: at, capture });
+
+    expect(detail.settlement).toMatchObject({ purchaseCount: 2, totalCents: 38_40 });
+    expect(detail.settlement.settledAt).toEqual(at);
+    expect(detail.purchases.map((p) => [p.authorization.id, p.bucketName])).toEqual([
+      [groceries.id, "Food"],
+      [movie.id, "Social"],
+    ]);
+    for (const { authorization } of detail.purchases) {
+      expect(authorization).toMatchObject({ settlementId: detail.settlement.id, settledAt: at, issuerRedeemedAt: at });
+    }
+    expect(detail.issuerAddress).toMatch(/^0x[0-9a-fA-F]{40}$/);
+    expect(capture.mock.calls.map(([id]) => id)).toEqual([groceries.id, movie.id]);
+
+    expect(await balances()).toEqual(seededAfterSpending("Social", 20_00, seededAfterSpending("Food", 18_40)));
+    const [stillPending] = await db.select().from(authorizationsTable).where(eq(authorizationsTable.id, pending.id));
+    expect(stillPending).toMatchObject({ status: "pending", settledAt: null, settlementId: null });
+
+    // Reading the run back gives the same purchases.
+    const again = await getSettlement(detail.settlement.id);
+    expect(again.purchases.map((p) => p.authorization.id)).toEqual([groceries.id, movie.id]);
+  });
+
+  it("shows a purchase as held, then settled, on the parent's screens", async () => {
+    const { groceries } = await holdTwoAndAskOnce();
+    const family = await getDemoFamily();
+    const row = async () => (await getActivity(family.id)).find((a) => a.id === `purchase-${groceries.id}`)!;
+
+    expect((await row()).settlement).toBe("held");
+    expect((await row()).summary).toContain("held in Food");
+    const before = await getParentOverview(family.id);
+    expect(before).toMatchObject({ heldPurchasesCount: 2, heldTotalCents: 38_40, latestSettlementId: null });
+    expect(before.buckets.find((b) => b.name === "Food")?.heldCents).toBe(18_40);
+
+    const { settlement } = await runSettlement({ capture: () => undefined });
+
+    expect((await row()).settlement).toBe("settled");
+    expect((await row()).summary).toContain("paid from Food");
+    const after = await getParentOverview(family.id);
+    expect(after).toMatchObject({ heldPurchasesCount: 0, heldTotalCents: 0, latestSettlementId: settlement.id });
+    expect(after.buckets.every((b) => b.heldCents === 0)).toBe(true);
+  });
+
+  it("refuses to run when nothing is held, and records nothing", async () => {
+    await processSwipe(swipe("liquor-barn", 15_00), NO_GUARD);
+    await expect(runSettlement({ capture: () => undefined })).rejects.toBeInstanceOf(FamilyServiceError);
+    expect(await db.select().from(settlementsTable)).toHaveLength(0);
+    expect(await balances()).toEqual(seeded);
+  });
+
+  it("settles each purchase once when two runs start together", async () => {
+    await holdTwoAndAskOnce();
+    const capture = vi.fn();
+
+    const runs = await Promise.allSettled([runSettlement({ capture }), runSettlement({ capture })]);
+
+    expect(runs.map((r) => r.status).sort()).toEqual(["fulfilled", "rejected"]);
+    expect(capture).toHaveBeenCalledTimes(2);
+    expect(await db.select().from(settlementsTable)).toHaveLength(1);
+    expect(await balances()).toEqual(seededAfterSpending("Social", 20_00, seededAfterSpending("Food", 18_40)));
   });
 });

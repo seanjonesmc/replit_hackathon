@@ -10,6 +10,8 @@ import type { ChainRecord } from "./chainRecord";
 import type { DecidedBy } from "./decidedBy";
 import type { Decision } from "./decision";
 import type { ReasonCode } from "./reasonCode";
+import type { SettlementState } from "./settlementState";
+import type { SwipeTraceStep } from "./swipeTraceStep";
 
 export interface Authorization {
   id: number;
@@ -53,11 +55,24 @@ export interface Authorization {
    */
   resolvedAt: Date | null;
   /**
-   * When the money moved to spent.
+   * When the held money moved to spent and the card issuer was repaid.
    * @nullable
    */
   settledAt: Date | null;
+  settlement: SettlementState | null;
+  /**
+   * The settlement run that settled it (null for seeded history).
+   * @nullable
+   */
+  settlementId: number | null;
+  /**
+   * When the card issuer redeemed the tokens with the partner bank (simulated).
+   * @nullable
+   */
+  issuerRedeemedAt: Date | null;
+  trace: SwipeTraceStep[];
   createdAt: Date;
   chain: ChainRecord;
+  /** The capture that repaid the card issuer at settlement. */
   captureChain: ChainRecord;
 }

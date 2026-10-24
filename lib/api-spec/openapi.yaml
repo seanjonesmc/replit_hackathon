@@ -320,10 +320,13 @@ paths:
       description: >-
         Runs the hard rules in order (the first match decides), then the AI
         guard only for swipes the rules can't place in a bucket or whose items
-        look suspicious. Stores the authorization and, when approved, moves the
-        amount out of the bucket at once. For seeded merchants the stored name,
+        look suspicious. Stores the authorization and, when approved, holds the
+        amount in its bucket (available → held); nothing is paid until a
+        settlement run (`POST /settlements`) moves it held → spent. Rejected and
+        pending swipes move no money. For seeded merchants the stored name,
         category and MCC are used instead of the values sent. Never waits on the
-        chain; the chain status starts as `not_submitted`.
+        chain: the chain status starts as `not_submitted`, and `authorize` is
+        sent to the testnet in the background.
       requestBody:
         required: true
         content:
@@ -339,6 +342,48 @@ paths:
                 $ref: "#/components/schemas/SwipeResult"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /settlements:
+    post:
+      tags: [Spending]
+      operationId: runSettlement
+      summary: Settle every held purchase (demo control)
+      description: >-
+        A demo-only control the presenter triggers. Moves every held purchase
+        held → spent in one transaction and returns the run with three steps
+        per purchase: the card network paid the merchant in dollars from the
+        card issuer's account (simulated), the vault released the held tokens
+        to the card issuer (on the testnet, sent in the background as
+        `capture`), and the issuer redeemed them with the partner bank for
+        dollars (simulated). Responds 422 when nothing is held.
+      responses:
+        "201":
+          description: The settlement run.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settlement"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+  /settlements/{settlementId}:
+    get:
+      tags: [Spending]
+      operationId: getSettlement
+      summary: One settlement run, with each capture's current chain status
+      parameters:
+        - $ref: "#/components/parameters/SettlementId"
+      responses:
+        "200":
+          description: The settlement run.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settlement"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -594,6 +639,14 @@ components:
         maximum: 2147483647
     BucketId:
       name: bucketId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 2147483647
+    SettlementId:
+      name: settlementId
       in: path
       required: true
       schema:
@@ -1046,6 +1099,7 @@ components:
         - bucketId
         - bucketName
         - decisionMs
+        - trace
         - chain
       properties:
         authorizationId:
@@ -1069,8 +1123,92 @@ components:
         decisionMs:
           type: number
           description: Measured rule evaluation time, plus the AI guard's when it ran.
+        trace:
+          type: array
+          description: What happened during the swipe, in order, in plain words.
+          items:
+            $ref: "#/components/schemas/SwipeTraceStep"
         chain:
           $ref: "#/components/schemas/ChainRecord"
+    SwipeTraceStep:
+      type: object
+      required: [label, state]
+      properties:
+        label:
+          type: string
+        state:
+          type: string
+          description: >-
+            `done` for a hand-off step, `held` when money was held, `skipped`
+            when nothing was held, and the decision for the last step.
+          enum: [done, held, skipped, approved, rejected, pending]
+    SettlementState:
+      type: string
+      description: >-
+        Where an approved purchase's money stands: `held` (approved, not paid
+        yet) or `settled` (held → spent, the card issuer repaid). Null for a
+        swipe that moved no money.
+      enum: [held, settled]
+    SettlementStep:
+      type: object
+      required: [key, label, detail, simulated, chain]
+      properties:
+        key:
+          type: string
+          enum: [network_paid_merchant, vault_paid_issuer, issuer_redeemed]
+        label:
+          type: string
+        detail:
+          type: string
+        simulated:
+          type: boolean
+          description: True for a step nothing real performs (no card network or bank).
+        chain:
+          description: The testnet transaction behind the step, for the vault step only.
+          oneOf:
+            - $ref: "#/components/schemas/ChainRecord"
+            - type: "null"
+    SettledPurchase:
+      type: object
+      required: [authorizationId, merchantName, bucketName, amountCents, swipedAt, steps]
+      properties:
+        authorizationId:
+          type: integer
+        merchantName:
+          type: string
+        bucketName:
+          type: [string, "null"]
+        amountCents:
+          type: integer
+        swipedAt:
+          type: string
+          format: date-time
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/SettlementStep"
+    Settlement:
+      type: object
+      required: [id, settledAt, purchaseCount, totalCents, issuerAddress, issuerExplorerUrl, purchases]
+      properties:
+        id:
+          type: integer
+        settledAt:
+          type: string
+          format: date-time
+        purchaseCount:
+          type: integer
+        totalCents:
+          type: integer
+        issuerAddress:
+          type: string
+          description: The card issuer's testnet wallet that captures pay.
+        issuerExplorerUrl:
+          type: string
+        purchases:
+          type: array
+          items:
+            $ref: "#/components/schemas/SettledPurchase"
     Authorization:
       type: object
       required:
@@ -1098,6 +1236,10 @@ components:
         - nextAuthorizationId
         - resolvedAt
         - settledAt
+        - settlement
+        - settlementId
+        - issuerRedeemedAt
+        - trace
         - createdAt
         - chain
         - captureChain
@@ -1158,13 +1300,29 @@ components:
         settledAt:
           type: [string, "null"]
           format: date-time
-          description: When the money moved to spent.
+          description: When the held money moved to spent and the card issuer was repaid.
+        settlement:
+          oneOf:
+            - $ref: "#/components/schemas/SettlementState"
+            - type: "null"
+        settlementId:
+          type: [integer, "null"]
+          description: The settlement run that settled it (null for seeded history).
+        issuerRedeemedAt:
+          type: [string, "null"]
+          format: date-time
+          description: When the card issuer redeemed the tokens with the partner bank (simulated).
+        trace:
+          type: array
+          items:
+            $ref: "#/components/schemas/SwipeTraceStep"
         createdAt:
           type: string
           format: date-time
         chain:
           $ref: "#/components/schemas/ChainRecord"
         captureChain:
+          description: The capture that repaid the card issuer at settlement.
           $ref: "#/components/schemas/ChainRecord"
     Merchant:
       type: object
@@ -1355,7 +1513,16 @@ components:
 
     ParentOverview:
       type: object
-      required: [familyName, parentName, dependentName, potTotalCents, buckets, pendingApprovalsCount]
+      required:
+        - familyName
+        - parentName
+        - dependentName
+        - potTotalCents
+        - buckets
+        - pendingApprovalsCount
+        - heldPurchasesCount
+        - heldTotalCents
+        - latestSettlementId
       properties:
         familyName:
           type: string
@@ -1372,6 +1539,14 @@ components:
             $ref: "#/components/schemas/BucketSummary"
         pendingApprovalsCount:
           type: integer
+        heldPurchasesCount:
+          type: integer
+          description: Approved purchases still held, waiting for settlement.
+        heldTotalCents:
+          type: integer
+        latestSettlementId:
+          type: [integer, "null"]
+          description: The most recent settlement run, if any.
 
     TimelineStep:
       type: object
@@ -1404,7 +1579,9 @@ components:
         - mcc
         - category
         - timeline
+        - settlement
         - chain
+        - captureChain
       properties:
         id:
           type: string
@@ -1456,7 +1633,16 @@ components:
           description: Approval chain steps (empty unless the purchase needed a parent's OK).
           items:
             $ref: "#/components/schemas/TimelineStep"
+        settlement:
+          oneOf:
+            - $ref: "#/components/schemas/SettlementState"
+            - type: "null"
         chain:
+          $ref: "#/components/schemas/ChainRecord"
+        captureChain:
+          description: >-
+            A purchase's capture at settlement (the vault repaying the card
+            issuer); `not_submitted` for contributions.
           $ref: "#/components/schemas/ChainRecord"
 
     PolicyLine:

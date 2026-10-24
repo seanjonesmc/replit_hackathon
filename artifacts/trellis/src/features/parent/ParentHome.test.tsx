@@ -11,6 +11,9 @@ const overview: ParentOverview = {
   potTotalCents: 460_00,
   buckets: [],
   pendingApprovalsCount: 0,
+  heldPurchasesCount: 0,
+  heldTotalCents: 0,
+  latestSettlementId: null,
 };
 
 afterEach(() => cleanupApi());

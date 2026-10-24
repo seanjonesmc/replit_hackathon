@@ -6,14 +6,18 @@ import { SectionTitle } from '@/components/trellis/primitives';
 import { ActivityRowSkeleton, LoadingRegion } from '@/components/trellis/skeletons';
 import { ErrorState } from '@/components/trellis/states';
 import { DECISION } from '@/features/family/spending';
-import { chainStatusOf } from '@/lib/chain';
+import { chainStatusOf, isChainInFlight } from '@/lib/chain';
 import { formatWhen } from '@/lib/format';
 
 const RECENT_LIMIT = 5;
 
 /** The latest swipes on the card, newest first; refreshed after every swipe. */
 export function RecentSwipes({ holderName, className }: { holderName: string; className?: string }) {
-  const { data, isLoading, isError, refetch, isFetching } = useListAuthorizations({ limit: RECENT_LIMIT });
+  // Poll while a chain write is in flight so its badge turns into a link once mined.
+  const { data, isLoading, isError, refetch, isFetching } = useListAuthorizations(
+    { limit: RECENT_LIMIT },
+    { query: { refetchInterval: (q) => (q.state.data?.some((a) => isChainInFlight(a.chain)) ? 2000 : false) } },
+  );
   return (
     <section className={className} aria-labelledby="recent-swipes-title">
       <SectionTitle>
@@ -49,6 +53,7 @@ export function RecentSwipes({ holderName, className }: { holderName: string; cl
               detail={a.reason}
               when={formatWhen(a.swipedAt)}
               bucket={a.bucketName ?? undefined}
+              stage={a.settlement ?? undefined}
               chain={chainStatusOf(a.chain)}
               data-testid={`row-swipe-${a.id}`}
             />

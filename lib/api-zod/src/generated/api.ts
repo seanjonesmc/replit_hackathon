@@ -627,7 +627,7 @@ export const ListMemberContributionsResponse = zod.object({
 });
 
 /**
- * Runs the hard rules in order (the first match decides), then the AI guard only for swipes the rules can't place in a bucket or whose items look suspicious. Stores the authorization and, when approved, moves the amount out of the bucket at once. For seeded merchants the stored name, category and MCC are used instead of the values sent. Never waits on the chain; the chain status starts as `not_submitted`.
+ * Runs the hard rules in order (the first match decides), then the AI guard only for swipes the rules can't place in a bucket or whose items look suspicious. Stores the authorization and, when approved, holds the amount in its bucket (available → held); nothing is paid until a settlement run (`POST /settlements`) moves it held → spent. Rejected and pending swipes move no money. For seeded merchants the stored name, category and MCC are used instead of the values sent. Never waits on the chain: the chain status starts as `not_submitted`, and `authorize` is sent to the testnet in the background.
  * @summary Swipe the simulated card through the decision engine
  */
 export const createSwipeBodyCardIdMax = 2147483647;
@@ -724,6 +724,18 @@ export const CreateSwipeResponse = zod.object({
     .describe(
       "Measured rule evaluation time, plus the AI guard's when it ran.",
     ),
+  trace: zod
+    .array(
+      zod.object({
+        label: zod.string(),
+        state: zod
+          .enum(["done", "held", "skipped", "approved", "rejected", "pending"])
+          .describe(
+            "`done` for a hand-off step, `held` when money was held, `skipped` when nothing was held, and the decision for the last step.",
+          ),
+      }),
+    )
+    .describe("What happened during the swipe, in order, in plain words."),
   chain: zod.object({
     status: zod
       .enum(["not_submitted", "submitted", "confirmed", "failed"])
@@ -739,6 +751,139 @@ export const CreateSwipeResponse = zod.object({
         "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
       ),
   }),
+});
+
+/**
+ * A demo-only control the presenter triggers. Moves every held purchase held → spent in one transaction and returns the run with three steps per purchase: the card network paid the merchant in dollars from the card issuer's account (simulated), the vault released the held tokens to the card issuer (on the testnet, sent in the background as `capture`), and the issuer redeemed them with the partner bank for dollars (simulated). Responds 422 when nothing is held.
+ * @summary Settle every held purchase (demo control)
+ */
+export const RunSettlementResponse = zod.object({
+  id: zod.number().int(),
+  settledAt: zod.coerce.date(),
+  purchaseCount: zod.number().int(),
+  totalCents: zod.number().int(),
+  issuerAddress: zod
+    .string()
+    .describe("The card issuer's testnet wallet that captures pay."),
+  issuerExplorerUrl: zod.string(),
+  purchases: zod.array(
+    zod.object({
+      authorizationId: zod.number().int(),
+      merchantName: zod.string(),
+      bucketName: zod.string().nullable(),
+      amountCents: zod.number().int(),
+      swipedAt: zod.coerce.date(),
+      steps: zod.array(
+        zod.object({
+          key: zod.enum([
+            "network_paid_merchant",
+            "vault_paid_issuer",
+            "issuer_redeemed",
+          ]),
+          label: zod.string(),
+          detail: zod.string(),
+          simulated: zod
+            .boolean()
+            .describe(
+              "True for a step nothing real performs (no card network or bank).",
+            ),
+          chain: zod
+            .union([
+              zod.object({
+                status: zod
+                  .enum(["not_submitted", "submitted", "confirmed", "failed"])
+                  .describe(
+                    "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+                  ),
+                txHash: zod.string().nullable(),
+                confirmedAt: zod.coerce.date().nullable(),
+                explorerUrl: zod
+                  .string()
+                  .nullable()
+                  .describe(
+                    "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+                  ),
+              }),
+              zod.null(),
+            ])
+            .describe(
+              "The testnet transaction behind the step, for the vault step only.",
+            ),
+        }),
+      ),
+    }),
+  ),
+});
+
+/**
+ * @summary One settlement run, with each capture's current chain status
+ */
+export const getSettlementPathSettlementIdMax = 2147483647;
+
+export const GetSettlementParams = zod.object({
+  settlementId: zod.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(getSettlementPathSettlementIdMax),
+});
+
+export const GetSettlementResponse = zod.object({
+  id: zod.number().int(),
+  settledAt: zod.coerce.date(),
+  purchaseCount: zod.number().int(),
+  totalCents: zod.number().int(),
+  issuerAddress: zod
+    .string()
+    .describe("The card issuer's testnet wallet that captures pay."),
+  issuerExplorerUrl: zod.string(),
+  purchases: zod.array(
+    zod.object({
+      authorizationId: zod.number().int(),
+      merchantName: zod.string(),
+      bucketName: zod.string().nullable(),
+      amountCents: zod.number().int(),
+      swipedAt: zod.coerce.date(),
+      steps: zod.array(
+        zod.object({
+          key: zod.enum([
+            "network_paid_merchant",
+            "vault_paid_issuer",
+            "issuer_redeemed",
+          ]),
+          label: zod.string(),
+          detail: zod.string(),
+          simulated: zod
+            .boolean()
+            .describe(
+              "True for a step nothing real performs (no card network or bank).",
+            ),
+          chain: zod
+            .union([
+              zod.object({
+                status: zod
+                  .enum(["not_submitted", "submitted", "confirmed", "failed"])
+                  .describe(
+                    "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+                  ),
+                txHash: zod.string().nullable(),
+                confirmedAt: zod.coerce.date().nullable(),
+                explorerUrl: zod
+                  .string()
+                  .nullable()
+                  .describe(
+                    "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+                  ),
+              }),
+              zod.null(),
+            ])
+            .describe(
+              "The testnet transaction behind the step, for the vault step only.",
+            ),
+        }),
+      ),
+    }),
+  ),
 });
 
 /**
@@ -848,7 +993,38 @@ export const ListAuthorizationsResponseItem = zod.object({
   settledAt: zod.coerce
     .date()
     .nullable()
-    .describe("When the money moved to spent."),
+    .describe(
+      "When the held money moved to spent and the card issuer was repaid.",
+    ),
+  settlement: zod.union([
+    zod
+      .enum(["held", "settled"])
+      .describe(
+        "Where an approved purchase's money stands: `held` (approved, not paid yet) or `settled` (held → spent, the card issuer repaid). Null for a swipe that moved no money.",
+      ),
+    zod.null(),
+  ]),
+  settlementId: zod
+    .number()
+    .int()
+    .nullable()
+    .describe("The settlement run that settled it (null for seeded history)."),
+  issuerRedeemedAt: zod.coerce
+    .date()
+    .nullable()
+    .describe(
+      "When the card issuer redeemed the tokens with the partner bank (simulated).",
+    ),
+  trace: zod.array(
+    zod.object({
+      label: zod.string(),
+      state: zod
+        .enum(["done", "held", "skipped", "approved", "rejected", "pending"])
+        .describe(
+          "`done` for a hand-off step, `held` when money was held, `skipped` when nothing was held, and the decision for the last step.",
+        ),
+    }),
+  ),
   createdAt: zod.coerce.date(),
   chain: zod.object({
     status: zod
@@ -865,21 +1041,23 @@ export const ListAuthorizationsResponseItem = zod.object({
         "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
       ),
   }),
-  captureChain: zod.object({
-    status: zod
-      .enum(["not_submitted", "submitted", "confirmed", "failed"])
-      .describe(
-        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
-      ),
-    txHash: zod.string().nullable(),
-    confirmedAt: zod.coerce.date().nullable(),
-    explorerUrl: zod
-      .string()
-      .nullable()
-      .describe(
-        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
-      ),
-  }),
+  captureChain: zod
+    .object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
+    })
+    .describe("The capture that repaid the card issuer at settlement."),
 });
 export const ListAuthorizationsResponse = zod.array(
   ListAuthorizationsResponseItem,
@@ -948,7 +1126,38 @@ export const ListApprovalsResponseItem = zod.object({
   settledAt: zod.coerce
     .date()
     .nullable()
-    .describe("When the money moved to spent."),
+    .describe(
+      "When the held money moved to spent and the card issuer was repaid.",
+    ),
+  settlement: zod.union([
+    zod
+      .enum(["held", "settled"])
+      .describe(
+        "Where an approved purchase's money stands: `held` (approved, not paid yet) or `settled` (held → spent, the card issuer repaid). Null for a swipe that moved no money.",
+      ),
+    zod.null(),
+  ]),
+  settlementId: zod
+    .number()
+    .int()
+    .nullable()
+    .describe("The settlement run that settled it (null for seeded history)."),
+  issuerRedeemedAt: zod.coerce
+    .date()
+    .nullable()
+    .describe(
+      "When the card issuer redeemed the tokens with the partner bank (simulated).",
+    ),
+  trace: zod.array(
+    zod.object({
+      label: zod.string(),
+      state: zod
+        .enum(["done", "held", "skipped", "approved", "rejected", "pending"])
+        .describe(
+          "`done` for a hand-off step, `held` when money was held, `skipped` when nothing was held, and the decision for the last step.",
+        ),
+    }),
+  ),
   createdAt: zod.coerce.date(),
   chain: zod.object({
     status: zod
@@ -965,21 +1174,23 @@ export const ListApprovalsResponseItem = zod.object({
         "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
       ),
   }),
-  captureChain: zod.object({
-    status: zod
-      .enum(["not_submitted", "submitted", "confirmed", "failed"])
-      .describe(
-        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
-      ),
-    txHash: zod.string().nullable(),
-    confirmedAt: zod.coerce.date().nullable(),
-    explorerUrl: zod
-      .string()
-      .nullable()
-      .describe(
-        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
-      ),
-  }),
+  captureChain: zod
+    .object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
+    })
+    .describe("The capture that repaid the card issuer at settlement."),
 });
 export const ListApprovalsResponse = zod.array(ListApprovalsResponseItem);
 
@@ -1200,6 +1411,16 @@ export const GetParentOverviewResponse = zod.object({
       ),
   ),
   pendingApprovalsCount: zod.number().int(),
+  heldPurchasesCount: zod
+    .number()
+    .int()
+    .describe("Approved purchases still held, waiting for settlement."),
+  heldTotalCents: zod.number().int(),
+  latestSettlementId: zod
+    .number()
+    .int()
+    .nullable()
+    .describe("The most recent settlement run, if any."),
 });
 
 /**
@@ -1310,6 +1531,14 @@ export const ListActivityResponseItem = zod.object({
     .describe(
       "Approval chain steps (empty unless the purchase needed a parent's OK).",
     ),
+  settlement: zod.union([
+    zod
+      .enum(["held", "settled"])
+      .describe(
+        "Where an approved purchase's money stands: `held` (approved, not paid yet) or `settled` (held → spent, the card issuer repaid). Null for a swipe that moved no money.",
+      ),
+    zod.null(),
+  ]),
   chain: zod.object({
     status: zod
       .enum(["not_submitted", "submitted", "confirmed", "failed"])
@@ -1325,6 +1554,25 @@ export const ListActivityResponseItem = zod.object({
         "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
       ),
   }),
+  captureChain: zod
+    .object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
+    })
+    .describe(
+      "A purchase's capture at settlement (the vault repaying the card issuer); `not_submitted` for contributions.",
+    ),
 });
 export const ListActivityResponse = zod.array(ListActivityResponseItem);
 

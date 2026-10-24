@@ -1,6 +1,7 @@
 import { and, eq, ne, type SQL } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import {
+  authorizationsTable,
   bankAccountsTable,
   bankDepositsTable,
   bucketsTable,
@@ -14,8 +15,12 @@ import {
 /**
  * Tables whose rows are mirrored on chain and carry the shared chain columns.
  * Later slices add their tables here (and to `updateOwnerChainStatus`).
+ * `authorization_captures` is not a table of its own: it is an authorization
+ * row's second set of chain columns (`capture_chain_*`), for its capture.
  */
 export const CHAIN_OWNER_TABLES = [
+  "authorizations",
+  "authorization_captures",
   "bank_accounts",
   "bank_deposits",
   "buckets",
@@ -94,6 +99,35 @@ export async function updateOwnerChainStatus(
 ): Promise<number> {
   const keep = options.keepConfirmed ?? false;
   switch (owner.table) {
+    case "authorizations":
+      return (
+        await executor
+          .update(authorizationsTable)
+          .set(set)
+          .where(ownerWhere(authorizationsTable, owner.id, keep))
+          .returning({ id: authorizationsTable.id })
+      ).length;
+    case "authorization_captures":
+      return (
+        await executor
+          .update(authorizationsTable)
+          .set({
+            captureChainStatus: set.chainStatus,
+            ...(set.chainTxHash !== undefined && { captureChainTxHash: set.chainTxHash }),
+            ...(set.chainConfirmedAt !== undefined && {
+              captureChainConfirmedAt: set.chainConfirmedAt,
+            }),
+          })
+          .where(
+            keep
+              ? and(
+                  eq(authorizationsTable.id, owner.id),
+                  ne(authorizationsTable.captureChainStatus, "confirmed"),
+                )
+              : eq(authorizationsTable.id, owner.id),
+          )
+          .returning({ id: authorizationsTable.id })
+      ).length;
     case "bank_accounts":
       return (
         await executor

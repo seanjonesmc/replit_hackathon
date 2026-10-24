@@ -8,6 +8,7 @@ import { ErrorState } from '@/components/trellis/states';
 import { FamilyActivityRow } from '@/features/family/FamilyActivityRow';
 import { FamilyBucketCard } from '@/features/family/FamilyBucketCard';
 import { ScreenHeader } from '@/features/shell/layout';
+import { SettlementControl } from './SettlementControl';
 
 function MemberAvatars({ names }: { names: string[] }) {
   return (
@@ -96,6 +97,7 @@ export default function ParentHome() {
       <div className="mt-4">
         <ApprovalsLink count={o.pendingApprovalsCount} />
       </div>
+      <SettlementControl heldCount={o.heldPurchasesCount} heldTotalCents={o.heldTotalCents} />
 
       <section className="mt-8" aria-labelledby="buckets-title">
         <SectionTitle>

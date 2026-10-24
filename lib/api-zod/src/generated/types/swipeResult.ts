@@ -9,6 +9,7 @@ import type { ChainRecord } from "./chainRecord";
 import type { DecidedBy } from "./decidedBy";
 import type { Decision } from "./decision";
 import type { ReasonCode } from "./reasonCode";
+import type { SwipeTraceStep } from "./swipeTraceStep";
 
 export interface SwipeResult {
   authorizationId: number;
@@ -28,5 +29,7 @@ export interface SwipeResult {
   bucketName: string | null;
   /** Measured rule evaluation time, plus the AI guard's when it ran. */
   decisionMs: number;
+  /** What happened during the swipe, in order, in plain words. */
+  trace: SwipeTraceStep[];
   chain: ChainRecord;
 }

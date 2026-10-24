@@ -16,7 +16,9 @@ export function FamilyActivityRow({ item, compact, now }: { item: ActivityItem; 
       when={formatWhen(item.occurredAt, now)}
       bucket={item.bucketName ?? undefined}
       steps={item.timeline}
+      stage={item.settlement ?? undefined}
       chain={compact ? undefined : chainStatusOf(item.chain)}
+      captureChain={compact || item.settlement !== 'settled' ? undefined : chainStatusOf(item.captureChain)}
       data-testid={`row-activity-${item.id}`}
     />
   );

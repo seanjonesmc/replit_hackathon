@@ -308,6 +308,27 @@ export interface SwipeRequest {
   timestamp: string;
 }
 
+/**
+ * `done` for a hand-off step, `held` when money was held, `skipped` when nothing was held, and the decision for the last step.
+ */
+export type SwipeTraceStepState =
+  (typeof SwipeTraceStepState)[keyof typeof SwipeTraceStepState];
+
+export const SwipeTraceStepState = {
+  done: "done",
+  held: "held",
+  skipped: "skipped",
+  approved: "approved",
+  rejected: "rejected",
+  pending: "pending",
+} as const;
+
+export interface SwipeTraceStep {
+  label: string;
+  /** `done` for a hand-off step, `held` when money was held, `skipped` when nothing was held, and the decision for the last step. */
+  state: SwipeTraceStepState;
+}
+
 export interface SwipeResult {
   authorizationId: number;
   decision: Decision;
@@ -326,7 +347,60 @@ export interface SwipeResult {
   bucketName: string | null;
   /** Measured rule evaluation time, plus the AI guard's when it ran. */
   decisionMs: number;
+  /** What happened during the swipe, in order, in plain words. */
+  trace: SwipeTraceStep[];
   chain: ChainRecord;
+}
+
+/**
+ * Where an approved purchase's money stands: `held` (approved, not paid yet) or `settled` (held → spent, the card issuer repaid). Null for a swipe that moved no money.
+ */
+export type SettlementState =
+  (typeof SettlementState)[keyof typeof SettlementState];
+
+export const SettlementState = {
+  held: "held",
+  settled: "settled",
+} as const;
+
+export type SettlementStepKey =
+  (typeof SettlementStepKey)[keyof typeof SettlementStepKey];
+
+export const SettlementStepKey = {
+  network_paid_merchant: "network_paid_merchant",
+  vault_paid_issuer: "vault_paid_issuer",
+  issuer_redeemed: "issuer_redeemed",
+} as const;
+
+export interface SettlementStep {
+  key: SettlementStepKey;
+  label: string;
+  detail: string;
+  /** True for a step nothing real performs (no card network or bank). */
+  simulated: boolean;
+  /** The testnet transaction behind the step, for the vault step only. */
+  chain: ChainRecord | null;
+}
+
+export interface SettledPurchase {
+  authorizationId: number;
+  merchantName: string;
+  /** @nullable */
+  bucketName: string | null;
+  amountCents: number;
+  swipedAt: string;
+  steps: SettlementStep[];
+}
+
+export interface Settlement {
+  id: number;
+  settledAt: string;
+  purchaseCount: number;
+  totalCents: number;
+  /** The card issuer's testnet wallet that captures pay. */
+  issuerAddress: string;
+  issuerExplorerUrl: string;
+  purchases: SettledPurchase[];
 }
 
 export interface Authorization {
@@ -371,12 +445,25 @@ export interface Authorization {
    */
   resolvedAt: string | null;
   /**
-   * When the money moved to spent.
+   * When the held money moved to spent and the card issuer was repaid.
    * @nullable
    */
   settledAt: string | null;
+  settlement: SettlementState | null;
+  /**
+   * The settlement run that settled it (null for seeded history).
+   * @nullable
+   */
+  settlementId: number | null;
+  /**
+   * When the card issuer redeemed the tokens with the partner bank (simulated).
+   * @nullable
+   */
+  issuerRedeemedAt: string | null;
+  trace: SwipeTraceStep[];
   createdAt: string;
   chain: ChainRecord;
+  /** The capture that repaid the card issuer at settlement. */
   captureChain: ChainRecord;
 }
 
@@ -512,6 +599,14 @@ export interface ParentOverview {
   potTotalCents: number;
   buckets: BucketSummary[];
   pendingApprovalsCount: number;
+  /** Approved purchases still held, waiting for settlement. */
+  heldPurchasesCount: number;
+  heldTotalCents: number;
+  /**
+   * The most recent settlement run, if any.
+   * @nullable
+   */
+  latestSettlementId: number | null;
 }
 
 export type TimelineStepState =
@@ -576,7 +671,10 @@ export interface ActivityItem {
   category: string | null;
   /** Approval chain steps (empty unless the purchase needed a parent's OK). */
   timeline: TimelineStep[];
+  settlement: SettlementState | null;
   chain: ChainRecord;
+  /** A purchase's capture at settlement (the vault repaying the card issuer); `not_submitted` for contributions. */
+  captureChain: ChainRecord;
 }
 
 export type PolicyLineKind =

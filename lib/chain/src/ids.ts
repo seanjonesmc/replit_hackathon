@@ -25,10 +25,13 @@ export function merchantChainId(slug: string): string {
 }
 
 /**
- * A seeded merchant's payout wallet: the last 20 bytes of a namespaced chain
- * ID, so it is the same on every deployment. Nobody holds its key; captured
- * tUSD simply accumulates there, like a merchant's settlement account.
+ * The simulated card issuer's settlement wallet: the last 20 bytes of a
+ * namespaced chain ID, so it is the same on every deployment. Every seeded
+ * merchant is registered with it as the payout address, because at
+ * settlement the card network pays the merchant in dollars from the issuer's
+ * account and the vault repays the issuer on chain. Nobody holds its key;
+ * captured tUSD simply accumulates there.
  */
-export function merchantPayoutAddress(slug: string): string {
-  return getAddress(dataSlice(chainId(`demo-family:merchant-payout:${slug}`), 12));
+export function cardIssuerAddress(): string {
+  return getAddress(dataSlice(chainId("demo-family:card-issuer"), 12));
 }

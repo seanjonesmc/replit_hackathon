@@ -14,6 +14,7 @@ import {
 } from "@workspace/db";
 import { getDemoFamily } from "../family";
 import { toLocalIso, zonedParts, zonedTimeToInstant } from "./clock";
+import { settleSeededPurchase } from "./settlement";
 import {
   decideSwipe,
   loadSwipeContext,
@@ -201,10 +202,16 @@ export async function seedSpendingDemo(
         location: entry.location,
         timestamp: toLocalIso(when, DEMO_TIME_ZONE),
       });
+      // History is already settled: an approval holds its amount, then
+      // settles right away (held → spent), so nothing seeded stays held.
       const runSwipe = async (when: Date, previousAuthorizationId?: number) => {
         const ctx = await loadSwipeContext(swipe(when), tx, when);
         const decided = await decideSwipe(ctx, null);
-        return recordDecision(ctx, decided, { at: when, previousAuthorizationId }, tx);
+        const stored = await recordDecision(ctx, decided, { at: when, previousAuthorizationId }, tx);
+        await settleSeededPurchase(tx, stored.id, when);
+        return (
+          await tx.select().from(authorizationsTable).where(eq(authorizationsTable.id, stored.id))
+        )[0]!;
       };
 
       const first = await runSwipe(at);

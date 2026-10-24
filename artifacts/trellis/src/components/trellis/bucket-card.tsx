@@ -17,7 +17,7 @@ interface BucketCardProps {
   icon?: BucketIcon | null;
   availableCents: number;
   totalCents: number;
-  /** Money reserved by pending requests. */
+  /** Money held for approved purchases that haven't settled (been paid) yet. */
   heldCents?: number;
   purpose?: string;
   fundedBy?: string;
@@ -63,7 +63,10 @@ export function BucketCard({ name, icon, availableCents, totalCents, heldCents =
         <div className="h-full rounded-pill bg-primary" style={{ width: `${pct}%` }} />
       </div>
       {heldCents > 0 && (
-        <p className="type-caption tnum mt-2 text-pending">{formatCents(heldCents)} on hold for a pending request</p>
+        <p className="type-caption mt-2 flex items-baseline justify-between gap-2" data-testid={testId ? `${testId}-held` : undefined}>
+          <span className="tnum font-semibold text-pending">Held {formatCents(heldCents)}</span>
+          <span className="text-ink-muted">approved, not paid yet</span>
+        </p>
       )}
       {children}
     </article>

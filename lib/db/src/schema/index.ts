@@ -14,4 +14,5 @@ export * from "./cards";
 export * from "./merchants";
 export * from "./policies";
 export * from "./temporary-passes";
+export * from "./settlements";
 export * from "./authorizations";

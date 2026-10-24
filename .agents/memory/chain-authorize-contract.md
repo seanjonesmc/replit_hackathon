@@ -11,3 +11,9 @@ The chain's `authorize` reverts (rather than declines) when an engine *approve* 
 Categories on-chain must be plain lowercase (uppercase ASCII reverts), so the backend must lowercase category names before `setBlockedCategory` / `registerMerchant`.
 
 **Why:** "Bar" vs "bar" would otherwise silently bypass the on-chain block.
+
+Capture pays the merchant's on-chain payout address, and the deploy seed registers every merchant with the card issuer's derived address as payout (decided 2026-10-24, contract code unchanged).
+
+**Why:** the demo story is "the vault repays the card issuer at settlement; Visa pays the merchant in dollars". A merchant can't be re-registered, so changing payouts needed a fresh deploy rather than a contract change.
+
+**How to apply:** new merchants on chain must also get the issuer address as payout. The app only captures when its row has an on-chain authorization id and the chain says `approved`; the chain's own hard checks can disagree with the engine (e.g. temporary passes aren't on chain), and then the capture is marked failed, never the decision.

@@ -241,13 +241,14 @@ export async function decideSwipe(
 }
 
 /**
- * Stores the authorization and, for an approval, moves the money in one
+ * Stores the authorization and, for an approval, holds the money in one
  * transaction. The card row is locked first, so a freeze and a swipe never
  * overlap: a card frozen while the AI guard was thinking rejects the swipe
  * here. Then the paying bucket is locked and its balance re-checked, so two
- * quick swipes can't overspend it. The amount goes available → held (the
- * authorization hold) → spent (settled), and any temporary pass is used up.
- * Rejected and pending swipes move no money.
+ * quick swipes can't overspend it. An approval only moves the amount
+ * available → held (the authorization hold) and uses up any temporary pass;
+ * it stays approved-but-unsettled until a settlement run moves it held →
+ * spent (see `settlement.ts`). Rejected and pending swipes move no money.
  */
 export async function recordDecision(
   ctx: SwipeContext,
@@ -325,7 +326,6 @@ export async function recordDecision(
         aiConfidence: final.aiConfidence,
         decisionMs: final.decisionMs,
         previousAuthorizationId: options.previousAuthorizationId ?? null,
-        settledAt: approved ? at : null,
         createdAt: at,
       })
       .returning();
@@ -337,14 +337,6 @@ export async function recordDecision(
         .set({
           availableCents: sql`${bucketsTable.availableCents} - ${amount}`,
           heldCents: sql`${bucketsTable.heldCents} + ${amount}`,
-        })
-        .where(eq(bucketsTable.id, final.bucketId));
-      // Settlement (capture): held → spent.
-      await tx
-        .update(bucketsTable)
-        .set({
-          heldCents: sql`${bucketsTable.heldCents} - ${amount}`,
-          spentCents: sql`${bucketsTable.spentCents} + ${amount}`,
         })
         .where(eq(bucketsTable.id, final.bucketId));
     }

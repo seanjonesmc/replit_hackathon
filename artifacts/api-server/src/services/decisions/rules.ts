@@ -257,7 +257,7 @@ export function evaluateRules(input: RuleInputs): RuleResult {
       return result(
         "APPROVED",
         "approved",
-        `A parent OK'd this, so it's paid from ${bucket.name}.`,
+        `A parent OK'd this, so it's held in ${bucket.name} until settlement.`,
         bucket,
         { passId: pass.id },
       );
@@ -305,7 +305,7 @@ export function evaluateRules(input: RuleInputs): RuleResult {
 
   // 11. Everything else is approved. Suspicious items at a merchant that isn't
   //     allowed go to the guard first; without one, this approval stands.
-  return result("APPROVED", "approved", `Approved and paid from ${bucket.name}.`, bucket, {
+  return result("APPROVED", "approved", `Approved and held in ${bucket.name} until settlement.`, bucket, {
     sendToAiGuard: !allowedMerchant && hasSuspiciousItem(swipe.items) ? "suspicious" : null,
   });
 }

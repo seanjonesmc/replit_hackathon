@@ -3,37 +3,47 @@ import {
   CreateSwipeResponse,
   FreezeCardResponse,
   GetCardResponse,
+  GetSettlementParams,
+  GetSettlementResponse,
   GetPolicyResponse,
   ListApprovalsResponse,
   ListAuthorizationsQueryParams,
   ListAuthorizationsResponse,
   ListMerchantsResponse,
+  RunSettlementResponse,
   UnfreezeCardResponse,
   type Authorization as ApiAuthorization,
   type Card as ApiCard,
   type DecidedBy as ApiDecidedBy,
   type Merchant as ApiMerchant,
+  type Settlement as ApiSettlement,
 } from "@workspace/api-zod";
 import type { DecidedBy, Merchant } from "@workspace/db";
 import { Router, type IRouter } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import {
   getDependentCard,
+  getSettlement,
   listAuthorizations,
   listMerchants,
   listPendingApprovals,
   processSwipe,
+  runSettlement,
   setCardFrozen,
+  settlementState,
+  settlementSteps,
+  swipeTrace,
   type AuthorizationDetail,
   type CardDetail,
+  type SettlementDetail,
 } from "../services/decisions";
 import { getFamilyPolicy } from "../services/policies";
 import { parseOr400, serviceErrorHandler, toChain } from "./shared";
 
 /**
- * Spending routes: card swipes through the decision engine, the activity
- * feed, approvals, the card's freeze switch, merchants and the policy. Every
- * route is behind `requireAuth`.
+ * Spending routes: card swipes through the decision engine, settlement runs,
+ * the activity feed, approvals, the card's freeze switch, merchants and the
+ * policy. Every route is behind `requireAuth`.
  */
 const router: IRouter = Router();
 
@@ -43,6 +53,14 @@ const DECIDED_BY: Record<DecidedBy, ApiDecidedBy> = {
   rule: "Rule",
   ai_guard: "AI guard",
 };
+
+function captureChainOf(a: AuthorizationDetail["authorization"]) {
+  return toChain({
+    chainStatus: a.captureChainStatus,
+    chainTxHash: a.captureChainTxHash,
+    chainConfirmedAt: a.captureChainConfirmedAt,
+  });
+}
 
 function toAuthorization(d: AuthorizationDetail): ApiAuthorization {
   const a = d.authorization;
@@ -71,13 +89,32 @@ function toAuthorization(d: AuthorizationDetail): ApiAuthorization {
     nextAuthorizationId: d.nextAuthorizationId,
     resolvedAt: a.resolvedAt,
     settledAt: a.settledAt,
+    settlement: settlementState(a),
+    settlementId: a.settlementId,
+    issuerRedeemedAt: a.issuerRedeemedAt,
+    trace: swipeTrace(a, d.bucketName),
     createdAt: a.createdAt,
     chain: toChain(a),
-    captureChain: toChain({
-      chainStatus: a.captureChainStatus,
-      chainTxHash: a.captureChainTxHash,
-      chainConfirmedAt: a.captureChainConfirmedAt,
-    }),
+    captureChain: captureChainOf(a),
+  };
+}
+
+function toSettlement(d: SettlementDetail): ApiSettlement {
+  return {
+    id: d.settlement.id,
+    settledAt: d.settlement.settledAt,
+    purchaseCount: d.settlement.purchaseCount,
+    totalCents: d.settlement.totalCents,
+    issuerAddress: d.issuerAddress,
+    issuerExplorerUrl: d.issuerExplorerUrl,
+    purchases: d.purchases.map(({ authorization: a, bucketName }) => ({
+      authorizationId: a.id,
+      merchantName: a.merchantName,
+      bucketName,
+      amountCents: a.amountCents,
+      swipedAt: a.swipedAt,
+      steps: settlementSteps(a, captureChainOf(a)),
+    })),
   };
 }
 
@@ -123,9 +160,21 @@ router.post("/swipes", requireAuth, async (req, res) => {
       bucketId: a.bucketId,
       bucketName,
       decisionMs: a.decisionMs,
+      trace: swipeTrace(a, bucketName),
       chain: toChain(a),
     }),
   );
+});
+
+// Demo-only control: settles every held purchase (422 when nothing is held).
+router.post("/settlements", requireAuth, async (_req, res) => {
+  res.status(201).json(RunSettlementResponse.parse(toSettlement(await runSettlement())));
+});
+
+router.get("/settlements/:settlementId", requireAuth, async (req, res) => {
+  const params = parseOr400(GetSettlementParams, req.params, res);
+  if (!params) return;
+  res.json(GetSettlementResponse.parse(toSettlement(await getSettlement(params.settlementId))));
 });
 
 router.get("/merchants", requireAuth, async (_req, res) => {

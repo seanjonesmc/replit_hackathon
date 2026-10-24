@@ -50,6 +50,7 @@ import type {
   ParentOverview,
   PolicyView,
   SendMoneyResult,
+  Settlement,
   SwipeRequest,
   SwipeResult,
   UnauthorizedResponse,
@@ -2114,7 +2115,7 @@ export const getCreateSwipeUrl = () => {
 };
 
 /**
- * Runs the hard rules in order (the first match decides), then the AI guard only for swipes the rules can't place in a bucket or whose items look suspicious. Stores the authorization and, when approved, moves the amount out of the bucket at once. For seeded merchants the stored name, category and MCC are used instead of the values sent. Never waits on the chain; the chain status starts as `not_submitted`.
+ * Runs the hard rules in order (the first match decides), then the AI guard only for swipes the rules can't place in a bucket or whose items look suspicious. Stores the authorization and, when approved, holds the amount in its bucket (available → held); nothing is paid until a settlement run (`POST /settlements`) moves it held → spent. Rejected and pending swipes move no money. For seeded merchants the stored name, category and MCC are used instead of the values sent. Never waits on the chain: the chain status starts as `not_submitted`, and `authorize` is sent to the testnet in the background.
  * @summary Swipe the simulated card through the decision engine
  */
 export const createSwipe = async (
@@ -2231,6 +2232,246 @@ export const useCreateSwipe = <
 > => {
   return useMutation(getCreateSwipeMutationOptions(options), queryClient);
 };
+
+export const getRunSettlementUrl = () => {
+  return `/api/settlements`;
+};
+
+/**
+ * A demo-only control the presenter triggers. Moves every held purchase held → spent in one transaction and returns the run with three steps per purchase: the card network paid the merchant in dollars from the card issuer's account (simulated), the vault released the held tokens to the card issuer (on the testnet, sent in the background as `capture`), and the issuer redeemed them with the partner bank for dollars (simulated). Responds 422 when nothing is held.
+ * @summary Settle every held purchase (demo control)
+ */
+export const runSettlement = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<Settlement> => {
+  return customFetch<Settlement>(getRunSettlementUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getRunSettlementMutationKey = () => ["runSettlement"] as const;
+
+export const getRunSettlementMutationOptions = <
+  TError = ErrorType<UnauthorizedResponse | UnprocessableResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof runSettlement>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof runSettlement>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = getRunSettlementMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof runSettlement>>,
+    void
+  > = () => {
+    return runSettlement(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RunSettlementMutationResult = NonNullable<
+  Awaited<ReturnType<typeof runSettlement>>
+>;
+
+export type RunSettlementMutationError = ErrorType<
+  UnauthorizedResponse | UnprocessableResponse
+>;
+
+/**
+ * @summary Settle every held purchase (demo control)
+ */
+export const useRunSettlement = <
+  TError = ErrorType<UnauthorizedResponse | UnprocessableResponse>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof runSettlement>>,
+      TError,
+      void,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof runSettlement>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getRunSettlementMutationOptions(options), queryClient);
+};
+
+export const getGetSettlementUrl = (settlementId: number) => {
+  return `/api/settlements/${settlementId}`;
+};
+
+/**
+ * @summary One settlement run, with each capture's current chain status
+ */
+export const getSettlement = async (
+  settlementId: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<Settlement> => {
+  return customFetch<Settlement>(getGetSettlementUrl(settlementId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSettlementQueryKey = (settlementId: number) => {
+  return [`/api/settlements/${settlementId}`] as const;
+};
+
+export const getGetSettlementQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSettlement>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(
+  settlementId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getSettlement>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetSettlementQueryKey(settlementId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getSettlement>>> = ({
+    signal,
+  }) => getSettlement(settlementId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: settlementId !== null && settlementId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSettlement>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetSettlementQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSettlement>>
+>;
+export type GetSettlementQueryError = ErrorType<
+  UnauthorizedResponse | NotFoundResponse
+>;
+
+export function useGetSettlement<
+  TData = Awaited<ReturnType<typeof getSettlement>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(
+  settlementId: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getSettlement>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSettlement>>,
+          TError,
+          Awaited<ReturnType<typeof getSettlement>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSettlement<
+  TData = Awaited<ReturnType<typeof getSettlement>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(
+  settlementId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getSettlement>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSettlement>>,
+          TError,
+          Awaited<ReturnType<typeof getSettlement>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSettlement<
+  TData = Awaited<ReturnType<typeof getSettlement>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(
+  settlementId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getSettlement>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary One settlement run, with each capture's current chain status
+ */
+
+export function useGetSettlement<
+  TData = Awaited<ReturnType<typeof getSettlement>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(
+  settlementId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getSettlement>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetSettlementQueryOptions(settlementId, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
 
 export const getListMerchantsUrl = () => {
   return `/api/merchants`;

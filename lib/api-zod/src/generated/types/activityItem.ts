@@ -11,6 +11,7 @@ import type { ChainRecord } from "./chainRecord";
 import type { DecidedBy } from "./decidedBy";
 import type { Decision } from "./decision";
 import type { ReasonCode } from "./reasonCode";
+import type { SettlementState } from "./settlementState";
 import type { TimelineStep } from "./timelineStep";
 
 export interface ActivityItem {
@@ -42,5 +43,8 @@ export interface ActivityItem {
   category: string | null;
   /** Approval chain steps (empty unless the purchase needed a parent's OK). */
   timeline: TimelineStep[];
+  settlement: SettlementState | null;
   chain: ChainRecord;
+  /** A purchase's capture at settlement (the vault repaying the card issuer); `not_submitted` for contributions. */
+  captureChain: ChainRecord;
 }

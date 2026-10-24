@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { network } from "hardhat";
-import { createChainClient, memberChainId, merchantChainId, type ChainClient } from "@workspace/chain";
+import { cardIssuerAddress, createChainClient, memberChainId, merchantChainId, type ChainClient } from "@workspace/chain";
 import { BRAND } from "../../src/brand/brand.config.js";
 import {
   demoFamilyPlan,
@@ -57,7 +57,8 @@ describe("Demo family seed (deploy script)", function () {
     expect(plan.members.coParent.id).to.equal(memberChainId("co-parent"));
     expect(plan.members.dependent.id).to.equal(memberChainId("dependent"));
     expect(plan.merchants.map((m) => m.id)).to.include(merchantChainId("trader-joes"));
-    expect(new Set(plan.merchants.map((m) => m.payoutAddress)).size).to.equal(9);
+    expect(plan.merchants).to.have.length(9);
+    expect(plan.merchants.every((m) => m.payoutAddress === cardIssuerAddress())).to.equal(true);
   });
 
   it("leaves the grandparent $100 for the demo's add-$50 step", function () {

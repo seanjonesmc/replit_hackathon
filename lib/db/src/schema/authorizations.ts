@@ -19,6 +19,7 @@ import { chainColumns, chainStatusEnum } from "./chain";
 import { familiesTable } from "./families";
 import { membersTable } from "./members";
 import { merchantsTable } from "./merchants";
+import { settlementsTable } from "./settlements";
 
 /** The decision engine's result for a swipe. Never changes after it is stored. */
 export const authorizationDecisionEnum = pgEnum("authorization_decision", [
@@ -118,7 +119,23 @@ export const authorizationsTable = pgTable(
       () => membersTable.id,
       { onDelete: "set null" },
     ),
+    // Hold, then settle. An approved swipe only holds its amount (available →
+    // held); a settlement run later moves it held → spent.
+    /**
+     * When the held amount settled (held → spent) and the card issuer was
+     * repaid. Null while an approved purchase is still held, and for swipes
+     * that moved no money.
+     */
     settledAt: timestamp("settled_at", { withTimezone: true }),
+    /** The settlement run that settled this purchase. */
+    settlementId: integer("settlement_id").references(() => settlementsTable.id, {
+      onDelete: "set null",
+    }),
+    /**
+     * When the card issuer redeemed the repaid tokens with the partner bank
+     * for dollars. Simulated: recorded at settlement, nothing real moves.
+     */
+    issuerRedeemedAt: timestamp("issuer_redeemed_at", { withTimezone: true }),
 
     // On chain: the authorize transaction, then the capture transaction.
     /** The contract's authorization id, once authorize() is confirmed. */
@@ -144,6 +161,7 @@ export const authorizationsTable = pgTable(
       table.createdAt,
     ),
     index("authorizations_previous_idx").on(table.previousAuthorizationId),
+    index("authorizations_settlement_idx").on(table.settlementId),
     check("authorizations_amount_positive", sql`${table.amountCents} > 0`),
     check("authorizations_decision_ms_non_negative", sql`${table.decisionMs} >= 0`),
     check(
