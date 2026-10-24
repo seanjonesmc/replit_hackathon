@@ -1,0 +1,19 @@
+kind = "design-system"
+previewPath = "/trellis-design/"
+title = "Trellis Design System"
+description = "Reusable Venmo-derived design foundations and components adapted for the family spending app, with central branding and Inter typography."
+version = "1.0.0"
+id = "artifacts/trellis-design"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/trellis-design/" ]
+localPort = 26117
+
+[services.development]
+run = "pnpm --filter @workspace/trellis-design run dev"
+
+[services.env]
+PORT = "26117"
+BASE_PATH = "/trellis-design/"

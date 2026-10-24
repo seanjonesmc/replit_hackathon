@@ -19,3 +19,9 @@ All names, visual tokens, asset paths, and demo identities must come from one ce
 **Why:** The user must be able to rebrand instantly and wants their own editable design specification derived from an immutable reference.
 
 **How to apply:** Preserve the single configuration source when implementing subsequent phases rather than adding independent themes or hardcoded brand values.
+
+The user subsequently requested a separate reusable design-system artifact based on the Venmo reference, to be presented before applying it to other artifacts.
+
+**Why:** The visual system should be reviewed independently while folder-structure work proceeds separately. This changes the original app-only preview approach, not the central-brand requirement.
+
+**How to apply:** Keep BRAND authoritative and generate the design system's interchange tokens from it. Complete the component review before migrating the app. Any future canvas mockup migration must use the design-system-specific sandbox entry and repoint existing frames.
