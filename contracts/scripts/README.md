@@ -46,6 +46,15 @@ The seed:
   Postgres seed generates its own, so the two may differ; only the display uses it.
 - The card expires four years after the deploy month.
 - It creates no authorizations, so the swipe flow starts clean.
+- Buckets are created in the API seed's order, so their chain IDs are Food 1,
+  School 2, Social 3, Transit 4. The backend looks these up in
+  `DEMO_BUCKET_CHAIN_IDS` (`@workspace/chain`), and the read-back checks the
+  contract agrees.
+
+The current development deployment (MockUSD `0xc63F…0110`, FamilyCardNetwork
+`0xd1Fc…ef8f`) was deployed fresh on 2026-10-24 to add Transit. The earlier one
+had only three buckets and a test top-up of Food, so it no longer matched the
+seed plan.
 
 Read signing credentials from environment secrets; do not store keys or
 generated deployment records here.

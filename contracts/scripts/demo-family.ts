@@ -10,6 +10,7 @@
 import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import {
   DEMO_BLOCKED_CATEGORIES,
+  DEMO_BUCKET_CHAIN_IDS,
   DEMO_MEMBER_KEYS,
   DEMO_MERCHANTS,
   chainId,
@@ -335,6 +336,7 @@ export async function readBackDemoFamily(
     const bucketId = seeded.bucketIds[expected.name];
     const bucket = await client.getBucket(bucketId!);
     const what = `Bucket ${bucketId} (${expected.name})`;
+    check(`${expected.name}'s chain bucket ID`, bucketId, DEMO_BUCKET_CHAIN_IDS[expected.name]);
     check(`${what} name`, bucket.name, expected.name);
     check(`${what} available`, bucket.available, expected.amount);
     check(`${what} per-purchase limit`, bucket.perTxLimit, expected.perTxLimit);

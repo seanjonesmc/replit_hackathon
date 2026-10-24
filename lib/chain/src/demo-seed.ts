@@ -49,3 +49,17 @@ export const DEMO_BLOCKED_CATEGORIES: readonly string[] = [
   "nightclub",
   "gaming",
 ];
+
+/**
+ * Chain bucket ID for each seeded bucket, by name. The contract numbers
+ * buckets from 1 in creation order, and the deploy seed creates them in the
+ * backend seed's order (Food, School, Social, Transit), so the backend charges
+ * a database bucket against this ID. The deploy read-back checks the live
+ * contract agrees.
+ */
+export const DEMO_BUCKET_CHAIN_IDS: Readonly<Record<string, bigint>> = {
+  Food: 1n,
+  School: 2n,
+  Social: 3n,
+  Transit: 4n,
+};

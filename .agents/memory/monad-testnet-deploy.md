@@ -21,3 +21,9 @@ description: Cost, verification and config facts for deploying/seeding the contr
   `tsc -p tsconfig.json --noEmit --module preserve --moduleResolution bundler`.
 - A fresh task env may lack the contracts → @workspace/chain symlink; run
   `pnpm install --frozen-lockfile` if hardhat run reports ERR_MODULE_NOT_FOUND.
+- Prefer a fresh deploy over patching the live contract when its state has
+  drifted from the seed plan (e.g. a test contribution from another task):
+  readBackDemoFamily compares exact balances and counts, so patching can't pass.
+  A redeploy costs ~0.7 MON; afterwards set the dev address env vars and
+  re-verify both contracts on Sourcify.
+  **Why:** adding Transit (2026-10-24) found Food topped up by $50 on chain.
