@@ -1,8 +1,11 @@
 import { BRAND } from "@brand/brand.config";
 import { memberChainId } from "@workspace/chain";
-import { sql } from "drizzle-orm";
+import { inArray, sql } from "drizzle-orm";
 import {
+  bankAccountsTable,
+  bankDepositsTable,
   bucketsTable,
+  contributionsTable,
   db,
   familiesTable,
   membersTable,
@@ -11,6 +14,11 @@ import {
 } from "@workspace/db";
 import { depositToBank, linkBankAccount } from "./banks";
 import { contributeToBucket } from "./contributions";
+import {
+  SEED_BUCKETS,
+  SEED_CONTRIBUTION_AGO_MS,
+  SEED_DEPOSIT_AGO_MS,
+} from "./seed-data";
 
 /**
  * Fixed 32-byte contract id (bytes32) for a seeded member, derived from a
@@ -26,42 +34,12 @@ const SEED_LOCK_KEY = 72_001;
 
 type SeedMemberKey = "parent" | "grandparent" | "coParent" | "dependent";
 
-/** Amounts in cents. Names come from BRAND.demo, bucket values from the spec. */
+/** Amounts in cents. Names come from BRAND.demo; buckets are in ./seed-data. */
 const SEED_DEPOSITS: Record<Exclude<SeedMemberKey, "dependent">, number> = {
   parent: 500_00,
   grandparent: 250_00,
   coParent: 250_00,
 };
-
-const SEED_BUCKETS: ReadonlyArray<{
-  name: string;
-  amountCents: number;
-  perPurchaseLimitCents: number;
-  approvalThresholdCents: number;
-  fundedBy: Exclude<SeedMemberKey, "dependent">;
-}> = [
-  {
-    name: "Food",
-    amountCents: 150_00,
-    perPurchaseLimitCents: 60_00,
-    approvalThresholdCents: 75_00,
-    fundedBy: "grandparent",
-  },
-  {
-    name: "School",
-    amountCents: 200_00,
-    perPurchaseLimitCents: 150_00,
-    approvalThresholdCents: 100_00,
-    fundedBy: "coParent",
-  },
-  {
-    name: "Social",
-    amountCents: 60_00,
-    perPurchaseLimitCents: 40_00,
-    approvalThresholdCents: 30_00,
-    fundedBy: "parent",
-  },
-];
 
 function seedPlan() {
   const { demo } = BRAND;
@@ -133,12 +111,16 @@ export type SeedResult =
  * transaction-scoped advisory lock serializes concurrent callers, and an
  * existing family means nothing is written. Money moves through the same
  * services as the API, so every balance equals deposits minus contributions.
+ * The funding is dated a few days before `now`, so the purchase history the
+ * decision engine seeds afterwards (`seedSpendingDemo`) reads in order.
  * Reusable by a later "Reset demo" after it clears the family.
  */
 export async function seedDemoFamily(
   executor: DbExecutor = db,
+  now: Date = new Date(),
 ): Promise<SeedResult> {
   const plan = seedPlan();
+  const at = (agoMs: number) => new Date(now.getTime() - agoMs);
 
   return executor.transaction(async (tx) => {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(${SEED_LOCK_KEY})`);
@@ -188,6 +170,8 @@ export async function seedDemoFamily(
         .values({
           familyId: family!.id,
           name: bucket.name,
+          purpose: bucket.purpose,
+          icon: bucket.icon,
           perPurchaseLimitCents: bucket.perPurchaseLimitCents,
           approvalThresholdCents: bucket.approvalThresholdCents,
         })
@@ -202,6 +186,21 @@ export async function seedDemoFamily(
         tx,
       );
     }
+
+    // Date the funding a few days back so the history reads in order.
+    const bankIdList = Object.values(bankIds);
+    await tx
+      .update(bankDepositsTable)
+      .set({ createdAt: at(SEED_DEPOSIT_AGO_MS) })
+      .where(inArray(bankDepositsTable.bankAccountId, bankIdList));
+    await tx
+      .update(bankAccountsTable)
+      .set({ createdAt: at(SEED_DEPOSIT_AGO_MS) })
+      .where(inArray(bankAccountsTable.id, bankIdList));
+    await tx
+      .update(contributionsTable)
+      .set({ createdAt: at(SEED_CONTRIBUTION_AGO_MS) })
+      .where(inArray(contributionsTable.bankAccountId, bankIdList));
 
     return { created: true, familyId: family!.id };
   });

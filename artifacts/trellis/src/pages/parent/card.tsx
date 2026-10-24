@@ -1,7 +1,11 @@
-import { BRAND } from '@brand/brand.config';
-import { ComingSoonScreen } from '@/components/trellis/coming-soon-screen';
+import { Screen } from '@/features/shell/layout';
+import ParentCardPolicy from '@/features/parent/ParentCardPolicy';
 import { getTab } from '@/lib/route-map';
 
 export default function ParentCardPage() {
-  return <ComingSoonScreen tab={getTab('/parent/card')} body={`${BRAND.demo.dependent}'s card and spending rules will live here.`} />;
+  return (
+    <Screen tab={getTab('/parent/card')}>
+      <ParentCardPolicy />
+    </Screen>
+  );
 }

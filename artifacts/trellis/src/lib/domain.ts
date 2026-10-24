@@ -12,10 +12,14 @@ export type BucketIcon = 'food' | 'school' | 'social' | 'transit';
 /**
  * On-chain status of a record.
  * - preview: illustrative sample, nothing was sent.
+ * - offchain: a real record not written on chain yet (or the write failed).
  * - confirming: a testnet call is in flight.
+ * - sent: confirmed on chain, but no explorer link to show yet.
  * - verified: confirmed; only valid with a real explorer link.
  */
 export type ChainStatus =
   | { state: 'preview' }
+  | { state: 'offchain' }
   | { state: 'confirming' }
+  | { state: 'sent' }
   | { state: 'verified'; href: string };

@@ -11,6 +11,10 @@ import {
 import { chainColumns } from "./chain";
 import { familiesTable } from "./families";
 
+/** Icon keys the app knows how to draw for a bucket. */
+export const BUCKET_ICONS = ["food", "school", "social", "transit"] as const;
+export type BucketIcon = (typeof BUCKET_ICONS)[number];
+
 /**
  * A spending bucket in the family pot. `available` can be spent, `held` is
  * authorized but not yet settled, `spent` has settled to a merchant.
@@ -23,6 +27,10 @@ export const bucketsTable = pgTable(
       .notNull()
       .references(() => familiesTable.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 60 }).notNull(),
+    /** One short line shown under the name, e.g. "Books and supplies". */
+    purpose: varchar("purpose", { length: 120 }),
+    /** Which icon the app draws; null falls back to a generic one. */
+    icon: varchar("icon", { length: 20 }).$type<BucketIcon>(),
     perPurchaseLimitCents: integer("per_purchase_limit_cents").notNull(),
     approvalThresholdCents: integer("approval_threshold_cents").notNull(),
     availableCents: integer("available_cents").notNull().default(0),

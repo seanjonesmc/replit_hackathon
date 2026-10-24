@@ -10,3 +10,4 @@
 - [Effect return values](effect-return-values.md) — Chrome's scrollTo returns a Promise; expression-bodied effects crash on cleanup. Use braces.
 - [Brand scan covers tests](brand-values-scan.md) — `pnpm test` fails on BRAND names even in contract/lib tests; use neutral placeholders.
 - [Chain client invariants](chain-client.md) — SHA-256 IDs must never change; queue holds until mined because gas is unpadded.
+- [API codegen quirks](api-codegen-quirks.md) — generated client date-times are ISO strings while server Zod schemas use Date.

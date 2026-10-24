@@ -17,6 +17,11 @@ import {
   type BankAccount as ApiBankAccount,
   type Bucket as ApiBucket,
   type Contribution as ApiContribution,
+  GetCardAndPolicyResponse,
+  GetDependentWalletResponse,
+  GetParentOverviewResponse,
+  ListActivityResponse,
+  ListBucketsResponse,
 } from "@workspace/api-zod";
 import type { BankAccount, BankDeposit, Bucket, Member } from "@workspace/db";
 import { Router, type IRouter } from "express";
@@ -30,12 +35,19 @@ import {
   listBankAccounts,
   listMemberContributions,
   type ContributionDetail,
+  getActivity,
+  getBuckets,
+  getCardAndPolicy,
+  getDemoFamily,
+  getDependentWallet,
+  getParentOverview,
 } from "../services/family";
 import { parseOr400, serviceErrorHandler, toChain } from "./shared";
 
 /**
  * Family, bank and bucket routes. Every route is behind `requireAuth`; the
- * API acts for whichever member the request names.
+ * API acts for whichever member the request names. The `/family/*` reads at
+ * the end are each shaped for one screen.
  */
 const router: IRouter = Router();
 
@@ -222,6 +234,33 @@ router.get(
     );
   },
 );
+
+// ---- Screen reads: one response per screen --------------------------------
+
+router.get("/family/overview", requireAuth, async (_req, res) => {
+  const family = await getDemoFamily();
+  res.json(GetParentOverviewResponse.parse(await getParentOverview(family.id)));
+});
+
+router.get("/family/buckets", requireAuth, async (_req, res) => {
+  const family = await getDemoFamily();
+  res.json(ListBucketsResponse.parse(await getBuckets(family.id)));
+});
+
+router.get("/family/activity", requireAuth, async (_req, res) => {
+  const family = await getDemoFamily();
+  res.json(ListActivityResponse.parse(await getActivity(family.id)));
+});
+
+router.get("/family/card-policy", requireAuth, async (_req, res) => {
+  const family = await getDemoFamily();
+  res.json(GetCardAndPolicyResponse.parse(await getCardAndPolicy(family.id)));
+});
+
+router.get("/family/wallet", requireAuth, async (_req, res) => {
+  const family = await getDemoFamily();
+  res.json(GetDependentWalletResponse.parse(await getDependentWallet(family.id)));
+});
 
 router.use(serviceErrorHandler("Family route"));
 

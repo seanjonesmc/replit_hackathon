@@ -17,12 +17,15 @@ disagree, `BRAND` wins and this file should be updated.
 The product is a family-spending demo with parent guardrails on **Monad testnet
 only**. Bank and card concepts are simulated. No real money, bank/card linking,
 refunds, receipt uploads, recurring allowances, push notifications, or multiple
-families are in scope.
+families are in scope. Phase 1 adds sign-in and read-only role screens over the
+seeded demo family; purchases, decisions, policy editing, funding and blockchain
+transactions arrive in later phases.
 
 - Label every sample collection as illustrative preview data.
 - Status colors on samples describe component specimens, not actual approvals.
-- Use “Preview, not on chain” for illustrative records. Never display a verified
-  badge or an explorer link without a real confirmed transaction.
+- Use “Preview, not on chain” for illustrative records and “Not on chain yet”
+  for real records that have not been written on chain. Never display a
+  verified badge or an explorer link without a real confirmed transaction.
 
 ## Brand feel and principles
 
@@ -149,7 +152,7 @@ The header sky (`.header-sky`) is the one soft gradient. Shadows are not used.
 | LogoMark / Wordmark | Canonical mark, wordmark, readable on light and on signature |
 | PillButton | Primary, outline, tint, on-dark; default, hover, pressed, focus, disabled, loading |
 | StatusPill | Approved, declined, pending; icon plus text |
-| VerifiedBadge / ChainBadge | Preview and confirming specimens; verified only with a real explorer link |
+| VerifiedBadge / ChainBadge | Preview, not on chain yet, confirming, and sent specimens; verified only with a real explorer link |
 | Tag | Chain, rejected, neutral |
 | InitialAvatar | Identities derived from BRAND.demo |
 | SectionTitle | Section hierarchy with optional supporting action |
@@ -195,6 +198,17 @@ Decision colors are **always paired with an icon and a label**, never color alon
 - At narrow widths, stack compositions and wrap pills. Avoid horizontal page
   overflow.
 
+### App shell and screen states
+
+- A pinned bar holds the wordmark and the role switcher (Parent, Grandparent,
+  Dependent, names from BRAND.demo); each role has its own bottom tab bar.
+  Inside the 430px column the screen is white (`surface`); cards are sand.
+- Controls for later phases stay visible but disabled, with a short caption
+  saying they arrive in a later step. Captions never name phases or the sign-in
+  provider, and a disabled control never fakes a result.
+- Loading skeletons mirror the layout they replace. Empty states use an icon,
+  a short title and one line of guidance. Failed loads say so and offer a retry.
+
 ### App components
 
 Built components live in `artifacts/trellis/src/components/trellis/`, take data
@@ -212,10 +226,11 @@ through props, and never import preview samples.
 | Empty states | Built | Tint icon circle, title, one sentence, optional action |
 | Loading skeletons | Built | Shapes match hero, bucket and activity row; announced once as “Loading” |
 | Role switcher | Built | Pill segmented control on the `color.signature` top bar; one link per role (BRAND.demo name + role) to that role's first tab |
-| Bottom tab bar per role | Built | Icon + label per tab; active tab gets a `color.tint` pill, bold label and `aria-current`; optional count badge; never links to /brand |
-| Coming-soon screen | Built | Tab title on the header sky plus an empty state; placeholder until a screen is built, no sample data or actions |
+| Bottom tab bar per role | Built | Icon + label per tab; active tab gets a `color.tint` pill, bold label and `aria-current`; optional count badge (parent Approvals shows waiting swipes); never links to /brand |
+| Coming-soon screen | Built | Tab title on the header sky plus an empty state; placeholder for tabs not built yet (the dependent's Swipe), no sample data or actions |
+| Policy card | Built | Preset name and plain-English lines (block, ask, limit, time) |
+| Approval card | Built | Request sentence, reason, bucket, time; approve/decline shown disabled until decisions arrive |
 | Swipe-simulator merchant grid | Planned | Later phase |
-| Policy card | Planned | Later phase |
 
 ### Motion
 
@@ -266,7 +281,9 @@ phone frame that keeps its own address.
 
 All samples are labelled as preview data and do not call APIs or persist
 anything. Production builds do not include the preview; /brand shows an honest
-“not available” message there. /brand renders outside the app shell.
+“not available” message there. /brand renders outside the app shell and sits
+outside sign-in; every other route needs a signed-in session, and the root
+opens the last-used role (the parent home by default).
 
 ## Canonical assets
 
@@ -299,8 +316,8 @@ sync command rather than editing its generated tokens.
 
 ## Phase gate
 
-Before later product phases, verify /brand on mobile (390px) and desktop,
-keyboard focus and disabled/loading states, asset loading, and centralized
-rebranding. Confirm the reference and canonical assets remain unchanged for a
+Before later product phases, verify the role screens and /brand on mobile
+(390px) and desktop, keyboard focus and disabled/loading states, asset loading,
+and centralized rebranding. Confirm the reference and canonical assets remain unchanged for a
 preview-only change. A component preview is not proof that any banking or
 blockchain flow works.

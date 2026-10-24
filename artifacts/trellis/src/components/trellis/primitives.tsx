@@ -1,8 +1,9 @@
 import { type ButtonHTMLAttributes, type ReactNode } from 'react';
-import { CheckCircle2, Clock, Loader2, ShieldCheck, XCircle, ArrowUpRight } from 'lucide-react';
+import { CheckCircle2, Clock, Loader2, ShieldCheck, ShieldOff, XCircle, ArrowUpRight } from 'lucide-react';
 import { BRAND } from '@brand/brand.config';
 import { cn } from '@/lib/utils';
 import type { ChainStatus, Decision } from '@/lib/domain';
+import { initials } from '@/lib/format';
 
 export const brandAsset = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 
@@ -90,10 +91,17 @@ export function StatusPill({ status, className }: { status: Decision; className?
 /* ---------- Verified badge ----------
  * verified: only render with a real explorer href (never fabricated).
  * confirming: chain call in flight.
+ * offchain: a real record that has not been written on chain yet.
  * preview: design-preview sample, nothing was sent.
  */
-export function VerifiedBadge({ state, href }: { state: 'verified' | 'confirming' | 'preview'; href?: string }) {
+export function VerifiedBadge({ state, href }: { state: 'verified' | 'confirming' | 'offchain' | 'preview'; href?: string }) {
   const base = 'inline-flex h-7 items-center gap-1.5 rounded-pill px-3 text-[13px] font-semibold';
+  if (state === 'offchain')
+    return (
+      <span className={cn(base, 'border border-dashed border-hairline bg-surface text-ink-muted')} data-testid="badge-offchain">
+        <ShieldOff className="size-3.5" aria-hidden="true" /> Not on chain yet
+      </span>
+    );
   if (state === 'confirming')
     return (
       <span className={cn(base, 'bg-surface-alt text-ink-muted')} data-testid="badge-confirming">
@@ -123,7 +131,10 @@ export function VerifiedBadge({ state, href }: { state: 'verified' | 'confirming
 
 /** Renders a typed ChainStatus. A verified status always carries its explorer link. */
 export function ChainBadge({ status }: { status: ChainStatus }) {
-  return status.state === 'verified' ? <VerifiedBadge state="verified" href={status.href} /> : <VerifiedBadge state={status.state} />;
+  if (status.state === 'verified') return <VerifiedBadge state="verified" href={status.href} />;
+  // Confirmed without an explorer link yet: say it was sent, never "verified".
+  if (status.state === 'sent') return <Tag>Sent to chain</Tag>;
+  return <VerifiedBadge state={status.state} />;
 }
 
 /* ---------- Tag ---------- */
@@ -144,7 +155,7 @@ export function Tag({ children, tone = 'chain' }: { children: ReactNode; tone?: 
 
 /* ---------- Avatar ---------- */
 export function InitialAvatar({ name, className }: { name: string; className?: string }) {
-  const ini = name.split(/\s+/).filter(Boolean).map((p) => p[0]).slice(-2).join('').toUpperCase();
+  const ini = initials(name);
   return (
     <span className={cn('grid size-10 shrink-0 place-items-center rounded-full bg-surface-alt text-[14px] font-semibold text-ink', className)}>
       {ini}

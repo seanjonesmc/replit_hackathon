@@ -1,7 +1,19 @@
+import { type ReactNode } from 'react';
+import { ArrowDownLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatSignedCents } from '@/lib/format';
 import type { ChainStatus, Decision } from '@/lib/domain';
 import { ChainBadge, InitialAvatar, StatusPill, Tag } from './primitives';
+
+/** Money put into a bucket: no decision was needed. */
+function AddedPill() {
+  return (
+    <span className="inline-flex h-7 items-center gap-1.5 rounded-pill bg-approved-bg px-3 text-[13px] font-semibold text-approved" data-testid="status-added">
+      <ArrowDownLeft className="size-4" strokeWidth={2.4} aria-hidden="true" />
+      Added
+    </span>
+  );
+}
 
 interface ActivityRowProps {
   /** Person the row is about; shown as an initial avatar. */
@@ -10,7 +22,10 @@ interface ActivityRowProps {
   sentence: string;
   /** Signed cents: negative for spending, positive for money added. */
   amountCents: number;
-  status: Decision;
+  /** A purchase decision, or `added` for money put into a bucket. */
+  status: Decision | 'added';
+  /** Optional second line, e.g. the reason for a decision. */
+  detail?: ReactNode;
   when: string;
   bucket?: string;
   /** Optional step trail, e.g. Pending -> Approved -> Settled. */
@@ -25,7 +40,7 @@ interface ActivityRowProps {
  * One row in an activity feed. Renders an <li>; place it inside a <ul>.
  * Declined amounts are struck through because no money moved.
  */
-export function ActivityRow({ who, sentence, amountCents, status, when, bucket, steps, chain, className, 'data-testid': testId }: ActivityRowProps) {
+export function ActivityRow({ who, sentence, amountCents, status, detail, when, bucket, steps, chain, className, 'data-testid': testId }: ActivityRowProps) {
   return (
     <li className={cn('flex gap-3 py-4', className)} data-testid={testId}>
       <InitialAvatar name={who} />
@@ -42,8 +57,9 @@ export function ActivityRow({ who, sentence, amountCents, status, when, bucket, 
             {formatSignedCents(amountCents)}
           </span>
         </div>
+        {detail && <p className="type-caption mt-1 text-ink-muted">{detail}</p>}
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <StatusPill status={status} />
+          {status === 'added' ? <AddedPill /> : <StatusPill status={status} />}
           {bucket && <Tag tone="neutral">{bucket}</Tag>}
           <span className="type-caption text-ink-muted">{when}</span>
         </div>

@@ -6,28 +6,32 @@ Directories with responsibility READMEs are reserved for later phases.
 ```text
 artifacts/
   trellis/src/
-    App.tsx                  Application providers and routing
-    pages/                   Route entry points
+    App.tsx                  Providers, sign-in gate and routing (one page per route-map tab)
+    pages/                   Route entry points: one per tab (wraps its feature screen), /brand, not-found
+    components/app-shell.tsx Role switcher and per-role tab bar around every tab URL
     features/
-      parent/                Parent-specific screens and interactions
-      funder/                Funder-specific screens and interactions
-      dependent/             Dependent-specific screens and interactions
-      onboarding/            Shared role onboarding flow
-      branding/              Development brand-preview composition only
+      shell/                 Session context, signed-out welcome, per-tab screen wrapper and header
+      parent/                Parent screens: home, approvals, activity, card & policy, settings
+      funder/                Grandparent screens: add money, where my money went
+      dependent/             Dependent wallet
+      family/                Adapters from API data to the shared components
+      onboarding/            Shared role onboarding flow (later phase)
+      branding/              Development-only brand preview at /brand
     components/ui/           Existing generic UI components
-    components/trellis/      Existing shared branded primitives
+    components/trellis/      Shared branded primitives and composite cards/states
     hooks/                   Shared frontend hooks
-    lib/                     Frontend-only helpers and explicit preview samples
+    lib/                     Route map, domain types, formatting and chain-status helpers, explicit preview samples
   api-server/src/
     app.ts                   Express setup and middleware registration
     index.ts                 Startup
-    routes/                  HTTP handlers (health, sign-in, family/banks/buckets, spending)
+    routes/                  HTTP handlers (health, sign-in, family/banks/buckets, per-screen /family/* reads, spending)
     middlewares/             Request middleware, incl. session loader and requireAuth guard
     lib/                     Server-only infrastructure (logger, sign-in sessions)
     services/
       ai/                    Policy builder and AI guard (Anthropic via AI Integrations)
-      family/                Demo family, simulated banks, deposits, contributions; startup seed
-      policies/              Reads the family's stored policy in FamilyPolicy shape
+      family/                Demo family, simulated banks, deposits, contributions; startup seed;
+                             read models for each screen
+      policies/              Reads the family's stored policy in FamilyPolicy shape; plain-English policy lines
       decisions/             Rule engine, swipe handling, card, merchants, activity feed; spending seed
       blockchain/            Monad testnet connection from Secrets (configured flag, shared client, readiness check)
       attribution/           Future contribution/spend attribution
@@ -37,8 +41,9 @@ lib/
   api-spec/openapi.yaml      API contract source of truth
   api-client-react/src/     Generated client/hooks plus custom fetch adapter
   api-zod/src/              Generated API validation
-  db/src/schema/            Database models (sign-in, family, banks, buckets, contributions, chain events), exported by index.ts
-  replit-auth-web/src/      Browser sign-in hook (useAuth), not yet used by any screen
+  db/src/schema/            Database models (sign-in, family, banks, buckets, contributions, merchants,
+                            policies, cards, temporary passes, authorizations, chain events), exported by index.ts
+  replit-auth-web/src/      Browser sign-in hook (session check, login, logout) used by the session gate
   chain/src/                Monad chain library: contract ABIs, enum names, bytes32 IDs, explorer links, ethers v6 operator client
   shared/                   Reserved pure cross-package utilities
 src/brand/
@@ -112,13 +117,15 @@ docs/                       Contributor architecture documentation
    and development component preview (hidden `/brand` route) in
    `features/branding`. Preserve the
    reference byte-for-byte; maintain editable design guidance separately.
-3. **Later product phases:** implement onboarding/access, models/contracts,
+3. **Phase 1:** presenter sign-in, family data model, idempotent demo seed,
+   read-only role screens behind a role switcher; preview moved to dev-only `/brand`.
+4. **Later product phases:** implement onboarding/access, models/contracts,
    policies/decisions, simulated funding and testnet integration only under their
    approved phase requirements. This map does not invent phase numbering or policy.
-4. **Demo verification:** check the completed role flows and confirmed testnet
+5. **Demo verification:** check the completed role flows and confirmed testnet
    evidence before describing them as working. Never imply real-money capability.
 
-Do not deploy contracts, add authentication/AI, or implement any
+Do not deploy contracts or implement any
 of these later features merely to populate the reserved folders.
 
 ## Test locations
@@ -147,6 +154,8 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | `api-server` | `artifacts/api-server/src/services/decisions/rules.test.ts` | the rule function decides the six preset swipes and a frozen-card swipe as the spec requires (no database) |
 | `api-server` | `artifacts/api-server/src/services/decisions/outcome.test.ts` | the AI guard can't pay from a bucket other than the category's, and its approvals stay within bucket limits; a card frozen or a bucket drained before the swipe is stored rejects it (no database) |
 | `api-server` | `artifacts/api-server/tests/spending.test.ts`          | every spending route returns 401 JSON signed out (no database) |
+| `api-server` | `artifacts/api-server/tests/family-auth.test.ts`       | every per-screen `/family/*` read returns 401 without a valid session |
+| `api-server` | `artifacts/api-server/tests/demo-seed.test.ts`         | seeding (family, then spending) is idempotent (also concurrently); BRAND identities, agreed limits, merchants, blocked categories, authorizations; funding dated before the history; every screen read returns contract-valid data. Uses a throwaway `<dev db>_seed_test` database, pushed fresh each run and dropped after |
 | `trellis`    | `artifacts/trellis/vite-brand-plugin.test.ts`          | BRAND-filled `index.html`, base-path asset URLs, SVG output  |
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
 | `trellis`    | `artifacts/trellis/src/lib/route-map.test.ts`          | roles, tabs and URLs; BRAND.demo names; last-used role       |

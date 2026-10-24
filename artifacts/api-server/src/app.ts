@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
@@ -27,6 +27,7 @@ app.use(
     },
   }),
 );
+// Credentials are required so the browser sends the session cookie.
 app.use(cors({ credentials: true, origin: true }));
 app.use(cookieParser());
 app.use(express.json());
@@ -35,5 +36,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(authMiddleware);
 
 app.use("/api", router);
+
+// Unhandled route errors become a JSON 500 (and are logged) instead of Express's HTML page.
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  req.log.error({ err }, "Request failed");
+  if (res.headersSent) return;
+  res.status(500).json({ error: "Something went wrong. Try again." });
+});
 
 export default app;

@@ -30,6 +30,11 @@ export default defineConfig({
       clean: true,
       prettier: true,
       override: {
+        // Orval cannot read the catalog-pinned version, so state it: the
+        // workspace uses TanStack Query v5 (partial `query` options allowed).
+        query: {
+          version: 5,
+        },
         fetch: {
           includeHttpResponseReturnType: false,
         },

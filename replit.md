@@ -7,7 +7,7 @@ A phased, testnet-only family-spending demo with parent guardrails.
 Use the existing managed workflows; they supply `PORT` and the frontend
 `BASE_PATH`. Do not create replacement services.
 
-- `pnpm --filter @workspace/trellis run dev` — frontend, preview `/`
+- `pnpm --filter @workspace/trellis run dev` — frontend at `/` (sign-in and role screens; dev-only brand preview at `/brand`)
 - `pnpm --filter @workspace/api-server run dev` — build and start API, `/api`
 - `pnpm --filter @workspace/mockup-sandbox run dev` — existing design sandbox, `/__mockup`
 - `pnpm run typecheck` — build shared library declarations, then check all apps, scripts, and their tests
@@ -21,7 +21,7 @@ Use the existing managed workflows; they supply `PORT` and the frontend
 For manual frontend commands outside the workflow, supply `PORT=20757 BASE_PATH=/`;
 for the API supply `PORT=8080`. Keep these aligned with the managed artifact
 configuration. The API dev command builds once; restart it after server edits.
-The API now requires `DATABASE_URL` at startup (and in its tests), because sign-in
+The API requires `DATABASE_URL` at startup (and in its tests), because sign-in
 sessions live in Postgres, and it seeds the demo family on first start (the schema
 must already be pushed). Never commit credentials. Schema push (`pnpm --filter @workspace/db run push`)
 is a separate, explicitly authorized development operation, not a startup step.
@@ -64,29 +64,36 @@ test locations, and phase gates.
 ## Current baseline
 
 Phase 0 provides brand configuration/assets, styling, shared primitives and app
-components, an editable root `DESIGN.md`, the app shell (role switcher, per-role
-tab bars and a coming-soon placeholder for every main screen; no data yet),
-and a development-only component preview at the hidden `/brand` route. The API
-exposes health and sign-in (`/api/login`, `/api/callback`, `/api/logout`,
+components, an editable root `DESIGN.md`, the app shell (role switcher and
+per-role tab bars) and a development-only component preview at the hidden
+`/brand` route. Phase 1 adds presenter sign-in, the family data model, the
+idempotent demo-family seed and read-only parent, grandparent and dependent
+screens inside the app shell (the root opens the last-used role, the parent home
+by default; the dependent's Swipe tab is still a coming-soon placeholder). The
+API exposes health and sign-in (`/api/login`, `/api/callback`, `/api/logout`,
 `/api/auth/user`), the family routes (`/api/family`, `/api/overview`, bank
-linking, simulated deposits, bucket contributions) and the spending routes
-(`POST /api/swipes` through the rule-based decision engine, merchants, the
-activity feed, approvals, card freeze/unfreeze, the policy), each behind the
-`requireAuth` guard. The database holds sign-in users/sessions plus the demo
-family, its simulated banks, deposits, buckets, contributions, card, merchants,
-policy, temporary passes, authorizations and a `chain_events` table; the API
-seeds the family from BRAND.demo at startup when none exists, then adds any
-missing merchants, policy, card and purchase history. Every mirrored row stays
-`not_submitted` on chain until Phase 3. The browser
-sign-in hook (`lib/replit-auth-web`) is not yet wired into any screen. Directory
-READMEs reserve responsibilities, not implemented functionality or authorization
-boundaries. Baseline Vitest checks cover API health and sign-in, BRAND asset URLs
-under the frontend base path, the byte-for-byte reference checksum, and the
-rule engine's preset swipes. Contracts
-use Hardhat 3; MockUSD and FamilyCardNetwork (simulated bank, pot buckets, cards, merchants and authorizations) exist and nothing is deployed.
-The API's AI service layer (`services/ai/`: policy builder and AI guard) exists;
-the decision engine calls the AI guard for swipes no hard rule decided, and the
-policy builder is not yet wired to routes.
+linking, simulated deposits, bucket contributions), one read per screen under
+`/api/family/*` (overview, buckets, activity, card-policy, wallet) and the
+spending routes (`POST /api/swipes` through the rule-based decision engine,
+merchants, the activity feed, approvals, card freeze/unfreeze, the policy), each
+behind the `requireAuth` guard. The database holds sign-in users/sessions plus
+the demo family, its simulated banks, deposits, buckets, contributions, card,
+merchants, policy, temporary passes, authorizations and a `chain_events` table;
+the API seeds the family from BRAND.demo at startup when none exists, then adds
+any missing merchants, policy, card and purchase history. There is one shared
+demo family; any signed-in account sees it. Every mirrored row stays
+`not_submitted` on chain until Phase 3, and screens show "Not on chain yet";
+later-phase controls (approve/decline, freeze, the policy builder) are shown
+disabled. Directory READMEs reserve responsibilities, not implemented
+functionality or authorization boundaries. Vitest checks cover API health,
+sign-in and signed-out rejection, seeding (against a throwaway
+`<db>_seed_test` database), the screen reads, BRAND asset URLs under the
+frontend base path, the byte-for-byte reference checksum, and the rule engine's
+preset swipes. Contracts use Hardhat 3; MockUSD and FamilyCardNetwork (simulated
+bank, pot buckets, cards, merchants and authorizations) exist and nothing is
+deployed. The API's AI service layer (`services/ai/`: policy builder and AI
+guard) exists; the decision engine calls the AI guard for swipes no hard rule
+decided, and the policy builder is not yet wired to routes.
 
 ## Stack
 

@@ -1,16 +1,34 @@
 // @vitest-environment happy-dom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BRAND } from '@brand/brand.config';
 import App from './App';
 import { ALL_TABS } from './lib/route-map';
+
+/** The session the app sees; each test can sign out by changing it. */
+const session = vi.hoisted(() => ({
+  isLoading: false,
+  isAuthenticated: true,
+  user: { id: 'presenter', email: null, firstName: 'Demo', lastName: null, profileImageUrl: null } as unknown,
+  login: () => {},
+  logout: () => {},
+}));
+
+vi.mock('@workspace/replit-auth-web', () => ({ useAuth: () => session }));
 
 let root: Root | null = null;
 let host: HTMLElement;
 
 beforeAll(() => {
   (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+});
+
+beforeEach(() => {
+  session.isLoading = false;
+  session.isAuthenticated = true;
+  // Screens stay in their loading state: these tests cover routing, not data.
+  vi.spyOn(globalThis, 'fetch').mockImplementation(() => new Promise<Response>(() => {}));
 });
 
 afterEach(() => {
@@ -34,13 +52,15 @@ function open(url: string) {
 
 const byTestId = (id: string) => host.querySelector<HTMLElement>(`[data-testid="${id}"]`);
 const title = () => byTestId('text-screen-title')?.textContent;
+/** The tab screen showing, e.g. "parent-home". */
+const screen = () => host.querySelector('[data-testid^="screen-"]')?.getAttribute('data-testid')?.replace(/^screen-/, '');
 const click = (id: string) => act(() => byTestId(id)!.click());
 
 describe('app shell routing', () => {
   it('opens the parent home at the root by default', () => {
     open('/');
     expect(window.location.pathname).toBe('/parent/home');
-    expect(title()).toBe('Home');
+    expect(screen()).toBe('parent-home');
     expect(byTestId('link-role-parent')?.getAttribute('aria-current')).toBe('true');
     expect(byTestId('link-tab-parent-home')?.getAttribute('aria-current')).toBe('page');
   });
@@ -49,13 +69,12 @@ describe('app shell routing', () => {
     window.localStorage.setItem('demo:last-role', 'dependent');
     open('/');
     expect(window.location.pathname).toBe('/dependent/wallet');
-    expect(title()).toBe('Wallet');
+    expect(screen()).toBe('dependent-wallet');
   });
 
   it("keeps the role and tab on a deep link and remembers the role", () => {
     open('/funder/where-it-went');
-    expect(title()).toBe('Where my money went');
-    expect(byTestId('empty-coming-soon')?.textContent).toContain("You'll see every purchase your money covers, right here.");
+    expect(screen()).toBe('funder-where-it-went');
     expect(byTestId('link-role-funder')?.getAttribute('aria-current')).toBe('true');
     expect(byTestId('link-tab-funder-where-it-went')?.getAttribute('aria-current')).toBe('page');
     expect(window.localStorage.getItem('demo:last-role')).toBe('funder');
@@ -65,7 +84,7 @@ describe('app shell routing', () => {
     open('/parent/settings');
     click('link-role-dependent');
     expect(window.location.pathname).toBe('/dependent/wallet');
-    expect(title()).toBe('Wallet');
+    expect(screen()).toBe('dependent-wallet');
     expect(byTestId('nav-tabs-dependent')).not.toBeNull();
     expect(byTestId('nav-tabs-parent')).toBeNull();
   });
@@ -74,7 +93,7 @@ describe('app shell routing', () => {
     open('/parent/home');
     click('link-tab-parent-approvals');
     expect(window.location.pathname).toBe('/parent/approvals');
-    expect(title()).toBe('Approvals');
+    expect(screen()).toBe('parent-approvals');
     expect(byTestId('link-tab-parent-approvals')?.getAttribute('aria-current')).toBe('page');
     expect(byTestId('link-tab-parent-home')?.getAttribute('aria-current')).toBeNull();
   });
@@ -86,7 +105,7 @@ describe('app shell routing', () => {
     click('link-tab-parent-activity');
     click('link-role-funder');
     expect(window.location.pathname).toBe('/funder/add-money');
-    expect(title()).toBe('Add money');
+    expect(screen()).toBe('funder-add-money');
     expect(byTestId('app-shell')).not.toBeNull();
   });
 
@@ -101,12 +120,18 @@ describe('app shell routing', () => {
     expect(byTestId('app-shell')).toBeNull();
   });
 
-  it.each(ALL_TABS.map((t) => [t.path, t.label] as const))('%s shows its title, a coming-soon state and no money or actions', (path, label) => {
+  it.each(ALL_TABS.map((t) => [t.path, `${t.role}-${t.id}`] as const))('%s shows its own screen inside the shell', (path, id) => {
     open(path);
-    expect(title()).toBe(label);
-    const screen = byTestId('empty-coming-soon')!;
-    expect(screen.textContent).toContain('Coming soon');
-    expect(screen.querySelector('button, a')).toBeNull();
+    expect(screen()).toBe(id);
+    expect(byTestId('app-shell')).not.toBeNull();
+  });
+
+  it('keeps the later-phase swipe tab as a coming-soon screen with no money or actions', () => {
+    open('/dependent/swipe');
+    expect(title()).toBe('Swipe');
+    const empty = byTestId('empty-coming-soon')!;
+    expect(empty.textContent).toContain('Coming soon');
+    expect(empty.querySelector('button, a')).toBeNull();
     expect(host.querySelector('main')?.textContent).not.toMatch(/\$\s?\d/);
   });
 
@@ -118,6 +143,32 @@ describe('app shell routing', () => {
   });
 });
 
+describe('sign-in gate', () => {
+  it('shows the welcome with a log in button, and no shell, when signed out', () => {
+    session.isAuthenticated = false;
+    open('/parent/home');
+    expect(byTestId('button-login')).not.toBeNull();
+    expect(byTestId('app-shell')).toBeNull();
+    expect(host.textContent).not.toMatch(/replit/i);
+  });
+
+  it('shows a loading state while the session is checked', () => {
+    session.isLoading = true;
+    open('/parent/home');
+    expect(byTestId('state-session-loading')).not.toBeNull();
+    expect(byTestId('app-shell')).toBeNull();
+  });
+
+  it('keeps the brand preview open without signing in', () => {
+    session.isAuthenticated = false;
+    open('/brand');
+    expect(byTestId('button-login')).toBeNull();
+    expect(byTestId('state-session-loading')).toBeNull();
+    // The preview itself loads lazily; its loading state proves the route rendered.
+    expect(host.querySelector('[aria-label="Loading preview"]')).not.toBeNull();
+  });
+});
+
 describe('app shell under a sub-path', () => {
   it('routes and links under BASE_URL', () => {
     vi.stubEnv('BASE_URL', '/sub/path/');
@@ -126,6 +177,6 @@ describe('app shell under a sub-path', () => {
     expect(byTestId('link-role-funder')?.getAttribute('href')).toBe('/sub/path/funder/add-money');
     click('link-tab-parent-activity');
     expect(window.location.pathname).toBe('/sub/path/parent/activity');
-    expect(title()).toBe('Activity');
+    expect(screen()).toBe('parent-activity');
   });
 });

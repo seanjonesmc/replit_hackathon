@@ -1,6 +1,11 @@
-import { ComingSoonScreen } from '@/components/trellis/coming-soon-screen';
+import { Screen } from '@/features/shell/layout';
+import DependentWallet from '@/features/dependent/DependentWallet';
 import { getTab } from '@/lib/route-map';
 
 export default function DependentWalletPage() {
-  return <ComingSoonScreen tab={getTab('/dependent/wallet')} body={"Your card and what's left in each bucket will show here."} />;
+  return (
+    <Screen tab={getTab('/dependent/wallet')}>
+      <DependentWallet />
+    </Screen>
+  );
 }

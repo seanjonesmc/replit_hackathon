@@ -11,8 +11,18 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle(pool, { schema });
+/** A Drizzle client with the full schema, bound to its own connection pool. */
+export function createDatabase(connectionString: string) {
+  const pool = new Pool({ connectionString });
+  return { pool, db: drizzle(pool, { schema }) };
+}
+
+export type Database = ReturnType<typeof createDatabase>["db"];
+
+const main = createDatabase(process.env.DATABASE_URL);
+
+export const pool = main.pool;
+export const db: Database = main.db;
 
 /**
  * Either the shared `db` or a transaction opened from it. Services take one so

@@ -23,3 +23,22 @@ export function formatDecisionTime(at: Date, now: Date = new Date()): string {
   const day = at.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   return `${day} at ${time}`;
 }
+
+/** Up to two initials from a display name: "Dana Rivera" -> "DR". */
+export const initials = (name: string) =>
+  name.split(/\s+/).filter(Boolean).map((p) => p[0]).slice(-2).join('').toUpperCase();
+
+/** Activity time from an ISO string: "Today, 2:41 PM", "Yesterday, 9:05 AM", or "Mon, Oct 19". */
+export function formatWhen(iso: string, now: Date = new Date()): string {
+  const date = new Date(iso);
+  const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  if (sameDay(date, now)) return `Today, ${time}`;
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (sameDay(date, yesterday)) return `Yesterday, ${time}`;
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+/** Card expiry as "10/29". */
+export const formatExpiry = (month: number, year: number) =>
+  `${String(month).padStart(2, '0')}/${String(year % 100).padStart(2, '0')}`;

@@ -858,3 +858,331 @@ export const GetPolicyResponse = zod.object({
     })
     .describe("The API's FamilyPolicy shape (the AI policy builder's output)."),
 });
+
+/**
+ * @summary Parent home — total pot, bucket cards and pending approvals count
+ */
+export const GetParentOverviewResponse = zod.object({
+  familyName: zod.string(),
+  parentName: zod.string(),
+  dependentName: zod.string(),
+  potTotalCents: zod
+    .number()
+    .int()
+    .describe(
+      "Money still in the pot (available plus held) across all buckets.",
+    ),
+  buckets: zod.array(
+    zod
+      .object({
+        id: zod.number().int(),
+        name: zod.string(),
+        purpose: zod
+          .string()
+          .nullable()
+          .describe("One short line about what the bucket is for."),
+        icon: zod
+          .union([
+            zod.enum(["food", "school", "social", "transit"]),
+            zod.null(),
+          ])
+          .describe("Which icon to draw; null means no specific icon."),
+        perPurchaseLimitCents: zod.number().int(),
+        approvalThresholdCents: zod.number().int(),
+        availableCents: zod.number().int(),
+        heldCents: zod
+          .number()
+          .int()
+          .describe("Authorized but not yet settled."),
+        spentCents: zod.number().int().describe("Settled, all time."),
+        fundedCents: zod
+          .number()
+          .int()
+          .describe("Total ever added to this bucket."),
+        spentThisWeekCents: zod
+          .number()
+          .int()
+          .describe("Settled in the last 7 days."),
+        funderNames: zod
+          .array(zod.string())
+          .describe(
+            "Display names of everyone who has added money, in order of first contribution.",
+          ),
+        chain: zod.object({
+          status: zod
+            .enum(["not_submitted", "submitted", "confirmed", "failed"])
+            .describe(
+              "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+            ),
+          txHash: zod.string().nullable(),
+          confirmedAt: zod.coerce.date().nullable(),
+        }),
+      })
+      .describe(
+        "A bucket with the extra numbers the screens show: total funded, spent this week and who funded it.",
+      ),
+  ),
+  pendingApprovalsCount: zod.number().int(),
+});
+
+/**
+ * @summary Every bucket with its balances and limits
+ */
+export const ListBucketsResponseItem = zod
+  .object({
+    id: zod.number().int(),
+    name: zod.string(),
+    purpose: zod
+      .string()
+      .nullable()
+      .describe("One short line about what the bucket is for."),
+    icon: zod
+      .union([zod.enum(["food", "school", "social", "transit"]), zod.null()])
+      .describe("Which icon to draw; null means no specific icon."),
+    perPurchaseLimitCents: zod.number().int(),
+    approvalThresholdCents: zod.number().int(),
+    availableCents: zod.number().int(),
+    heldCents: zod.number().int().describe("Authorized but not yet settled."),
+    spentCents: zod.number().int().describe("Settled, all time."),
+    fundedCents: zod
+      .number()
+      .int()
+      .describe("Total ever added to this bucket."),
+    spentThisWeekCents: zod
+      .number()
+      .int()
+      .describe("Settled in the last 7 days."),
+    funderNames: zod
+      .array(zod.string())
+      .describe(
+        "Display names of everyone who has added money, in order of first contribution.",
+      ),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+    }),
+  })
+  .describe(
+    "A bucket with the extra numbers the screens show: total funded, spent this week and who funded it.",
+  );
+export const ListBucketsResponse = zod.array(ListBucketsResponseItem);
+
+/**
+ * @summary Plain-English activity feed, newest first
+ */
+export const ListActivityResponseItem = zod.object({
+  id: zod
+    .string()
+    .describe('Stable row key, e.g. "purchase-12" or "contribution-3".'),
+  kind: zod.enum(["purchase", "contribution"]),
+  occurredAt: zod.coerce.date(),
+  actorName: zod.string(),
+  summary: zod
+    .string()
+    .describe("One plain-English sentence describing the row."),
+  detail: zod
+    .string()
+    .nullable()
+    .describe("The decision reason, when there is one."),
+  amountCents: zod.number().int().describe("Always positive; see direction."),
+  direction: zod.enum(["in", "out"]),
+  decision: zod.union([
+    zod.enum(["APPROVED", "REJECTED", "PENDING"]),
+    zod.null(),
+  ]),
+  reasonCode: zod.union([
+    zod
+      .enum([
+        "approved",
+        "blocked_category",
+        "insufficient_funds",
+        "over_limit",
+        "card_inactive",
+        "needs_approval",
+        "outside_hours",
+      ])
+      .describe("Matches the contract's reason codes."),
+    zod.null(),
+  ]),
+  decidedBy: zod.union([zod.enum(["Rule", "AI guard"]), zod.null()]),
+  bucketName: zod.string().nullable(),
+  merchantName: zod.string().nullable(),
+  mcc: zod.string().nullable(),
+  category: zod.string().nullable(),
+  timeline: zod
+    .array(
+      zod.object({
+        label: zod.string(),
+        state: zod.enum(["pending", "approved", "rejected", "settled"]),
+        at: zod.coerce.date().nullable(),
+      }),
+    )
+    .describe(
+      "Approval chain steps (empty unless the purchase needed a parent's OK).",
+    ),
+  chain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+  }),
+});
+export const ListActivityResponse = zod.array(ListActivityResponseItem);
+
+/**
+ * @summary The dependent's virtual card, the current policy and blocked categories
+ */
+export const GetCardAndPolicyResponse = zod.object({
+  card: zod.object({
+    id: zod.number().int(),
+    dependentId: zod.number().int(),
+    dependentName: zod.string(),
+    last4: zod.string(),
+    expiryMonth: zod.number().int(),
+    expiryYear: zod.number().int(),
+    status: zod.enum(["issued", "active", "frozen"]),
+    onchainCardId: zod.number().int().nullable(),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+    }),
+  }),
+  policy: zod
+    .object({
+      presetName: zod
+        .string()
+        .describe('The preset the policy started from, e.g. "Balanced".'),
+      timeZone: zod
+        .string()
+        .describe("IANA time zone the time windows are read in."),
+      bucketRules: zod.array(
+        zod.object({
+          bucketName: zod.string(),
+          perPurchaseLimitCents: zod.number().int(),
+          approvalThresholdCents: zod.number().int(),
+        }),
+      ),
+      lines: zod
+        .array(
+          zod.object({
+            kind: zod.enum(["block", "ask", "limit", "time"]),
+            text: zod.string(),
+          }),
+        )
+        .describe(
+          "The policy as short plain-English lines for the policy card.",
+        ),
+      updatedAt: zod.coerce.date(),
+    })
+    .describe(
+      "The family's stored policy, summarized for the card & policy screen.",
+    ),
+  blockedCategories: zod.array(
+    zod.object({
+      category: zod.string(),
+      label: zod.string().describe('Plain-English name, e.g. "Liquor stores".'),
+    }),
+  ),
+});
+
+/**
+ * @summary Dependent wallet — virtual card, total balance and balance per bucket
+ */
+export const GetDependentWalletResponse = zod.object({
+  dependent: zod.object({
+    id: zod.number().int(),
+    displayName: zod.string(),
+    role: zod.enum(["parent", "funder", "dependent"]),
+    relationship: zod
+      .string()
+      .describe("e.g. parent, grandparent, co-parent, student."),
+    age: zod.number().int().nullable(),
+    onboardingComplete: zod.boolean(),
+    onchainId: zod
+      .string()
+      .describe("The member's fixed 32-byte contract id, 0x-prefixed hex."),
+  }),
+  card: zod.object({
+    id: zod.number().int(),
+    dependentId: zod.number().int(),
+    dependentName: zod.string(),
+    last4: zod.string(),
+    expiryMonth: zod.number().int(),
+    expiryYear: zod.number().int(),
+    status: zod.enum(["issued", "active", "frozen"]),
+    onchainCardId: zod.number().int().nullable(),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+    }),
+  }),
+  totalAvailableCents: zod.number().int(),
+  buckets: zod.array(
+    zod
+      .object({
+        id: zod.number().int(),
+        name: zod.string(),
+        purpose: zod
+          .string()
+          .nullable()
+          .describe("One short line about what the bucket is for."),
+        icon: zod
+          .union([
+            zod.enum(["food", "school", "social", "transit"]),
+            zod.null(),
+          ])
+          .describe("Which icon to draw; null means no specific icon."),
+        perPurchaseLimitCents: zod.number().int(),
+        approvalThresholdCents: zod.number().int(),
+        availableCents: zod.number().int(),
+        heldCents: zod
+          .number()
+          .int()
+          .describe("Authorized but not yet settled."),
+        spentCents: zod.number().int().describe("Settled, all time."),
+        fundedCents: zod
+          .number()
+          .int()
+          .describe("Total ever added to this bucket."),
+        spentThisWeekCents: zod
+          .number()
+          .int()
+          .describe("Settled in the last 7 days."),
+        funderNames: zod
+          .array(zod.string())
+          .describe(
+            "Display names of everyone who has added money, in order of first contribution.",
+          ),
+        chain: zod.object({
+          status: zod
+            .enum(["not_submitted", "submitted", "confirmed", "failed"])
+            .describe(
+              "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+            ),
+          txHash: zod.string().nullable(),
+          confirmedAt: zod.coerce.date().nullable(),
+        }),
+      })
+      .describe(
+        "A bucket with the extra numbers the screens show: total funded, spent this week and who funded it.",
+      ),
+  ),
+});

@@ -16,7 +16,8 @@ tags:
     description: >-
       The single demo family, its simulated banks and its buckets. Every route
       requires sign-in. The API acts for whichever member the request names;
-      any signed-in account can act for the demo family.
+      any signed-in account can act for the demo family. The `/family/*` reads
+      are each shaped for one screen. Amounts are integer cents.
   - name: Spending
     description: >-
       The dependent's card, the simulated merchants, the decision engine
@@ -455,6 +456,91 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+  /family/overview:
+    get:
+      tags: [Family]
+      operationId: getParentOverview
+      summary: Parent home — total pot, bucket cards and pending approvals count
+      responses:
+        "200":
+          description: Parent home data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParentOverview"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /family/buckets:
+    get:
+      tags: [Family]
+      operationId: listBuckets
+      summary: Every bucket with its balances and limits
+      responses:
+        "200":
+          description: Buckets in display order.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BucketSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /family/activity:
+    get:
+      tags: [Family]
+      operationId: listActivity
+      summary: Plain-English activity feed, newest first
+      responses:
+        "200":
+          description: Activity rows.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /family/card-policy:
+    get:
+      tags: [Family]
+      operationId: getCardAndPolicy
+      summary: The dependent's virtual card, the current policy and blocked categories
+      responses:
+        "200":
+          description: Card and policy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CardAndPolicy"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /family/wallet:
+    get:
+      tags: [Family]
+      operationId: getDependentWallet
+      summary: Dependent wallet — virtual card, total balance and balance per bucket
+      responses:
+        "200":
+          description: Wallet data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DependentWallet"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
   parameters:
     MemberId:
@@ -1145,3 +1231,247 @@ components:
           description: IANA time zone the time windows are read in.
         policy:
           $ref: "#/components/schemas/FamilyPolicy"
+
+    BucketIcon:
+      type: string
+      enum: [food, school, social, transit]
+    BucketSummary:
+      description: >-
+        A bucket with the extra numbers the screens show: total funded, spent
+        this week and who funded it.
+      type: object
+      required:
+        - id
+        - name
+        - purpose
+        - icon
+        - perPurchaseLimitCents
+        - approvalThresholdCents
+        - availableCents
+        - heldCents
+        - spentCents
+        - fundedCents
+        - spentThisWeekCents
+        - funderNames
+        - chain
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        purpose:
+          type: [string, "null"]
+          description: One short line about what the bucket is for.
+        icon:
+          description: Which icon to draw; null means no specific icon.
+          oneOf:
+            - $ref: "#/components/schemas/BucketIcon"
+            - type: "null"
+        perPurchaseLimitCents:
+          type: integer
+        approvalThresholdCents:
+          type: integer
+        availableCents:
+          type: integer
+        heldCents:
+          type: integer
+          description: Authorized but not yet settled.
+        spentCents:
+          type: integer
+          description: Settled, all time.
+        fundedCents:
+          type: integer
+          description: Total ever added to this bucket.
+        spentThisWeekCents:
+          type: integer
+          description: Settled in the last 7 days.
+        funderNames:
+          type: array
+          description: Display names of everyone who has added money, in order of first contribution.
+          items:
+            type: string
+        chain:
+          $ref: "#/components/schemas/ChainRecord"
+
+    ParentOverview:
+      type: object
+      required: [familyName, parentName, dependentName, potTotalCents, buckets, pendingApprovalsCount]
+      properties:
+        familyName:
+          type: string
+        parentName:
+          type: string
+        dependentName:
+          type: string
+        potTotalCents:
+          type: integer
+          description: Money still in the pot (available plus held) across all buckets.
+        buckets:
+          type: array
+          items:
+            $ref: "#/components/schemas/BucketSummary"
+        pendingApprovalsCount:
+          type: integer
+
+    TimelineStep:
+      type: object
+      required: [label, state, at]
+      properties:
+        label:
+          type: string
+        state:
+          type: string
+          enum: [pending, approved, rejected, settled]
+        at:
+          type: [string, "null"]
+          format: date-time
+    ActivityItem:
+      type: object
+      required:
+        - id
+        - kind
+        - occurredAt
+        - actorName
+        - summary
+        - detail
+        - amountCents
+        - direction
+        - decision
+        - reasonCode
+        - decidedBy
+        - bucketName
+        - merchantName
+        - mcc
+        - category
+        - timeline
+        - chain
+      properties:
+        id:
+          type: string
+          description: Stable row key, e.g. "purchase-12" or "contribution-3".
+        kind:
+          type: string
+          enum: [purchase, contribution]
+        occurredAt:
+          type: string
+          format: date-time
+        actorName:
+          type: string
+        summary:
+          type: string
+          description: One plain-English sentence describing the row.
+        detail:
+          type: [string, "null"]
+          description: The decision reason, when there is one.
+        amountCents:
+          type: integer
+          description: Always positive; see direction.
+        direction:
+          type: string
+          enum: [in, out]
+        decision:
+          oneOf:
+            - $ref: "#/components/schemas/Decision"
+            - type: "null"
+        reasonCode:
+          oneOf:
+            - $ref: "#/components/schemas/ReasonCode"
+            - type: "null"
+        decidedBy:
+          oneOf:
+            - $ref: "#/components/schemas/DecidedBy"
+            - type: "null"
+        bucketName:
+          type: [string, "null"]
+        merchantName:
+          type: [string, "null"]
+        mcc:
+          type: [string, "null"]
+        category:
+          type: [string, "null"]
+        timeline:
+          type: array
+          description: Approval chain steps (empty unless the purchase needed a parent's OK).
+          items:
+            $ref: "#/components/schemas/TimelineStep"
+        chain:
+          $ref: "#/components/schemas/ChainRecord"
+
+    PolicyLine:
+      type: object
+      required: [kind, text]
+      properties:
+        kind:
+          type: string
+          enum: [block, ask, limit, time]
+        text:
+          type: string
+    BucketRule:
+      type: object
+      required: [bucketName, perPurchaseLimitCents, approvalThresholdCents]
+      properties:
+        bucketName:
+          type: string
+        perPurchaseLimitCents:
+          type: integer
+        approvalThresholdCents:
+          type: integer
+    PolicySummary:
+      type: object
+      description: The family's stored policy, summarized for the card & policy screen.
+      required: [presetName, timeZone, bucketRules, lines, updatedAt]
+      properties:
+        presetName:
+          type: string
+          description: The preset the policy started from, e.g. "Balanced".
+        timeZone:
+          type: string
+          description: IANA time zone the time windows are read in.
+        bucketRules:
+          type: array
+          items:
+            $ref: "#/components/schemas/BucketRule"
+        lines:
+          type: array
+          description: The policy as short plain-English lines for the policy card.
+          items:
+            $ref: "#/components/schemas/PolicyLine"
+        updatedAt:
+          type: string
+          format: date-time
+    BlockedCategory:
+      type: object
+      required: [category, label]
+      properties:
+        category:
+          type: string
+        label:
+          type: string
+          description: Plain-English name, e.g. "Liquor stores".
+    CardAndPolicy:
+      type: object
+      required: [card, policy, blockedCategories]
+      properties:
+        card:
+          $ref: "#/components/schemas/Card"
+        policy:
+          $ref: "#/components/schemas/PolicySummary"
+        blockedCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlockedCategory"
+
+    DependentWallet:
+      type: object
+      required: [dependent, card, totalAvailableCents, buckets]
+      properties:
+        dependent:
+          $ref: "#/components/schemas/Member"
+        card:
+          $ref: "#/components/schemas/Card"
+        totalAvailableCents:
+          type: integer
+        buckets:
+          type: array
+          items:
+            $ref: "#/components/schemas/BucketSummary"

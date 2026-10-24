@@ -14,7 +14,7 @@ Auth tests stub the session store (`vi.mock` of the server's auth lib) instead o
 
 **How to apply:** Same pattern for later route tests that need a signed-in user; prove real Postgres behaviour with a browser run (the tester can set login claims) and clean up its rows afterwards.
 
-Manual signed-in checks against the dev API (curl) work by inserting a temporary `users` + `sessions` row (session JSON needs `user` and a future `expires_at`) and sending `Cookie: sid=<id>`; delete both rows afterwards.
+Manual signed-in checks against the dev API (curl) work by inserting a temporary `users` + `sessions` row (session JSON needs `user` and a future `expires_at`) and sending `Cookie: sid=<id>`; delete both rows afterwards. The session `user` must carry every auth-user field (id, email, firstName, lastName, profileImageUrl — null where unknown), otherwise `/api/auth/user` fails its response validation with a 500 while the family routes still work. Browser test runs also leave real login rows in `users`/`sessions`; delete them afterwards.
 
 **Why:** No test database exists and the browser login can't be scripted from the shell; this exercises the real guard and Postgres.
 

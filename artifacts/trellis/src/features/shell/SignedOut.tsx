@@ -1,0 +1,55 @@
+import { Bell, Gift, ShieldCheck } from 'lucide-react';
+import { BRAND } from '@brand/brand.config';
+import { LogoMark, PillButton, Wordmark } from '@/components/trellis/primitives';
+import { PhoneColumn } from './layout';
+import { useSession } from './session';
+
+const points = [
+  { Icon: ShieldCheck, title: 'Parents set the rules', body: 'Spending limits per bucket, and places the card never works.' },
+  { Icon: Gift, title: 'Family chips in', body: 'Grandparents and co-parents add money to the buckets they choose.' },
+  { Icon: Bell, title: 'Bigger buys ask first', body: 'Anything over a limit waits for a quick OK.' },
+];
+
+/** Branded welcome for signed-out visitors. Never names the sign-in provider. */
+export function SignedOut() {
+  const { login } = useSession();
+  return (
+    <PhoneColumn>
+      <div className="header-sky px-6 pb-20 pt-12">
+        <Wordmark onDark />
+        <h1 className="type-display-md mt-14 text-surface" data-testid="text-tagline">{BRAND.tagline}</h1>
+      </div>
+      <ul className="-mt-10 flex flex-col gap-3 px-6">
+        {points.map(({ Icon, title, body }) => (
+          <li key={title} className="flex items-start gap-3 rounded-card-sm bg-surface-alt p-4">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-tint text-primary">
+              <Icon className="size-5" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="type-link-sm">{title}</h2>
+              <p className="type-caption text-ink-muted">{body}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-auto flex flex-col gap-3 px-6 pb-10 pt-8">
+        <PillButton block onClick={login} data-testid="button-login">
+          Log in
+        </PillButton>
+        <p className="type-caption text-center text-ink-muted">A testnet demo. No real money moves.</p>
+      </div>
+    </PhoneColumn>
+  );
+}
+
+/** Shown while the sign-in check is in flight. */
+export function SessionSplash() {
+  return (
+    <PhoneColumn>
+      <div role="status" aria-live="polite" className="flex flex-1 items-center justify-center" data-testid="state-session-loading">
+        <LogoMark className="size-14 animate-pulse" />
+        <span className="sr-only">Checking your sign-in</span>
+      </div>
+    </PhoneColumn>
+  );
+}

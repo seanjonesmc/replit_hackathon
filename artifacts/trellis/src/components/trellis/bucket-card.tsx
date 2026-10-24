@@ -1,4 +1,5 @@
-import { BookOpen, Bus, Sparkles, UtensilsCrossed, type LucideIcon } from 'lucide-react';
+import { type ReactNode } from 'react';
+import { BookOpen, Bus, Sparkles, UtensilsCrossed, Wallet, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCents } from '@/lib/format';
 import type { BucketIcon } from '@/lib/domain';
@@ -12,29 +13,39 @@ export const bucketIcons: Record<BucketIcon, LucideIcon> = {
 
 interface BucketCardProps {
   name: string;
-  icon: BucketIcon;
+  /** Falls back to a plain wallet icon when the bucket has none. */
+  icon?: BucketIcon | null;
   availableCents: number;
   totalCents: number;
   /** Money reserved by pending requests. */
   heldCents?: number;
   purpose?: string;
   fundedBy?: string;
+  /** Extra lines under the progress bar, e.g. weekly spend or the bucket's rules. */
+  children?: ReactNode;
   className?: string;
   'data-testid'?: string;
 }
 
+/** A bucket's icon in a round tint badge. No icon falls back to a wallet. */
+export function BucketIconBadge({ icon, className }: { icon?: BucketIcon | null; className?: string }) {
+  const Icon = icon ? bucketIcons[icon] : Wallet;
+  return (
+    <span className={cn('grid size-10 shrink-0 place-items-center rounded-full bg-tint text-primary', className)}>
+      <Icon className="size-5" aria-hidden="true" />
+    </span>
+  );
+}
+
 /** A spending bucket: what's left, a progress bar, and who funds it. */
-export function BucketCard({ name, icon, availableCents, totalCents, heldCents = 0, purpose, fundedBy, className, 'data-testid': testId }: BucketCardProps) {
-  const Icon = bucketIcons[icon];
+export function BucketCard({ name, icon, availableCents, totalCents, heldCents = 0, purpose, fundedBy, children, className, 'data-testid': testId }: BucketCardProps) {
   const pct = totalCents > 0 ? Math.max(0, Math.min(100, Math.round((availableCents / totalCents) * 100))) : 0;
   const details = [purpose, fundedBy && `Funded by ${fundedBy}`].filter(Boolean).join(' · ');
 
   return (
     <article className={cn('min-w-0 rounded-card-sm border bg-surface p-5', className)} data-testid={testId}>
       <div className="flex items-center gap-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-tint text-primary">
-          <Icon className="size-5" aria-hidden="true" />
-        </span>
+        <BucketIconBadge icon={icon} />
         <div className="min-w-0 flex-1">
           <h3 className="type-link-md truncate">{name}</h3>
           {details && <p className="type-caption truncate text-ink-muted">{details}</p>}
@@ -54,6 +65,7 @@ export function BucketCard({ name, icon, availableCents, totalCents, heldCents =
       {heldCents > 0 && (
         <p className="type-caption tnum mt-2 text-pending">{formatCents(heldCents)} on hold for a pending request</p>
       )}
+      {children}
     </article>
   );
 }

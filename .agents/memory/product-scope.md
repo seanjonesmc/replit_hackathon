@@ -37,3 +37,9 @@ Values BRAND used before a rebrand stay forbidden in app source afterwards; the 
 **Why:** a rebrand that only changes BRAND would otherwise leave old names or fonts on screens with no check noticing.
 
 **How to apply:** on a rebrand, record the new values alongside the old ones rather than replacing them. Allow a hardcoded value only when it is genuinely not a brand value (scaffold defaults, contrast fallbacks), always with a written reason.
+
+Seeded demo data never fabricates measurements (for example, decision time stays empty until a real decision is timed).
+
+**Why:** Judges and the presenter treat on-screen numbers as real; the product's truthfulness rule extends to seed data.
+
+**How to apply:** Leave measurement columns null in seeds and let the UI hide them when empty.

@@ -446,6 +446,173 @@ export interface PolicyView {
   policy: FamilyPolicy;
 }
 
+export type BucketIcon = (typeof BucketIcon)[keyof typeof BucketIcon];
+
+export const BucketIcon = {
+  food: "food",
+  school: "school",
+  social: "social",
+  transit: "transit",
+} as const;
+
+/**
+ * A bucket with the extra numbers the screens show: total funded, spent this week and who funded it.
+ */
+export interface BucketSummary {
+  id: number;
+  name: string;
+  /**
+   * One short line about what the bucket is for.
+   * @nullable
+   */
+  purpose: string | null;
+  /** Which icon to draw; null means no specific icon. */
+  icon: BucketIcon | null;
+  perPurchaseLimitCents: number;
+  approvalThresholdCents: number;
+  availableCents: number;
+  /** Authorized but not yet settled. */
+  heldCents: number;
+  /** Settled, all time. */
+  spentCents: number;
+  /** Total ever added to this bucket. */
+  fundedCents: number;
+  /** Settled in the last 7 days. */
+  spentThisWeekCents: number;
+  /** Display names of everyone who has added money, in order of first contribution. */
+  funderNames: string[];
+  chain: ChainRecord;
+}
+
+export interface ParentOverview {
+  familyName: string;
+  parentName: string;
+  dependentName: string;
+  /** Money still in the pot (available plus held) across all buckets. */
+  potTotalCents: number;
+  buckets: BucketSummary[];
+  pendingApprovalsCount: number;
+}
+
+export type TimelineStepState =
+  (typeof TimelineStepState)[keyof typeof TimelineStepState];
+
+export const TimelineStepState = {
+  pending: "pending",
+  approved: "approved",
+  rejected: "rejected",
+  settled: "settled",
+} as const;
+
+export interface TimelineStep {
+  label: string;
+  state: TimelineStepState;
+  /** @nullable */
+  at: string | null;
+}
+
+export type ActivityItemKind =
+  (typeof ActivityItemKind)[keyof typeof ActivityItemKind];
+
+export const ActivityItemKind = {
+  purchase: "purchase",
+  contribution: "contribution",
+} as const;
+
+export type ActivityItemDirection =
+  (typeof ActivityItemDirection)[keyof typeof ActivityItemDirection];
+
+export const ActivityItemDirection = {
+  in: "in",
+  out: "out",
+} as const;
+
+export interface ActivityItem {
+  /** Stable row key, e.g. "purchase-12" or "contribution-3". */
+  id: string;
+  kind: ActivityItemKind;
+  occurredAt: string;
+  actorName: string;
+  /** One plain-English sentence describing the row. */
+  summary: string;
+  /**
+   * The decision reason, when there is one.
+   * @nullable
+   */
+  detail: string | null;
+  /** Always positive; see direction. */
+  amountCents: number;
+  direction: ActivityItemDirection;
+  decision: Decision | null;
+  reasonCode: ReasonCode | null;
+  decidedBy: DecidedBy | null;
+  /** @nullable */
+  bucketName: string | null;
+  /** @nullable */
+  merchantName: string | null;
+  /** @nullable */
+  mcc: string | null;
+  /** @nullable */
+  category: string | null;
+  /** Approval chain steps (empty unless the purchase needed a parent's OK). */
+  timeline: TimelineStep[];
+  chain: ChainRecord;
+}
+
+export type PolicyLineKind =
+  (typeof PolicyLineKind)[keyof typeof PolicyLineKind];
+
+export const PolicyLineKind = {
+  block: "block",
+  ask: "ask",
+  limit: "limit",
+  time: "time",
+} as const;
+
+export interface PolicyLine {
+  kind: PolicyLineKind;
+  text: string;
+}
+
+export interface BucketRule {
+  bucketName: string;
+  perPurchaseLimitCents: number;
+  approvalThresholdCents: number;
+}
+
+/**
+ * The family's stored policy, summarized for the card & policy screen.
+ */
+export interface PolicySummary {
+  /** The preset the policy started from, e.g. "Balanced". */
+  presetName: string;
+  /** IANA time zone the time windows are read in. */
+  timeZone: string;
+  bucketRules: BucketRule[];
+  /** The policy as short plain-English lines for the policy card. */
+  lines: PolicyLine[];
+  updatedAt: string;
+}
+
+export interface BlockedCategory {
+  category: string;
+  /** Plain-English name, e.g. "Liquor stores". */
+  label: string;
+}
+
+export interface CardAndPolicy {
+  card: Card;
+  policy: PolicySummary;
+  blockedCategories: BlockedCategory[];
+}
+
+export interface DependentWallet {
+  dependent: Member;
+  card: Card;
+  totalAvailableCents: number;
+  buckets: BucketSummary[];
+}
+
 /**
  * The path parameters or request body are invalid.
  */
