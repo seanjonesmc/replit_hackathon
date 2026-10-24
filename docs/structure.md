@@ -52,7 +52,7 @@ docs/                       Contributor architecture documentation
   product-spec.md           User's original product spec, byte-for-byte (see below)
   stack-decisions.md        Agreed stack, with reasons and introducing phase
   plans/                    Saved, agreed phase and task plans
-  research/                 Sourced pitch research (problem statement)
+  research/                 Sourced pitch research (problem statement, competitor comparison)
   pitch/                    Pitch materials (demo video script)
 ```
 

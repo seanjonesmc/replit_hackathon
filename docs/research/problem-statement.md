@@ -83,6 +83,9 @@ by us from reported figures (math shown). **E** = estimate or proxy (math shown)
 
 ### F. Kids' debit cards and teen spending apps
 
+For a sourced side-by-side with Trellis, including P2P apps and cash, see
+[competitor-comparison.md](competitor-comparison.md).
+
 | # | Number | What it measures | Source | Year | Geography | Confidence |
 |---|---|---|---|---|---|---|
 | F1 | 14% prepaid debit card; 24% P2P apps | Allowance-giving parents using these methods (see C1). Greenlight is named by 5% of the parents who use P2P | Wells Fargo / Ipsos (A1) | 2025 | US | **D.** P2P subgroup n = 270 (small). |
