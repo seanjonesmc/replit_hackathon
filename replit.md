@@ -21,7 +21,8 @@ For manual frontend commands outside the workflow, supply `PORT=20757 BASE_PATH=
 for the API supply `PORT=8080`. Keep these aligned with the managed artifact
 configuration. The API dev command builds once; restart it after server edits.
 The API now requires `DATABASE_URL` at startup (and in its tests), because sign-in
-sessions live in Postgres. Never commit credentials. Schema push (`pnpm --filter @workspace/db run push`)
+sessions live in Postgres, and it seeds the demo family on first start (the schema
+must already be pushed). Never commit credentials. Schema push (`pnpm --filter @workspace/db run push`)
 is a separate, explicitly authorized development operation, not a startup step.
 
 ## Folder map and implementation boundaries
@@ -65,8 +66,12 @@ Phase 0 provides brand configuration/assets, styling, shared primitives and app
 components, an editable root `DESIGN.md`, a branded holding screen at the root,
 and a development-only component preview at the hidden `/brand` route. The API
 exposes health and sign-in (`/api/login`, `/api/callback`, `/api/logout`,
-`/api/auth/user`); the database holds only the sign-in `users` and `sessions`
-tables. Family routes must mount behind the `requireAuth` guard. The browser
+`/api/auth/user`) and the family routes (`/api/family`, `/api/overview`, bank
+linking, simulated deposits, bucket contributions), each behind the `requireAuth`
+guard. The database holds sign-in users/sessions plus the demo family, its
+simulated banks, deposits, buckets, contributions and a `chain_events` table; the
+API seeds the family from BRAND.demo at startup when none exists. Every mirrored
+row stays `not_submitted` on chain until Phase 3. The browser
 sign-in hook (`lib/replit-auth-web`) is not yet wired into any screen. Directory
 READMEs reserve responsibilities, not implemented functionality or authorization
 boundaries. Baseline Vitest checks cover API health and sign-in, BRAND asset URLs

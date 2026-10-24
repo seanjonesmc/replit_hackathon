@@ -2,9 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": true,
-    "rootDir": ".",
     "tsBuildInfoFile": ".test.tsbuildinfo"
   },
-  "include": ["src", "tests"],
+  "include": ["src", "tests", "../../src/brand/brand.config.ts"],
   "exclude": []
 }

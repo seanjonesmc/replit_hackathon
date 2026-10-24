@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
 import authRouter from "./auth";
+import familyRouter from "./family";
 
 const router: IRouter = Router();
 
@@ -8,7 +9,8 @@ const router: IRouter = Router();
 router.use(healthRouter);
 router.use(authRouter);
 
-// Family routes mount below this line behind `requireAuth`
-// (from ../middlewares/requireAuth), which returns 401 JSON when signed out.
+// Family routes. Each one is behind `requireAuth` (../middlewares/requireAuth),
+// which returns 401 JSON when signed out.
+router.use(familyRouter);
 
 export default router;

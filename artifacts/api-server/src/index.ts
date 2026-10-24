@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { seedDemoFamily } from "./services/family";
 
 const rawPort = process.env["PORT"];
 
@@ -15,11 +16,25 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-app.listen(port, (err) => {
-  if (err) {
-    logger.error({ err }, "Error listening on port");
-    process.exit(1);
-  }
+async function start() {
+  // Create the demo family on first run; a no-op when it already exists.
+  const seed = await seedDemoFamily();
+  logger.info(
+    seed,
+    seed.created ? "Seeded demo family" : "Demo family present",
+  );
 
-  logger.info({ port }, "Server listening");
+  app.listen(port, (err) => {
+    if (err) {
+      logger.error({ err }, "Error listening on port");
+      process.exit(1);
+    }
+
+    logger.info({ port }, "Server listening");
+  });
+}
+
+start().catch((err: unknown) => {
+  logger.error({ err }, "API startup failed");
+  process.exit(1);
 });

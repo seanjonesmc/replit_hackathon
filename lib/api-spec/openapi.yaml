@@ -12,6 +12,11 @@ tags:
     description: Health operations
   - name: Auth
     description: Browser sign-in endpoints.
+  - name: Family
+    description: >-
+      The single demo family, its simulated banks and its buckets. Every route
+      requires sign-in. The API acts for whichever member the request names;
+      any signed-in account can act for the demo family.
 paths:
   /healthz:
     get:
@@ -99,8 +104,201 @@ paths:
       responses:
         "302":
           description: Redirect to the OIDC provider logout URL with a post-logout redirect back to the validated `returnTo` path.
+  /family:
+    get:
+      tags: [Family]
+      operationId: getFamily
+      summary: Get the demo family and its members
+      description: The family and every member with their role. Feeds the role switcher.
+      responses:
+        "200":
+          description: The demo family.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /overview:
+    get:
+      tags: [Family]
+      operationId: getOverview
+      summary: Get the family pot and its buckets
+      description: >-
+        The pot totals plus each bucket's available, held and spent amounts,
+        per-purchase limit and approval threshold. All amounts are integer cents.
+      responses:
+        "200":
+          description: The pot overview.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Overview"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /members/{memberId}/bank-accounts:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      tags: [Family]
+      operationId: listMemberBankAccounts
+      summary: List a member's linked demo banks
+      responses:
+        "200":
+          description: The member's linked banks with their balances.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BankAccount"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags: [Family]
+      operationId: linkBankAccount
+      summary: Link a simulated demo bank for a member
+      description: >-
+        The bank name must be one of the brand's demo banks. The last four
+        digits are generated. Only a parent or funder can link a bank, and each
+        demo bank can be linked once per member.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkBankAccountRequest"
+      responses:
+        "201":
+          description: The newly linked bank, with a zero balance.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankAccount"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+  /bank-accounts/{bankAccountId}/deposits:
+    parameters:
+      - $ref: "#/components/parameters/BankAccountId"
+    post:
+      tags: [Family]
+      operationId: createBankDeposit
+      summary: Make a simulated deposit into a linked bank
+      description: Stands in for an ACH deposit; raises the bank balance.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DepositRequest"
+      responses:
+        "201":
+          description: The deposit and the bank's new balance.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DepositResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /buckets/{bucketId}/contributions:
+    parameters:
+      - $ref: "#/components/parameters/BucketId"
+    post:
+      tags: [Family]
+      operationId: createContribution
+      summary: Move money from a member's bank into a bucket
+      description: >-
+        The named member (a parent or funder) moves money from one of their
+        linked banks into the bucket. Rejected with 422 and a clear message if
+        the bank balance is too low or the bank is not theirs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContributionRequest"
+      responses:
+        "201":
+          description: The contribution, plus the bank and bucket after the move.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContributionResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+  /members/{memberId}/contributions:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      tags: [Family]
+      operationId: listMemberContributions
+      summary: List one member's contributions
+      description: Newest first, with the bucket and bank each came from.
+      responses:
+        "200":
+          description: The member's contributions and their total.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberContributions"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 components:
   parameters:
+    MemberId:
+      name: memberId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 2147483647
+    BankAccountId:
+      name: bankAccountId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 2147483647
+    BucketId:
+      name: bucketId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 2147483647
     AuthorizationSessionHeader:
       name: Authorization
       in: header
@@ -116,6 +314,30 @@ components:
       schema:
         type: string
   responses:
+    BadRequest:
+      description: The path parameters or request body are invalid.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    NotFound:
+      description: The named family, member, bank account or bucket does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Conflict:
+      description: The request duplicates something that already exists.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Unprocessable:
+      description: The request is well-formed but breaks a rule, e.g. the bank balance is too low.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
     Unauthorized:
       description: Not signed in. Returned by every route behind the require-sign-in guard.
       content:
@@ -159,3 +381,239 @@ components:
       properties:
         error:
           type: string
+    ChainStatus:
+      type: string
+      description: >-
+        Where the record stands on the testnet. Only `confirmed` (set from a
+        transaction receipt) may be shown as verified.
+      enum: [not_submitted, submitted, confirmed, failed]
+    ChainRecord:
+      type: object
+      required: [status, txHash, confirmedAt]
+      properties:
+        status:
+          $ref: "#/components/schemas/ChainStatus"
+        txHash:
+          type: [string, "null"]
+        confirmedAt:
+          type: [string, "null"]
+          format: date-time
+    MemberRole:
+      type: string
+      enum: [parent, funder, dependent]
+    Member:
+      type: object
+      required: [id, displayName, role, relationship, age, onboardingComplete, onchainId]
+      properties:
+        id:
+          type: integer
+        displayName:
+          type: string
+        role:
+          $ref: "#/components/schemas/MemberRole"
+        relationship:
+          type: string
+          description: e.g. parent, grandparent, co-parent, student.
+        age:
+          type: [integer, "null"]
+        onboardingComplete:
+          type: boolean
+        onchainId:
+          type: string
+          description: The member's fixed 32-byte contract id, 0x-prefixed hex.
+    Family:
+      type: object
+      required: [id, name, members]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/Member"
+    Bucket:
+      type: object
+      required:
+        - id
+        - name
+        - perPurchaseLimitCents
+        - approvalThresholdCents
+        - availableCents
+        - heldCents
+        - spentCents
+        - chain
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        perPurchaseLimitCents:
+          type: integer
+        approvalThresholdCents:
+          type: integer
+        availableCents:
+          type: integer
+        heldCents:
+          type: integer
+          description: Authorized but not yet settled.
+        spentCents:
+          type: integer
+        chain:
+          $ref: "#/components/schemas/ChainRecord"
+    PotTotals:
+      type: object
+      required: [potCents, availableCents, heldCents, spentCents]
+      properties:
+        potCents:
+          type: integer
+          description: Money still in the pot, available plus held.
+        availableCents:
+          type: integer
+        heldCents:
+          type: integer
+        spentCents:
+          type: integer
+    Overview:
+      type: object
+      required: [familyId, totals, buckets]
+      properties:
+        familyId:
+          type: integer
+        totals:
+          $ref: "#/components/schemas/PotTotals"
+        buckets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Bucket"
+    BankAccount:
+      type: object
+      required: [id, memberId, bankName, last4, balanceCents, chain]
+      properties:
+        id:
+          type: integer
+        memberId:
+          type: integer
+        bankName:
+          type: string
+        last4:
+          type: string
+        balanceCents:
+          type: integer
+        chain:
+          $ref: "#/components/schemas/ChainRecord"
+    LinkBankAccountRequest:
+      type: object
+      required: [bankName]
+      properties:
+        bankName:
+          type: string
+          minLength: 1
+          description: One of the brand's demo banks.
+    DepositRequest:
+      type: object
+      required: [amountCents]
+      properties:
+        amountCents:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+    BankDeposit:
+      type: object
+      required: [id, bankAccountId, amountCents, createdAt, chain]
+      properties:
+        id:
+          type: integer
+        bankAccountId:
+          type: integer
+        amountCents:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        chain:
+          $ref: "#/components/schemas/ChainRecord"
+    DepositResult:
+      type: object
+      required: [deposit, bankAccount]
+      properties:
+        deposit:
+          $ref: "#/components/schemas/BankDeposit"
+        bankAccount:
+          $ref: "#/components/schemas/BankAccount"
+    ContributionRequest:
+      type: object
+      required: [memberId, bankAccountId, amountCents]
+      properties:
+        memberId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+          description: The parent or funder moving the money.
+        bankAccountId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+          description: One of that member's linked banks.
+        amountCents:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+    Contribution:
+      type: object
+      required:
+        - id
+        - memberId
+        - bucketId
+        - bucketName
+        - bankAccountId
+        - bankName
+        - bankLast4
+        - amountCents
+        - createdAt
+        - chain
+      properties:
+        id:
+          type: integer
+        memberId:
+          type: integer
+        bucketId:
+          type: integer
+        bucketName:
+          type: string
+        bankAccountId:
+          type: integer
+        bankName:
+          type: string
+        bankLast4:
+          type: string
+        amountCents:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        chain:
+          $ref: "#/components/schemas/ChainRecord"
+    ContributionResult:
+      type: object
+      required: [contribution, bankAccount, bucket]
+      properties:
+        contribution:
+          $ref: "#/components/schemas/Contribution"
+        bankAccount:
+          $ref: "#/components/schemas/BankAccount"
+        bucket:
+          $ref: "#/components/schemas/Bucket"
+    MemberContributions:
+      type: object
+      required: [memberId, totalCents, contributions]
+      properties:
+        memberId:
+          type: integer
+        totalCents:
+          type: integer
+        contributions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Contribution"

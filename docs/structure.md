@@ -21,22 +21,23 @@ artifacts/
   api-server/src/
     app.ts                   Express setup and middleware registration
     index.ts                 Startup
-    routes/                  HTTP handlers (health, sign-in)
+    routes/                  HTTP handlers (health, sign-in, family/banks/buckets)
     middlewares/             Request middleware, incl. session loader and requireAuth guard
     lib/                     Server-only infrastructure (logger, sign-in sessions)
     services/
       ai/                    Policy builder and AI guard (Anthropic via AI Integrations)
+      family/                Demo family, simulated banks, deposits, contributions; startup seed
       policies/              Future policy management
       decisions/             Future spending decision orchestration
       blockchain/            Future testnet adapter
       attribution/           Future contribution/spend attribution
-      events/                Future domain event handling
+      events/                Chain-event indexing from transaction receipts (not called until Phase 3)
   mockup-sandbox/            Existing isolated design-preview artifact
 lib/
   api-spec/openapi.yaml      API contract source of truth
   api-client-react/src/     Generated client/hooks plus custom fetch adapter
   api-zod/src/              Generated API validation
-  db/src/schema/            Database models (sign-in users/sessions so far), exported by index.ts
+  db/src/schema/            Database models (sign-in, family, banks, buckets, contributions, chain events), exported by index.ts
   replit-auth-web/src/      Browser sign-in hook (useAuth), not yet used by any screen
   shared/                   Reserved pure cross-package utilities
 src/brand/
@@ -75,6 +76,8 @@ docs/                       Contributor architecture documentation
 
 - Route entries compose features; role features use shared UI, not the reverse.
   Keep existing primitives where they are; no bulk moves are needed.
+- The API reads BRAND through the same `@brand/*` alias (its `tsconfig.json`
+  paths and the root Vitest config), importing `brand.config` only.
 - `features/branding` consumes root `@brand` configuration and shared components.
   It is not another source of brand values. The existing Vite brand plugin uses
   root `public/`, so do not duplicate brand assets in artifact public folders.
@@ -132,6 +135,7 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | `api-server` | `artifacts/api-server/tests/health.test.ts`            | `GET /api/healthz` status and contract-valid payload         |
 | `api-server` | `artifacts/api-server/src/services/ai/*.test.ts`       | policy builder and AI guard with the model stubbed: valid parse, PENDING fallback, rule pass-through |
 | `api-server` | `artifacts/api-server/tests/auth.test.ts`              | `GET /api/auth/user` signed in/out; `requireAuth` 401 JSON (session store stubbed, no database) |
+| `api-server` | `artifacts/api-server/tests/family.test.ts`            | every family route returns 401 JSON signed out; 400 for invalid ids/amounts (no database) |
 | `trellis`    | `artifacts/trellis/vite-brand-plugin.test.ts`          | BRAND-filled `index.html`, base-path asset URLs, SVG output  |
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
 | `workspace`  | `scripts/tests/design-reference.test.ts`               | reference checksum; no code references the reference        |

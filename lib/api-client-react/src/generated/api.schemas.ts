@@ -30,6 +30,182 @@ export interface ErrorEnvelope {
 }
 
 /**
+ * Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.
+ */
+export type ChainStatus = (typeof ChainStatus)[keyof typeof ChainStatus];
+
+export const ChainStatus = {
+  not_submitted: "not_submitted",
+  submitted: "submitted",
+  confirmed: "confirmed",
+  failed: "failed",
+} as const;
+
+export interface ChainRecord {
+  status: ChainStatus;
+  /** @nullable */
+  txHash: string | null;
+  /** @nullable */
+  confirmedAt: string | null;
+}
+
+export type MemberRole = (typeof MemberRole)[keyof typeof MemberRole];
+
+export const MemberRole = {
+  parent: "parent",
+  funder: "funder",
+  dependent: "dependent",
+} as const;
+
+export interface Member {
+  id: number;
+  displayName: string;
+  role: MemberRole;
+  /** e.g. parent, grandparent, co-parent, student. */
+  relationship: string;
+  /** @nullable */
+  age: number | null;
+  onboardingComplete: boolean;
+  /** The member's fixed 32-byte contract id, 0x-prefixed hex. */
+  onchainId: string;
+}
+
+export interface Family {
+  id: number;
+  name: string;
+  members: Member[];
+}
+
+export interface Bucket {
+  id: number;
+  name: string;
+  perPurchaseLimitCents: number;
+  approvalThresholdCents: number;
+  availableCents: number;
+  /** Authorized but not yet settled. */
+  heldCents: number;
+  spentCents: number;
+  chain: ChainRecord;
+}
+
+export interface PotTotals {
+  /** Money still in the pot, available plus held. */
+  potCents: number;
+  availableCents: number;
+  heldCents: number;
+  spentCents: number;
+}
+
+export interface Overview {
+  familyId: number;
+  totals: PotTotals;
+  buckets: Bucket[];
+}
+
+export interface BankAccount {
+  id: number;
+  memberId: number;
+  bankName: string;
+  last4: string;
+  balanceCents: number;
+  chain: ChainRecord;
+}
+
+export interface LinkBankAccountRequest {
+  /**
+   * One of the brand's demo banks.
+   * @minLength 1
+   */
+  bankName: string;
+}
+
+export interface DepositRequest {
+  /**
+   * @minimum 1
+   * @maximum 1000000
+   */
+  amountCents: number;
+}
+
+export interface BankDeposit {
+  id: number;
+  bankAccountId: number;
+  amountCents: number;
+  createdAt: string;
+  chain: ChainRecord;
+}
+
+export interface DepositResult {
+  deposit: BankDeposit;
+  bankAccount: BankAccount;
+}
+
+export interface ContributionRequest {
+  /**
+   * The parent or funder moving the money.
+   * @minimum 1
+   * @maximum 2147483647
+   */
+  memberId: number;
+  /**
+   * One of that member's linked banks.
+   * @minimum 1
+   * @maximum 2147483647
+   */
+  bankAccountId: number;
+  /**
+   * @minimum 1
+   * @maximum 1000000
+   */
+  amountCents: number;
+}
+
+export interface Contribution {
+  id: number;
+  memberId: number;
+  bucketId: number;
+  bucketName: string;
+  bankAccountId: number;
+  bankName: string;
+  bankLast4: string;
+  amountCents: number;
+  createdAt: string;
+  chain: ChainRecord;
+}
+
+export interface ContributionResult {
+  contribution: Contribution;
+  bankAccount: BankAccount;
+  bucket: Bucket;
+}
+
+export interface MemberContributions {
+  memberId: number;
+  totalCents: number;
+  contributions: Contribution[];
+}
+
+/**
+ * The path parameters or request body are invalid.
+ */
+export type BadRequestResponse = ErrorEnvelope;
+
+/**
+ * The named family, member, bank account or bucket does not exist.
+ */
+export type NotFoundResponse = ErrorEnvelope;
+
+/**
+ * The request duplicates something that already exists.
+ */
+export type ConflictResponse = ErrorEnvelope;
+
+/**
+ * The request is well-formed but breaks a rule, e.g. the bank balance is too low.
+ */
+export type UnprocessableResponse = ErrorEnvelope;
+
+/**
  * Not signed in. Returned by every route behind the require-sign-in guard.
  */
 export type UnauthorizedResponse = ErrorEnvelope;

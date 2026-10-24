@@ -4,10 +4,14 @@
     "incremental": true,
     "tsBuildInfoFile": ".tsbuildinfo",
     "outDir": "dist",
-    "rootDir": "src",
-    "types": ["node"]
+    // The root brand config sits outside src/; esbuild bundles it, tsc only checks.
+    "rootDir": "../..",
+    "types": ["node"],
+    "paths": {
+      "@brand/*": ["../../src/brand/*"]
+    }
   },
-  "include": ["src"],
+  "include": ["src", "../../src/brand/brand.config.ts"],
   "exclude": ["src/**/*.test.ts"],
   "references": [
     {

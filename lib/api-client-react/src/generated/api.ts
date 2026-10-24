@@ -5,24 +5,41 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
 import type {
   AuthUserEnvelope,
+  BadRequestResponse,
+  BankAccount,
   BeginBrowserLoginParams,
+  ConflictResponse,
+  ContributionRequest,
+  ContributionResult,
+  DepositRequest,
+  DepositResult,
+  Family,
   HandleBrowserLoginCallbackParams,
   HealthStatus,
+  LinkBankAccountRequest,
   LogoutBrowserSessionParams,
+  MemberContributions,
+  NotFoundResponse,
+  Overview,
+  UnauthorizedResponse,
+  UnprocessableResponse,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -492,6 +509,746 @@ export function useLogoutBrowserSession<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getLogoutBrowserSessionQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getGetFamilyUrl = () => {
+  return `/api/family`;
+};
+
+/**
+ * The family and every member with their role. Feeds the role switcher.
+ * @summary Get the demo family and its members
+ */
+export const getFamily = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<Family> => {
+  return customFetch<Family>(getGetFamilyUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetFamilyQueryKey = () => {
+  return [`/api/family`] as const;
+};
+
+export const getGetFamilyQueryOptions = <
+  TData = Awaited<ReturnType<typeof getFamily>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getFamily>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetFamilyQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getFamily>>> = ({
+    signal,
+  }) => getFamily({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getFamily>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetFamilyQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getFamily>>
+>;
+export type GetFamilyQueryError = ErrorType<
+  UnauthorizedResponse | NotFoundResponse
+>;
+
+/**
+ * @summary Get the demo family and its members
+ */
+
+export function useGetFamily<
+  TData = Awaited<ReturnType<typeof getFamily>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getFamily>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetFamilyQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getGetOverviewUrl = () => {
+  return `/api/overview`;
+};
+
+/**
+ * The pot totals plus each bucket's available, held and spent amounts, per-purchase limit and approval threshold. All amounts are integer cents.
+ * @summary Get the family pot and its buckets
+ */
+export const getOverview = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<Overview> => {
+  return customFetch<Overview>(getGetOverviewUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetOverviewQueryKey = () => {
+  return [`/api/overview`] as const;
+};
+
+export const getGetOverviewQueryOptions = <
+  TData = Awaited<ReturnType<typeof getOverview>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getOverview>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetOverviewQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getOverview>>> = ({
+    signal,
+  }) => getOverview({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getOverview>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetOverviewQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getOverview>>
+>;
+export type GetOverviewQueryError = ErrorType<
+  UnauthorizedResponse | NotFoundResponse
+>;
+
+/**
+ * @summary Get the family pot and its buckets
+ */
+
+export function useGetOverview<
+  TData = Awaited<ReturnType<typeof getOverview>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getOverview>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetOverviewQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getListMemberBankAccountsUrl = (memberId: number) => {
+  return `/api/members/${memberId}/bank-accounts`;
+};
+
+/**
+ * @summary List a member's linked demo banks
+ */
+export const listMemberBankAccounts = async (
+  memberId: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<BankAccount[]> => {
+  return customFetch<BankAccount[]>(getListMemberBankAccountsUrl(memberId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListMemberBankAccountsQueryKey = (memberId: number) => {
+  return [`/api/members/${memberId}/bank-accounts`] as const;
+};
+
+export const getListMemberBankAccountsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listMemberBankAccounts>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  memberId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listMemberBankAccounts>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListMemberBankAccountsQueryKey(memberId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listMemberBankAccounts>>
+  > = ({ signal }) =>
+    listMemberBankAccounts(memberId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: memberId !== null && memberId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listMemberBankAccounts>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListMemberBankAccountsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listMemberBankAccounts>>
+>;
+export type ListMemberBankAccountsQueryError = ErrorType<
+  BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+>;
+
+/**
+ * @summary List a member's linked demo banks
+ */
+
+export function useListMemberBankAccounts<
+  TData = Awaited<ReturnType<typeof listMemberBankAccounts>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  memberId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listMemberBankAccounts>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListMemberBankAccountsQueryOptions(memberId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getLinkBankAccountUrl = (memberId: number) => {
+  return `/api/members/${memberId}/bank-accounts`;
+};
+
+/**
+ * The bank name must be one of the brand's demo banks. The last four digits are generated. Only a parent or funder can link a bank, and each demo bank can be linked once per member.
+ * @summary Link a simulated demo bank for a member
+ */
+export const linkBankAccount = async (
+  memberId: number,
+  linkBankAccountRequest: LinkBankAccountRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<BankAccount> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<BankAccount>(getLinkBankAccountUrl(memberId), {
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(linkBankAccountRequest),
+  });
+};
+
+export const getLinkBankAccountMutationKey = () => ["linkBankAccount"] as const;
+
+export const getLinkBankAccountMutationOptions = <
+  TError = ErrorType<
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | NotFoundResponse
+    | ConflictResponse
+    | UnprocessableResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof linkBankAccount>>,
+    TError,
+    LinkBankAccountMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof linkBankAccount>>,
+  TError,
+  LinkBankAccountMutationVariables,
+  TContext
+> => {
+  const mutationKey = getLinkBankAccountMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof linkBankAccount>>,
+    LinkBankAccountMutationVariables
+  > = (props) => {
+    const { memberId, data } = props ?? {};
+
+    return linkBankAccount(memberId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LinkBankAccountMutationResult = NonNullable<
+  Awaited<ReturnType<typeof linkBankAccount>>
+>;
+export type LinkBankAccountMutationBody = BodyType<LinkBankAccountRequest>;
+export type LinkBankAccountMutationError = ErrorType<
+  | BadRequestResponse
+  | UnauthorizedResponse
+  | NotFoundResponse
+  | ConflictResponse
+  | UnprocessableResponse
+>;
+export type LinkBankAccountMutationVariables = {
+  memberId: number;
+  data: BodyType<LinkBankAccountRequest>;
+};
+
+/**
+ * @summary Link a simulated demo bank for a member
+ */
+export const useLinkBankAccount = <
+  TError = ErrorType<
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | NotFoundResponse
+    | ConflictResponse
+    | UnprocessableResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof linkBankAccount>>,
+    TError,
+    LinkBankAccountMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof linkBankAccount>>,
+  TError,
+  LinkBankAccountMutationVariables,
+  TContext
+> => {
+  return useMutation(getLinkBankAccountMutationOptions(options));
+};
+
+export const getCreateBankDepositUrl = (bankAccountId: number) => {
+  return `/api/bank-accounts/${bankAccountId}/deposits`;
+};
+
+/**
+ * Stands in for an ACH deposit; raises the bank balance.
+ * @summary Make a simulated deposit into a linked bank
+ */
+export const createBankDeposit = async (
+  bankAccountId: number,
+  depositRequest: DepositRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<DepositResult> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<DepositResult>(getCreateBankDepositUrl(bankAccountId), {
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(depositRequest),
+  });
+};
+
+export const getCreateBankDepositMutationKey = () =>
+  ["createBankDeposit"] as const;
+
+export const getCreateBankDepositMutationOptions = <
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBankDeposit>>,
+    TError,
+    CreateBankDepositMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createBankDeposit>>,
+  TError,
+  CreateBankDepositMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreateBankDepositMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createBankDeposit>>,
+    CreateBankDepositMutationVariables
+  > = (props) => {
+    const { bankAccountId, data } = props ?? {};
+
+    return createBankDeposit(bankAccountId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateBankDepositMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createBankDeposit>>
+>;
+export type CreateBankDepositMutationBody = BodyType<DepositRequest>;
+export type CreateBankDepositMutationError = ErrorType<
+  BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+>;
+export type CreateBankDepositMutationVariables = {
+  bankAccountId: number;
+  data: BodyType<DepositRequest>;
+};
+
+/**
+ * @summary Make a simulated deposit into a linked bank
+ */
+export const useCreateBankDeposit = <
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBankDeposit>>,
+    TError,
+    CreateBankDepositMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createBankDeposit>>,
+  TError,
+  CreateBankDepositMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreateBankDepositMutationOptions(options));
+};
+
+export const getCreateContributionUrl = (bucketId: number) => {
+  return `/api/buckets/${bucketId}/contributions`;
+};
+
+/**
+ * The named member (a parent or funder) moves money from one of their linked banks into the bucket. Rejected with 422 and a clear message if the bank balance is too low or the bank is not theirs.
+ * @summary Move money from a member's bank into a bucket
+ */
+export const createContribution = async (
+  bucketId: number,
+  contributionRequest: ContributionRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<ContributionResult> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<ContributionResult>(getCreateContributionUrl(bucketId), {
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(contributionRequest),
+  });
+};
+
+export const getCreateContributionMutationKey = () =>
+  ["createContribution"] as const;
+
+export const getCreateContributionMutationOptions = <
+  TError = ErrorType<
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | NotFoundResponse
+    | UnprocessableResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createContribution>>,
+    TError,
+    CreateContributionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createContribution>>,
+  TError,
+  CreateContributionMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreateContributionMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createContribution>>,
+    CreateContributionMutationVariables
+  > = (props) => {
+    const { bucketId, data } = props ?? {};
+
+    return createContribution(bucketId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateContributionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createContribution>>
+>;
+export type CreateContributionMutationBody = BodyType<ContributionRequest>;
+export type CreateContributionMutationError = ErrorType<
+  | BadRequestResponse
+  | UnauthorizedResponse
+  | NotFoundResponse
+  | UnprocessableResponse
+>;
+export type CreateContributionMutationVariables = {
+  bucketId: number;
+  data: BodyType<ContributionRequest>;
+};
+
+/**
+ * @summary Move money from a member's bank into a bucket
+ */
+export const useCreateContribution = <
+  TError = ErrorType<
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | NotFoundResponse
+    | UnprocessableResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createContribution>>,
+    TError,
+    CreateContributionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createContribution>>,
+  TError,
+  CreateContributionMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreateContributionMutationOptions(options));
+};
+
+export const getListMemberContributionsUrl = (memberId: number) => {
+  return `/api/members/${memberId}/contributions`;
+};
+
+/**
+ * Newest first, with the bucket and bank each came from.
+ * @summary List one member's contributions
+ */
+export const listMemberContributions = async (
+  memberId: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<MemberContributions> => {
+  return customFetch<MemberContributions>(
+    getListMemberContributionsUrl(memberId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListMemberContributionsQueryKey = (memberId: number) => {
+  return [`/api/members/${memberId}/contributions`] as const;
+};
+
+export const getListMemberContributionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listMemberContributions>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  memberId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listMemberContributions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListMemberContributionsQueryKey(memberId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listMemberContributions>>
+  > = ({ signal }) =>
+    listMemberContributions(memberId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: memberId !== null && memberId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listMemberContributions>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListMemberContributionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listMemberContributions>>
+>;
+export type ListMemberContributionsQueryError = ErrorType<
+  BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+>;
+
+/**
+ * @summary List one member's contributions
+ */
+
+export function useListMemberContributions<
+  TData = Awaited<ReturnType<typeof listMemberContributions>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  memberId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listMemberContributions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListMemberContributionsQueryOptions(
+    memberId,
+    options,
+  );
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

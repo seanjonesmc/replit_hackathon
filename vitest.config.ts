@@ -14,7 +14,10 @@ export default defineConfig({
     projects: [
       {
         root: path.join(root, "artifacts/api-server"),
-        resolve: { conditions: ["workspace"] },
+        resolve: {
+          conditions: ["workspace"],
+          alias: { "@brand": path.join(root, "src/brand") },
+        },
         test: {
           name: "api-server",
           environment: "node",

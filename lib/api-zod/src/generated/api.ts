@@ -83,3 +83,328 @@ export const LogoutBrowserSessionHeader = zod.object({
 });
 
 export const LogoutBrowserSessionResponse = zod.void();
+
+/**
+ * The family and every member with their role. Feeds the role switcher.
+ * @summary Get the demo family and its members
+ */
+export const GetFamilyResponse = zod.object({
+  id: zod.number().int(),
+  name: zod.string(),
+  members: zod.array(
+    zod.object({
+      id: zod.number().int(),
+      displayName: zod.string(),
+      role: zod.enum(["parent", "funder", "dependent"]),
+      relationship: zod
+        .string()
+        .describe("e.g. parent, grandparent, co-parent, student."),
+      age: zod.number().int().nullable(),
+      onboardingComplete: zod.boolean(),
+      onchainId: zod
+        .string()
+        .describe("The member's fixed 32-byte contract id, 0x-prefixed hex."),
+    }),
+  ),
+});
+
+/**
+ * The pot totals plus each bucket's available, held and spent amounts, per-purchase limit and approval threshold. All amounts are integer cents.
+ * @summary Get the family pot and its buckets
+ */
+export const GetOverviewResponse = zod.object({
+  familyId: zod.number().int(),
+  totals: zod.object({
+    potCents: zod
+      .number()
+      .int()
+      .describe("Money still in the pot, available plus held."),
+    availableCents: zod.number().int(),
+    heldCents: zod.number().int(),
+    spentCents: zod.number().int(),
+  }),
+  buckets: zod.array(
+    zod.object({
+      id: zod.number().int(),
+      name: zod.string(),
+      perPurchaseLimitCents: zod.number().int(),
+      approvalThresholdCents: zod.number().int(),
+      availableCents: zod.number().int(),
+      heldCents: zod.number().int().describe("Authorized but not yet settled."),
+      spentCents: zod.number().int(),
+      chain: zod.object({
+        status: zod
+          .enum(["not_submitted", "submitted", "confirmed", "failed"])
+          .describe(
+            "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+          ),
+        txHash: zod.string().nullable(),
+        confirmedAt: zod.coerce.date().nullable(),
+      }),
+    }),
+  ),
+});
+
+/**
+ * @summary List a member's linked demo banks
+ */
+export const listMemberBankAccountsPathMemberIdMax = 2147483647;
+
+export const ListMemberBankAccountsParams = zod.object({
+  memberId: zod.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(listMemberBankAccountsPathMemberIdMax),
+});
+
+export const ListMemberBankAccountsResponseItem = zod.object({
+  id: zod.number().int(),
+  memberId: zod.number().int(),
+  bankName: zod.string(),
+  last4: zod.string(),
+  balanceCents: zod.number().int(),
+  chain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+  }),
+});
+export const ListMemberBankAccountsResponse = zod.array(
+  ListMemberBankAccountsResponseItem,
+);
+
+/**
+ * The bank name must be one of the brand's demo banks. The last four digits are generated. Only a parent or funder can link a bank, and each demo bank can be linked once per member.
+ * @summary Link a simulated demo bank for a member
+ */
+export const linkBankAccountPathMemberIdMax = 2147483647;
+
+export const LinkBankAccountParams = zod.object({
+  memberId: zod.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(linkBankAccountPathMemberIdMax),
+});
+
+export const LinkBankAccountBody = zod.object({
+  bankName: zod.string().min(1).describe("One of the brand's demo banks."),
+});
+
+export const LinkBankAccountResponse = zod.object({
+  id: zod.number().int(),
+  memberId: zod.number().int(),
+  bankName: zod.string(),
+  last4: zod.string(),
+  balanceCents: zod.number().int(),
+  chain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+  }),
+});
+
+/**
+ * Stands in for an ACH deposit; raises the bank balance.
+ * @summary Make a simulated deposit into a linked bank
+ */
+export const createBankDepositPathBankAccountIdMax = 2147483647;
+
+export const CreateBankDepositParams = zod.object({
+  bankAccountId: zod.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(createBankDepositPathBankAccountIdMax),
+});
+
+export const createBankDepositBodyAmountCentsMax = 1000000;
+
+export const CreateBankDepositBody = zod.object({
+  amountCents: zod
+    .number()
+    .int()
+    .min(1)
+    .max(createBankDepositBodyAmountCentsMax),
+});
+
+export const CreateBankDepositResponse = zod.object({
+  deposit: zod.object({
+    id: zod.number().int(),
+    bankAccountId: zod.number().int(),
+    amountCents: zod.number().int(),
+    createdAt: zod.coerce.date(),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+    }),
+  }),
+  bankAccount: zod.object({
+    id: zod.number().int(),
+    memberId: zod.number().int(),
+    bankName: zod.string(),
+    last4: zod.string(),
+    balanceCents: zod.number().int(),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+    }),
+  }),
+});
+
+/**
+ * The named member (a parent or funder) moves money from one of their linked banks into the bucket. Rejected with 422 and a clear message if the bank balance is too low or the bank is not theirs.
+ * @summary Move money from a member's bank into a bucket
+ */
+export const createContributionPathBucketIdMax = 2147483647;
+
+export const CreateContributionParams = zod.object({
+  bucketId: zod.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(createContributionPathBucketIdMax),
+});
+
+export const createContributionBodyMemberIdMax = 2147483647;
+
+export const createContributionBodyBankAccountIdMax = 2147483647;
+
+export const createContributionBodyAmountCentsMax = 1000000;
+
+export const CreateContributionBody = zod.object({
+  memberId: zod
+    .number()
+    .int()
+    .min(1)
+    .max(createContributionBodyMemberIdMax)
+    .describe("The parent or funder moving the money."),
+  bankAccountId: zod
+    .number()
+    .int()
+    .min(1)
+    .max(createContributionBodyBankAccountIdMax)
+    .describe("One of that member's linked banks."),
+  amountCents: zod
+    .number()
+    .int()
+    .min(1)
+    .max(createContributionBodyAmountCentsMax),
+});
+
+export const CreateContributionResponse = zod.object({
+  contribution: zod.object({
+    id: zod.number().int(),
+    memberId: zod.number().int(),
+    bucketId: zod.number().int(),
+    bucketName: zod.string(),
+    bankAccountId: zod.number().int(),
+    bankName: zod.string(),
+    bankLast4: zod.string(),
+    amountCents: zod.number().int(),
+    createdAt: zod.coerce.date(),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+    }),
+  }),
+  bankAccount: zod.object({
+    id: zod.number().int(),
+    memberId: zod.number().int(),
+    bankName: zod.string(),
+    last4: zod.string(),
+    balanceCents: zod.number().int(),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+    }),
+  }),
+  bucket: zod.object({
+    id: zod.number().int(),
+    name: zod.string(),
+    perPurchaseLimitCents: zod.number().int(),
+    approvalThresholdCents: zod.number().int(),
+    availableCents: zod.number().int(),
+    heldCents: zod.number().int().describe("Authorized but not yet settled."),
+    spentCents: zod.number().int(),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+    }),
+  }),
+});
+
+/**
+ * Newest first, with the bucket and bank each came from.
+ * @summary List one member's contributions
+ */
+export const listMemberContributionsPathMemberIdMax = 2147483647;
+
+export const ListMemberContributionsParams = zod.object({
+  memberId: zod.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(listMemberContributionsPathMemberIdMax),
+});
+
+export const ListMemberContributionsResponse = zod.object({
+  memberId: zod.number().int(),
+  totalCents: zod.number().int(),
+  contributions: zod.array(
+    zod.object({
+      id: zod.number().int(),
+      memberId: zod.number().int(),
+      bucketId: zod.number().int(),
+      bucketName: zod.string(),
+      bankAccountId: zod.number().int(),
+      bankName: zod.string(),
+      bankLast4: zod.string(),
+      amountCents: zod.number().int(),
+      createdAt: zod.coerce.date(),
+      chain: zod.object({
+        status: zod
+          .enum(["not_submitted", "submitted", "confirmed", "failed"])
+          .describe(
+            "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+          ),
+        txHash: zod.string().nullable(),
+        confirmedAt: zod.coerce.date().nullable(),
+      }),
+    }),
+  ),
+});
