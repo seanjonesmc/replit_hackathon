@@ -6,6 +6,9 @@
 /** A spending decision outcome. `rejected` is shown to people as "Declined". */
 export type Decision = 'approved' | 'rejected' | 'pending';
 
+/** What decided a purchase: a hard rule, or the AI guard within the rules. */
+export type DecidedBy = 'rule' | 'ai_guard';
+
 /** Icon key for a spending bucket. */
 export type BucketIcon = 'food' | 'school' | 'social' | 'transit';
 

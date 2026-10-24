@@ -19,3 +19,9 @@ Manual signed-in checks against the dev API (curl) work by inserting a temporary
 **Why:** No test database exists and the browser login can't be scripted from the shell; this exercises the real guard and Postgres.
 
 **How to apply:** Leave the dev demo family as the seed made it; if a manual check changed family data, reset it so the API reseeds on restart.
+
+Live swipe checks (curl or a browser tester) should only make swipes that end REJECTED (blocked category, or a frozen card) or PENDING: those write just an `authorizations` row, so deleting the new rows restores the demo exactly. An APPROVED swipe moves bucket money (held/spent) and needs a full demo reset. Snapshot row counts and bucket totals before, compare after.
+
+**Why:** The demo family must stay as the seed made it, and there is no one-tap reset yet.
+
+**How to apply:** Tell testers which merchant tiles they may tap; afterwards delete their authorizations, login users/sessions, unfreeze the card if needed, and restart the API to clear the OIDC override.

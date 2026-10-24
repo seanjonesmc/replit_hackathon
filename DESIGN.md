@@ -257,20 +257,20 @@ through props, and never import preview samples.
 | Component | Status | Notes |
 | --- | --- | --- |
 | Hero balance card | Built | `color.signature` with `color.onSignature` text, on-signature lattice hatching, `type.displayXl` amount |
-| Virtual card visual | Built | `color.signature` with `color.onSignature` text, app wordmark, holder name, last four only, “Simulated card” |
+| Virtual card visual | Built | `color.signature` with `color.onSignature` text, app wordmark, holder name, last four only, “Simulated card”; a frozen card gets a dimmed face and a “Frozen” pill |
 | Bucket card | Built | Icon, amount left of total, progress bar, held amount, who funds it |
 | Activity feed row | Built | Plain-English sentence, signed amount, status pill, optional steps and chain badge |
 | “Verified on Monad” badge | Built | Sky `color.chainBg` pill with `color.chain` text with `BRAND.copy.verifiedLabel`, links to the explorer; real confirmed transactions only |
 | Onboarding step layout | Built | Back button, progress dots, one question, single-tap pill answers, large continue button, “Skip to demo” |
-| Full-screen decision result card | Built | Icon + label, amount, merchant, plain-English reason, reason code in small `font.mono` text, decision time, chain status; `BRAND.copy.askParentLabel` button for declined and pending |
+| Full-screen decision result card | Built | Icon + label, amount, merchant, plain-English reason, reason code in small `font.mono` text, who decided (Rule or AI guard, with its confidence), measured decision time, when, chain status; `BRAND.copy.askParentLabel` button for declined and pending (disabled until asking arrives). Rows for who decided and the measured time appear only with real values |
 | Empty states | Built | Tint icon circle, title, one sentence, optional action |
 | Loading skeletons | Built | Shapes match hero, bucket and activity row; announced once as “Loading” |
 | Role switcher | Built | Pill segmented control on the `color.signature` top bar; one link per role (BRAND.demo name + role) to that role's first tab |
 | Bottom tab bar per role | Built | Icon + label per tab; active tab gets a `color.tint` pill, bold label and `aria-current`; optional count badge (parent Approvals shows waiting swipes); never links to /brand |
-| Coming-soon screen | Built | Tab title on the header sky plus an empty state; placeholder for tabs not built yet (the dependent's Swipe), no sample data or actions |
+| Coming-soon screen | Built | Tab title on the header sky plus an empty state; placeholder for tabs not built yet, no sample data or actions |
 | Policy card | Built | Preset name and plain-English lines (block, ask, limit, time) |
 | Approval card | Built | Request sentence, reason, bucket, time; approve/decline shown disabled until decisions arrive |
-| Swipe-simulator merchant grid | Planned | Later phase |
+| Swipe-simulator merchant tile | Built | Two-column grid of `color.surfaceAlt` tiles: category icon, merchant name, “Category · MCC”, price, and the simulated time when it isn't now; spinner while its swipe is in flight. The server decides; tiles never predict an outcome |
 
 
 ### Planned patterns from the mockup

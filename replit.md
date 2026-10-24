@@ -72,7 +72,11 @@ per-role tab bars) and a development-only component preview at the hidden
 `/brand` route. Phase 1 adds presenter sign-in, the family data model, the
 idempotent demo-family seed and read-only parent, grandparent and dependent
 screens inside the app shell (the root opens the last-used role, the parent home
-by default; the dependent's Swipe tab is still a coming-soon placeholder). The
+by default). The dependent's Swipe tab is the swipe simulator: the seeded
+merchants as a grid (the spec's six demo swipes first, Uber at 2:10am on the
+family clock), each tap sent to `POST /api/swipes` and answered with a
+full-screen result (decision, reason, Rule or AI guard, bucket, measured
+decision time); the parent can freeze and unfreeze the card. The
 API exposes health and sign-in (`/api/login`, `/api/callback`, `/api/logout`,
 `/api/auth/user`), the family routes (`/api/family`, `/api/overview`, bank
 linking, simulated deposits, bucket contributions), one read per screen under
@@ -86,8 +90,8 @@ the API seeds the family from BRAND.demo at startup when none exists, then adds
 any missing merchants, policy, card and purchase history. There is one shared
 demo family; any signed-in account sees it. Every mirrored row stays
 `not_submitted` on chain until Phase 3, and screens show "Not on chain yet";
-later-phase controls (approve/decline, freeze, the policy builder) are shown
-disabled. Directory READMEs reserve responsibilities, not implemented
+later-phase controls (approve/decline, asking a parent, the policy builder) are
+shown disabled. Directory READMEs reserve responsibilities, not implemented
 functionality or authorization boundaries. Vitest checks cover API health,
 sign-in and signed-out rejection, seeding (against a throwaway
 `<db>_seed_test` database), the screen reads, BRAND asset URLs under the

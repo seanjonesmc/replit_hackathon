@@ -1,8 +1,8 @@
 import { useId, type ReactNode } from 'react';
 import { BRAND } from '@brand/brand.config';
 import { cn } from '@/lib/utils';
-import { formatCents, formatDecisionTime } from '@/lib/format';
-import type { ChainStatus, Decision } from '@/lib/domain';
+import { formatCents, formatDecisionTime, formatDurationMs } from '@/lib/format';
+import type { ChainStatus, DecidedBy, Decision } from '@/lib/domain';
 import { motion } from './motion';
 import { ChainBadge, PillButton, decisionMeta } from './primitives';
 
@@ -17,7 +17,18 @@ interface DecisionResultCardProps {
   decidedAt: Date;
   chain: ChainStatus;
   bucket?: string;
-  /** Shown for declined and pending decisions only. */
+  /** Extra detail after the merchant, e.g. "swiped at 2:10am". */
+  swipeNote?: string;
+  /** What decided it. Omit when unknown (preview samples). */
+  decidedBy?: DecidedBy;
+  /** The AI guard's confidence (0–1), shown when the AI guard decided. */
+  aiConfidence?: number | null;
+  /** Measured decision time. Omit when it wasn't measured; never invent one. */
+  decisionMs?: number | null;
+  /**
+   * Shown for declined and pending decisions only. Without a handler the
+   * button stays visible but disabled (explain why in `footer`).
+   */
   onAskParent?: () => void;
   onDone?: () => void;
   /** Extra content under the actions, e.g. a live status message. */
@@ -25,6 +36,11 @@ interface DecisionResultCardProps {
   titleAs?: 'h1' | 'h2' | 'h3' | 'h4';
   className?: string;
 }
+
+const decidedByLabel: Record<DecidedBy, string> = {
+  rule: 'Rule',
+  ai_guard: 'AI guard',
+};
 
 /**
  * Full-screen result of a spending decision. Fills its container; scales in
@@ -39,6 +55,10 @@ export function DecisionResultCard({
   decidedAt,
   chain,
   bucket,
+  swipeNote,
+  decidedBy,
+  aiConfidence,
+  decisionMs,
   onAskParent,
   onDone,
   footer,
@@ -68,6 +88,7 @@ export function DecisionResultCard({
         <p className="type-body-sm mt-1 text-ink-muted">
           at {merchant}
           {bucket && <> · {bucket}</>}
+          {swipeNote && <> · {swipeNote}</>}
         </p>
       </div>
 
@@ -80,6 +101,25 @@ export function DecisionResultCard({
         </div>
 
         <dl className="flex flex-col divide-y border-y">
+          {decidedBy && (
+            <div className="flex items-center justify-between gap-3 py-3">
+              <dt className="type-caption text-ink-muted">Decided by</dt>
+              <dd className="type-caption text-right font-semibold" data-testid="text-decided-by">
+                {decidedByLabel[decidedBy]}
+                {decidedBy === 'ai_guard' && aiConfidence != null && (
+                  <span className="tnum font-normal text-ink-muted"> · {Math.round(aiConfidence * 100)}% sure</span>
+                )}
+              </dd>
+            </div>
+          )}
+          {decisionMs != null && (
+            <div className="flex items-center justify-between gap-3 py-3">
+              <dt className="type-caption text-ink-muted">Decision time</dt>
+              <dd className="type-caption tnum text-right font-semibold" data-testid="text-decision-ms">
+                {formatDurationMs(decisionMs)}
+              </dd>
+            </div>
+          )}
           <div className="flex items-center justify-between gap-3 py-3">
             <dt className="type-caption text-ink-muted">Decided</dt>
             <dd className="type-caption tnum text-right">
@@ -96,7 +136,7 @@ export function DecisionResultCard({
 
         <div className="mt-auto flex flex-col gap-3">
           {canAsk && (
-            <PillButton block onClick={onAskParent} data-testid="button-ask-parent">
+            <PillButton block onClick={onAskParent} disabled={!onAskParent} data-testid="button-ask-parent">
               {BRAND.copy.askParentLabel}
             </PillButton>
           )}

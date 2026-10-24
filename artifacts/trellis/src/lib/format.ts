@@ -24,6 +24,14 @@ export function formatDecisionTime(at: Date, now: Date = new Date()): string {
   return `${day} at ${time}`;
 }
 
+/** Measured decision time: 0.4 -> "under 1 ms", 3.27 -> "3.3 ms", 812.6 -> "813 ms", 1520 -> "1.5 s". */
+export function formatDurationMs(ms: number): string {
+  if (ms < 1) return 'under 1 ms';
+  if (Math.round(ms * 10) < 100) return `${(Math.round(ms * 10) / 10).toFixed(1)} ms`;
+  if (Math.round(ms) < 1000) return `${Math.round(ms)} ms`;
+  return `${(ms / 1000).toFixed(1)} s`;
+}
+
 /** Up to two initials from a display name: "Dana Rivera" -> "DR". */
 export const initials = (name: string) =>
   name.split(/\s+/).filter(Boolean).map((p) => p[0]).slice(-2).join('').toUpperCase();

@@ -51,7 +51,6 @@ function open(url: string) {
 }
 
 const byTestId = (id: string) => host.querySelector<HTMLElement>(`[data-testid="${id}"]`);
-const title = () => byTestId('text-screen-title')?.textContent;
 /** The tab screen showing, e.g. "parent-home". */
 const screen = () => host.querySelector('[data-testid^="screen-"]')?.getAttribute('data-testid')?.replace(/^screen-/, '');
 const click = (id: string) => act(() => byTestId(id)!.click());
@@ -126,13 +125,11 @@ describe('app shell routing', () => {
     expect(byTestId('app-shell')).not.toBeNull();
   });
 
-  it('keeps the later-phase swipe tab as a coming-soon screen with no money or actions', () => {
+  it('opens the swipe simulator on the swipe tab, not a placeholder', () => {
     open('/dependent/swipe');
-    expect(title()).toBe('Swipe');
-    const empty = byTestId('empty-coming-soon')!;
-    expect(empty.textContent).toContain('Coming soon');
-    expect(empty.querySelector('button, a')).toBeNull();
-    expect(host.querySelector('main')?.textContent).not.toMatch(/\$\s?\d/);
+    expect(screen()).toBe('dependent-swipe');
+    expect(host.querySelector('[aria-label="Loading the shops"]')).not.toBeNull();
+    expect(byTestId('empty-coming-soon')).toBeNull();
   });
 
   it('uses BRAND.demo names in the role switcher', () => {

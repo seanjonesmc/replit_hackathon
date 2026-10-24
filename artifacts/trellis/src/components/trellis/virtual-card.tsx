@@ -1,3 +1,4 @@
+import { Snowflake } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from './motion';
 import { Wordmark } from './primitives';
@@ -7,6 +8,8 @@ interface VirtualCardProps {
   last4: string;
   /** Honest marker printed on the card art. Cards are always simulated. */
   note?: string;
+  /** The card is frozen: every swipe is declined until it is unfrozen. */
+  frozen?: boolean;
   /** Play the entry animation on mount. Remount (change `key`) to replay. */
   animateIn?: boolean;
   className?: string;
@@ -17,7 +20,7 @@ interface VirtualCardProps {
  * The dependent's virtual card art. Uses the signature color and the app
  * wordmark from BRAND. Never shows a full card number.
  */
-export function VirtualCard({ holderName, last4, note = 'Simulated card', animateIn = true, className, 'data-testid': testId }: VirtualCardProps) {
+export function VirtualCard({ holderName, last4, note = 'Simulated card', frozen, animateIn = true, className, 'data-testid': testId }: VirtualCardProps) {
   return (
     <figure
       className={cn(
@@ -25,7 +28,7 @@ export function VirtualCard({ holderName, last4, note = 'Simulated card', animat
         animateIn && motion.cardIn,
         className,
       )}
-      aria-label={`${note} for ${holderName}, ending in ${last4}`}
+      aria-label={`${note} for ${holderName}, ending in ${last4}${frozen ? ', frozen' : ''}`}
       data-testid={testId}
     >
       <div className="flex items-start justify-between gap-3">
@@ -39,6 +42,14 @@ export function VirtualCard({ holderName, last4, note = 'Simulated card', animat
           •••• {last4}
         </span>
       </figcaption>
+      {frozen && (
+        <div className="absolute inset-0 grid place-items-center bg-ink/45" data-testid="state-card-frozen">
+          <span className="type-link-sm inline-flex h-9 items-center gap-2 rounded-pill bg-surface px-4 text-ink">
+            <Snowflake className="size-4" aria-hidden="true" />
+            Frozen
+          </span>
+        </div>
+      )}
     </figure>
   );
 }

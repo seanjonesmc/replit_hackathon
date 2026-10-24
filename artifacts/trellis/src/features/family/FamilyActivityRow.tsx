@@ -1,14 +1,8 @@
-import type { ActivityItem, Decision as ApiDecision } from '@workspace/api-client-react';
+import type { ActivityItem } from '@workspace/api-client-react';
 import { ActivityRow } from '@/components/trellis/activity-row';
 import { chainStatusOf } from '@/lib/chain';
-import type { Decision } from '@/lib/domain';
 import { formatWhen } from '@/lib/format';
-
-const DECISION: Record<ApiDecision, Decision> = {
-  APPROVED: 'approved',
-  REJECTED: 'rejected',
-  PENDING: 'pending',
-};
+import { DECISION } from './spending';
 
 /** One activity item from the API as a feed row. `compact` drops the reason and chain badge. */
 export function FamilyActivityRow({ item, compact, now }: { item: ActivityItem; compact?: boolean; now?: Date }) {

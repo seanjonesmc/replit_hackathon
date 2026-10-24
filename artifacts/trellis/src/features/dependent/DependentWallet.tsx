@@ -1,9 +1,10 @@
 import { Zap } from 'lucide-react';
+import { useLocation } from 'wouter';
 import { useGetDependentWallet } from '@workspace/api-client-react';
 import { HeroBalanceCard } from '@/components/trellis/hero-balance-card';
 import { PillButton, SectionTitle } from '@/components/trellis/primitives';
 import { BucketCardSkeleton, HeroBalanceCardSkeleton, LoadingRegion, Skeleton } from '@/components/trellis/skeletons';
-import { ComingSoonNote, ErrorState } from '@/components/trellis/states';
+import { ErrorState } from '@/components/trellis/states';
 import { VirtualCard } from '@/components/trellis/virtual-card';
 import { CardFacts } from '@/features/family/CardFacts';
 import { FamilyBucketCard } from '@/features/family/FamilyBucketCard';
@@ -11,6 +12,7 @@ import { ScreenHeader } from '@/features/shell/layout';
 
 export default function DependentWallet() {
   const { data, isLoading, isError, refetch, isFetching } = useGetDependentWallet();
+  const [, navigate] = useLocation();
   if (isLoading) {
     return (
       <LoadingRegion label="Loading your wallet" className="flex flex-col gap-4">
@@ -26,7 +28,7 @@ export default function DependentWallet() {
   return (
     <>
       <ScreenHeader title={`Hi, ${data.dependent.displayName}`} subtitle="Your card and what you can spend." />
-      <VirtualCard holderName={data.card.dependentName} last4={data.card.last4} data-testid="card-dependent-card" />
+      <VirtualCard holderName={data.card.dependentName} last4={data.card.last4} frozen={data.card.status === 'frozen'} data-testid="card-dependent-card" />
       <CardFacts card={data.card} />
       <HeroBalanceCard
         className="mt-4"
@@ -45,11 +47,10 @@ export default function DependentWallet() {
           ))}
         </div>
       </section>
-      <div className="mt-8 flex flex-col gap-2">
-        <PillButton block disabled icon={<Zap className="size-5" aria-hidden="true" />} data-testid="button-swipe">
+      <div className="mt-8">
+        <PillButton block icon={<Zap className="size-5" aria-hidden="true" />} onClick={() => navigate('/dependent/swipe')} data-testid="button-swipe">
           Swipe card
         </PillButton>
-        <ComingSoonNote className="justify-center">Trying a purchase arrives in the next step of the demo.</ComingSoonNote>
       </div>
     </>
   );

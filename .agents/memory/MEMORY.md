@@ -2,7 +2,7 @@
 - [Vitest env stubbing](vitest-env-stubbing.md) — use literal import.meta.env so vi.stubEnv(BASE_URL) works; casts bypass it in tests only.
 - [Pitch deck, video and claims](pitch-deck.md) — judges see only the 90s video, not the deck; BRAND-sourced text; stats follow the weak-spots list.
 - [AI integration provisioning](ai-integration-provisioning.md) — Anthropic setup isn't available in task envs; provision and run live AI checks from the main session.
-- [Sign-in decisions](auth-decisions.md) — web-only Replit Auth; tests stub the session store; manual curl checks use a temp session row, then reseed.
+- [Sign-in decisions](auth-decisions.md) — web-only Replit Auth; stubbed session store in tests; manual checks via temp session; live swipes only rejected/pending.
 - [/brand route vs asset folder](brand-route-asset-folder.md) — /brand route and public/brand/ share a path; published-site behavior unverified.
 - [On-chain authorize constraints](chain-authorize-contract.md) — approve needs a bucket and a matching code; categories must be lowercase; matters when wiring the engine.
 - [pnpm installs here](pnpm-workspace-installs.md) — never `pnpm add` with catalog:; peers listed explicitly; vite type clash → frozen offline reinstall.

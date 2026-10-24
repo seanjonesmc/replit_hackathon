@@ -1,0 +1,220 @@
+// @vitest-environment happy-dom
+import { afterEach, describe, expect, it } from 'vitest';
+import { BRAND } from '@brand/brand.config';
+import { useListApprovals, type Authorization, type Card, type Merchant, type SwipeResult } from '@workspace/api-client-react';
+import { byTestId, cleanupApi, countCalls, mockApi, renderWithApi, settle, type ApiRoutes } from '@/test/api-test-utils';
+import SwipeSimulator from './SwipeSimulator';
+
+const chain = { status: 'not_submitted', txHash: null, confirmedAt: null } as const;
+
+const card = (status: Card['status'] = 'active'): Card => ({
+  id: 3,
+  dependentId: 4,
+  dependentName: 'Sample Teen',
+  last4: '0000',
+  expiryMonth: 10,
+  expiryYear: 2029,
+  status,
+  onchainCardId: null,
+  chain,
+});
+
+const merchant = (id: number, name: string, mcc: string, category: string): Merchant => ({
+  id,
+  name,
+  mcc,
+  category,
+  onchainId: `0x${String(id).padStart(64, '0')}`,
+  chain,
+});
+
+// The seed's merchants, in seed order (the grid reorders them).
+const MERCHANTS = [
+  merchant(1, "Trader Joe's", '5411', 'grocery'),
+  merchant(2, 'Campus Bookstore', '5942', 'bookstore'),
+  merchant(3, 'The Tipsy Tavern', '5813', 'bar'),
+  merchant(4, 'Liquor Barn', '5921', 'liquor'),
+  merchant(5, 'Lucky Star Casino', '7995', 'gambling'),
+  merchant(6, 'Steam', '5816', 'gaming'),
+  merchant(7, 'Uber', '4121', 'rideshare'),
+  merchant(8, 'Apple Store', '5732', 'electronics'),
+  merchant(9, 'AMC', '7832', 'movies'),
+];
+
+const policy = {
+  familyId: 1,
+  presetName: 'Balanced',
+  timeZone: 'America/Los_Angeles',
+  policy: { buckets: [], blockedCategories: [], approvalThresholdCents: null, timeWindows: [], blockedMerchants: [], allowedMerchants: [] },
+};
+
+const pendingRide: SwipeResult = {
+  authorizationId: 41,
+  decision: 'PENDING',
+  reasonCode: 'outside_hours',
+  reason: 'Late-night purchases need a quick OK first.',
+  decidedBy: 'Rule',
+  aiConfidence: null,
+  bucketId: null,
+  bucketName: null,
+  decisionMs: 0.42,
+  chain,
+};
+
+const storedRide = (body: { amount: number; timestamp: string }): Authorization => ({
+  id: 41,
+  cardId: 3,
+  dependentId: 4,
+  merchantId: 7,
+  merchantName: 'Uber',
+  mcc: '4121',
+  merchantCategory: 'rideshare',
+  items: ['ride home'],
+  amountCents: body.amount,
+  location: 'Sample',
+  swipedAt: new Date().toISOString(),
+  bucketId: null,
+  bucketName: null,
+  decision: 'PENDING',
+  status: 'pending',
+  reasonCode: 'outside_hours',
+  reason: pendingRide.reason,
+  decidedBy: 'Rule',
+  aiConfidence: null,
+  decisionMs: 0.42,
+  previousAuthorizationId: null,
+  nextAuthorizationId: null,
+  resolvedAt: null,
+  settledAt: null,
+  createdAt: new Date().toISOString(),
+  chain,
+  captureChain: chain,
+});
+
+/** The API as the dependent's screen sees it; a swipe adds to the feed. */
+function demoApi(overrides: ApiRoutes = {}) {
+  const stored: Authorization[] = [];
+  const calls = mockApi({
+    'GET /api/merchants': { body: MERCHANTS },
+    'GET /api/card': { body: card() },
+    'GET /api/policy': { body: policy },
+    'GET /api/authorizations': () => ({ body: stored }),
+    'GET /api/approvals': { body: [] },
+    'POST /api/swipes': (call) => {
+      stored.unshift(storedRide(call.body as { amount: number; timestamp: string }));
+      return { status: 201, body: pendingRide };
+    },
+    ...overrides,
+  });
+  return calls;
+}
+
+/** Stands in for the parent's Approvals badge, which also reads GET /api/approvals. */
+function ApprovalsProbe() {
+  useListApprovals();
+  return null;
+}
+
+const tileFor = (name: string) => {
+  const m = MERCHANTS.find((x) => x.name === name)!;
+  return byTestId(`button-swipe-merchant-${m.id}`) as HTMLButtonElement;
+};
+
+afterEach(() => cleanupApi());
+
+describe('swipe simulator', () => {
+  it("shows the seeded merchants with the spec's six first, their prices, and Uber at 2:10am", async () => {
+    demoApi();
+    const host = renderWithApi(<SwipeSimulator />);
+    await settle();
+
+    const grid = host.querySelector('[aria-labelledby="demo-swipes-title"]')!;
+    const names = [...grid.querySelectorAll('button')].map((b) => b.getAttribute('aria-label'));
+    expect(names).toEqual([
+      "Swipe at Trader Joe's for $18.40",
+      'Swipe at Campus Bookstore for $24.00',
+      'Swipe at The Tipsy Tavern for $32.00',
+      'Swipe at Steam for $14.99',
+      'Swipe at Uber for $22.00, at 2:10am',
+      'Swipe at Apple Store for $129.00',
+    ]);
+    expect(host.querySelector('[aria-labelledby="more-shops-title"]')?.querySelectorAll('button')).toHaveLength(3);
+    expect(byTestId('text-swipe-card-status')?.textContent).toBe('Your card is on');
+    expect(byTestId('state-recent-swipes-empty')).not.toBeNull();
+  });
+
+  it('swipes at 2:10am on the family clock and shows the decision, who decided and how fast', async () => {
+    const calls = demoApi();
+    renderWithApi(
+      <>
+        <SwipeSimulator />
+        <ApprovalsProbe />
+      </>,
+    );
+    await settle();
+    const authorizationsBefore = countCalls(calls, 'GET', '/api/authorizations');
+    const approvalsBefore = countCalls(calls, 'GET', '/api/approvals');
+
+    tileFor('Uber').click();
+    await settle();
+
+    const swipe = calls.find((c) => c.method === 'POST' && c.path === '/api/swipes')!;
+    expect(swipe.body).toMatchObject({ cardId: 3, dependentId: 4, merchantId: 7, merchantName: 'Uber', mcc: '4121', amount: 22_00 });
+    expect((swipe.body as { timestamp: string }).timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T02:10:00$/);
+
+    const dialog = byTestId('dialog-swipe-result')!;
+    expect(dialog.querySelector('[data-testid="text-decision-label"]')?.textContent).toBe('Pending');
+    expect(dialog.querySelector('[data-testid="text-decision-reason"]')?.textContent).toBe(pendingRide.reason);
+    expect(dialog.querySelector('[data-testid="text-reason-code"]')?.textContent).toBe('outside_hours');
+    expect(dialog.querySelector('[data-testid="text-decided-by"]')?.textContent).toBe('Rule');
+    expect(dialog.querySelector('[data-testid="text-decision-ms"]')?.textContent).toBe('under 1 ms');
+    expect(dialog.textContent).toContain('swiped at 2:10am');
+    expect(byTestId('text-waiting-approval')?.textContent).toContain(BRAND.demo.parent);
+
+    // The feed and the parent's approvals refetch after the swipe.
+    expect(countCalls(calls, 'GET', '/api/authorizations')).toBeGreaterThan(authorizationsBefore);
+    expect(countCalls(calls, 'GET', '/api/approvals')).toBeGreaterThan(approvalsBefore);
+    expect(byTestId('row-swipe-41')?.textContent).toContain('Uber');
+
+    byTestId('button-decision-done')!.click();
+    await settle(2);
+    expect(byTestId('dialog-swipe-result')).toBeNull();
+  });
+
+  it('swipes daytime presets at the moment of the tap', async () => {
+    const calls = demoApi();
+    renderWithApi(<SwipeSimulator />);
+    await settle();
+    const before = Date.now();
+
+    tileFor("Trader Joe's").click();
+    await settle();
+
+    const body = calls.find((c) => c.path === '/api/swipes')!.body as { amount: number; timestamp: string };
+    expect(body.amount).toBe(18_40);
+    expect(Date.parse(body.timestamp)).toBeGreaterThanOrEqual(before - 1000);
+    expect(body.timestamp.endsWith('Z')).toBe(true);
+  });
+
+  it('shows a frozen card before any swipe', async () => {
+    demoApi({ 'GET /api/card': { body: card('frozen') } });
+    renderWithApi(<SwipeSimulator />);
+    await settle();
+    expect(byTestId('text-swipe-card-status')?.textContent).toBe('Your card is frozen');
+    expect(byTestId('card-swipe-card-status')?.textContent).toContain(BRAND.demo.parent);
+    // Tiles stay tappable: the server declines the swipe and says why.
+    expect(tileFor('Steam').disabled).toBe(false);
+  });
+
+  it("explains a swipe that didn't go through, in the server's words, without a result", async () => {
+    demoApi({ 'POST /api/swipes': { status: 400, body: { error: 'That card belongs to someone else.' } } });
+    renderWithApi(<SwipeSimulator />);
+    await settle();
+
+    tileFor('Steam').click();
+    await settle();
+
+    expect(byTestId('text-swipe-error')?.textContent).toBe('That card belongs to someone else.');
+    expect(byTestId('dialog-swipe-result')).toBeNull();
+  });
+});

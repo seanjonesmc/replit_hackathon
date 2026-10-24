@@ -4,8 +4,10 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { BRAND } from '@brand/brand.config';
 import type { Decision } from '@/lib/domain';
+import { Store } from 'lucide-react';
 import { ActivityRow } from './activity-row';
 import { DecisionResultCard } from './decision-result-card';
+import { MerchantTile } from './merchant-tile';
 import { ChoicePills, OnboardingStep } from './onboarding-step';
 import { VirtualCard } from './virtual-card';
 
@@ -67,6 +69,55 @@ describe('DecisionResultCard', () => {
     act(() => ask!.click());
     expect(onAskParent).toHaveBeenCalledTimes(1);
   });
+
+  it('shows who decided, the measured time and the swipe note when given', () => {
+    render(
+      <DecisionResultCard {...props} decision="pending" decidedBy="ai_guard" aiConfidence={0.64} decisionMs={812.6} swipeNote="swiped at 2:10am" />,
+    );
+    expect(byTestId('text-decided-by')?.textContent).toBe('AI guard · 64% sure');
+    expect(byTestId('text-decision-ms')?.textContent).toBe('813 ms');
+    expect(host.textContent).toContain('swiped at 2:10am');
+  });
+
+  it('hides the decided-by and time rows when unknown, never inventing a time', () => {
+    render(<DecisionResultCard {...props} decision="approved" decidedBy="rule" />);
+    expect(byTestId('text-decided-by')?.textContent).toBe('Rule');
+    expect(byTestId('text-decision-ms')).toBeNull();
+  });
+
+  it('keeps Ask Parent visible but disabled without a handler', () => {
+    render(<DecisionResultCard {...props} decision="rejected" />);
+    expect((byTestId('button-ask-parent') as HTMLButtonElement).disabled).toBe(true);
+  });
+});
+
+describe('MerchantTile', () => {
+  it('shows the name, category with MCC, price and time, and swipes on tap', () => {
+    const onSwipe = vi.fn();
+    render(<MerchantTile name="Sample Ride" category="rideshare" mcc="4121" amountCents={2200} timeNote="at 2:10am" icon={Store} onSwipe={onSwipe} data-testid="tile" />);
+    const tile = byTestId('tile') as HTMLButtonElement;
+    expect(tile.textContent).toContain('Rideshare · MCC 4121');
+    expect(tile.textContent).toContain('$22.00');
+    expect(byTestId('text-merchant-time')?.textContent).toBe('at 2:10am');
+    expect(tile.getAttribute('aria-label')).toBe('Swipe at Sample Ride for $22.00, at 2:10am');
+    act(() => tile.click());
+    expect(onSwipe).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores taps while its swipe is in flight but keeps focus', () => {
+    const onSwipe = vi.fn();
+    render(<MerchantTile name="Shop" category="grocery" mcc="5411" amountCents={100} icon={Store} loading onSwipe={onSwipe} data-testid="tile" />);
+    const tile = byTestId('tile') as HTMLButtonElement;
+    expect(tile.disabled).toBe(false);
+    expect(tile.getAttribute('aria-busy')).toBe('true');
+    act(() => tile.click());
+    expect(onSwipe).not.toHaveBeenCalled();
+  });
+
+  it('is disabled when there is no purchase to send', () => {
+    render(<MerchantTile name="Shop" category="grocery" mcc="5411" amountCents={null} icon={Store} data-testid="tile" />);
+    expect((byTestId('tile') as HTMLButtonElement).disabled).toBe(true);
+  });
 });
 
 describe('VirtualCard', () => {
@@ -75,6 +126,13 @@ describe('VirtualCard', () => {
     expect(byTestId('text-app-name')?.textContent).toContain(BRAND.appName);
     expect(host.textContent).toContain(BRAND.demo.dependent);
     expect(byTestId('text-card-last4')?.textContent).toBe(`•••• ${BRAND.demo.cardLast4}`);
+    expect(byTestId('state-card-frozen')).toBeNull();
+  });
+
+  it('marks a frozen card on the art and in its label', () => {
+    render(<VirtualCard holderName="Sample" last4="0000" frozen data-testid="card" />);
+    expect(byTestId('state-card-frozen')?.textContent).toBe('Frozen');
+    expect(byTestId('card')?.getAttribute('aria-label')).toContain('frozen');
   });
 });
 

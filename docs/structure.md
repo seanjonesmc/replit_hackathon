@@ -13,14 +13,15 @@ artifacts/
       shell/                 Session context, signed-out welcome, per-tab screen wrapper and header
       parent/                Parent screens: home, approvals, activity, card & policy, settings
       funder/                Grandparent screens: add money, where my money went
-      dependent/             Dependent wallet
-      family/                Adapters from API data to the shared components
+      dependent/             Dependent wallet and swipe simulator
+      family/                Adapters from API data to the shared components; query refresh after swipes and card changes
       onboarding/            Shared role onboarding flow (later phase)
       branding/              Development-only brand preview at /brand
     components/ui/           Existing generic UI components
     components/trellis/      Shared branded primitives and composite cards/states
     hooks/                   Shared frontend hooks
-    lib/                     Route map, domain types, formatting and chain-status helpers, explicit preview samples
+    lib/                     Route map, domain types, formatting and chain-status helpers, swipe presets, explicit preview samples
+    test/                    Component-test helpers only (mocked API, render with a query client); never imported by the app
   api-server/src/
     app.ts                   Express setup and middleware registration
     index.ts                 Startup
@@ -160,7 +161,10 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
 | `trellis`    | `artifacts/trellis/src/lib/route-map.test.ts`          | roles, tabs and URLs; BRAND.demo names; last-used role       |
 | `trellis`    | `artifacts/trellis/src/components/trellis/shell-nav.test.tsx` | role switcher and tab bar links, current marks, count badge |
-| `trellis`    | `artifacts/trellis/src/App.test.tsx`                   | root and deep-link routing, role/tab switching, not-found, placeholders, sub-path base |
+| `trellis`    | `artifacts/trellis/src/App.test.tsx`                   | root and deep-link routing, role/tab switching, not-found, the swipe tab, sub-path base |
+| `trellis`    | `artifacts/trellis/src/lib/swipe-presets.test.ts`      | the spec's six demo swipes and amounts, grid order, 2:10am on the family clock (never in the future), swipe payloads |
+| `trellis`    | `artifacts/trellis/src/features/dependent/SwipeSimulator.test.tsx` | grid from `GET /api/merchants`, the swipe request, the result card (decision, Rule/AI guard, ms), feed and approvals refetch, frozen card, server errors (`fetch` mocked) |
+| `trellis`    | `artifacts/trellis/src/features/parent/CardFreezeControl.test.tsx` | freeze and unfreeze from the parent's card screen, inactive card, server errors (`fetch` mocked) |
 | `trellis`    | `artifacts/trellis/src/index-css.test.ts`              | every CSS variable `index.css` reads is defined or has a fallback; safe-area padding present |
 | `workspace`  | `scripts/tests/design-reference.test.ts`               | reference checksum; no code references the reference        |
 | `workspace`  | `scripts/tests/product-spec.test.ts`                   | `docs/product-spec.md` size and checksum (never edit it)     |

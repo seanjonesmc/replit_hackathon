@@ -101,6 +101,7 @@ function DecisionSample() {
           reason={sample.merchant.reason}
           reasonCode={sample.merchant.code}
           decidedAt={sample.decidedAt}
+          decidedBy="rule"
           chain={{ state: 'preview' }}
           titleAs="h4"
           onAskParent={() => notify(`${demo.parent} was not asked`)}

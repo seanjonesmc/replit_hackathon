@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatCents, formatDecisionTime, formatSignedCents } from './format';
+import { formatCents, formatDecisionTime, formatDurationMs, formatSignedCents } from './format';
 import { cn } from './utils';
 
 describe('money formatting', () => {
@@ -13,6 +13,20 @@ describe('money formatting', () => {
     expect(formatSignedCents(5000)).toBe('+$50.00');
     expect(formatSignedCents(-1840)).toBe('-$18.40');
     expect(formatSignedCents(0)).toBe('$0.00');
+  });
+});
+
+describe('formatDurationMs', () => {
+  it.each([
+    [0.4, 'under 1 ms'],
+    [1, '1.0 ms'],
+    [3.27, '3.3 ms'],
+    [9.96, '10 ms'],
+    [812.6, '813 ms'],
+    [999.6, '1.0 s'],
+    [1520, '1.5 s'],
+  ])('%s ms -> %s', (ms, label) => {
+    expect(formatDurationMs(ms)).toBe(label);
   });
 });
 
