@@ -22,6 +22,9 @@
     },
     {
       "path": "../../lib/integrations-anthropic-ai"
+    },
+    {
+      "path": "../../lib/chain"
     }
   ]
 }

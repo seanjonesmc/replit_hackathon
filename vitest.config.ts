@@ -43,6 +43,14 @@ export default defineConfig({
         },
       },
       {
+        root: path.join(root, "lib/chain"),
+        test: {
+          name: "chain",
+          environment: "node",
+          include: ["src/**/*.test.ts"],
+        },
+      },
+      {
         root: path.join(root, "scripts"),
         test: {
           name: "workspace",

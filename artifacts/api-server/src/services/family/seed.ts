@@ -1,5 +1,5 @@
-import { createHash } from "node:crypto";
 import { BRAND } from "@brand/brand.config";
+import { memberChainId } from "@workspace/chain";
 import { sql } from "drizzle-orm";
 import {
   bucketsTable,
@@ -14,10 +14,11 @@ import { contributeToBucket } from "./contributions";
 
 /**
  * Fixed 32-byte contract id (bytes32) for a seeded member, derived from a
- * stable key so it is the same after every demo reset.
+ * stable key so it is the same after every demo reset. The shared chain
+ * library derives it, so the deploy seed produces the same ids.
  */
 export function memberOnchainId(seedKey: string): string {
-  return `0x${createHash("sha256").update(`demo-family:member:${seedKey}`).digest("hex")}`;
+  return memberChainId(seedKey);
 }
 
 /** Arbitrary constant for the advisory lock that serializes seeding. */

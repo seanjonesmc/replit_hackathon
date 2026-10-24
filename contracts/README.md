@@ -10,6 +10,10 @@ ethers v6). Sources are in `src/`, tests in `test/`, testnet deployment scripts 
 - `monadTestnet` (chain 10143) reads `MONAD_RPC_URL` (default
   `https://testnet-rpc.monad.xyz`) and `DEPLOYER_PRIVATE_KEY` from the environment,
   only when that network is used.
+- `pnpm run export-abis` (root: `pnpm run contracts:export-abis`) compiles and
+  writes the contract ABIs into `lib/chain/src/abis/`, which the API and the
+  deploy scripts share. Run it after changing a contract; the `ChainAbis` test
+  fails while the committed ABIs differ from the compiled ones.
 
 See [docs/stack-decisions.md](../docs/stack-decisions.md) for secret names and the
 on-chain rules. Monad testnet only. Never commit private keys, local environment

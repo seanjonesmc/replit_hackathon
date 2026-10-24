@@ -11,8 +11,9 @@ Use the existing managed workflows; they supply `PORT` and the frontend
 - `pnpm --filter @workspace/api-server run dev` — build and start API, `/api`
 - `pnpm --filter @workspace/mockup-sandbox run dev` — existing design sandbox, `/__mockup`
 - `pnpm run typecheck` — build shared library declarations, then check all apps, scripts, and their tests
-- `pnpm test` — baseline regression checks (Vitest, root `vitest.config.ts`); add `--project api-server|trellis|workspace` to run one
+- `pnpm test` — baseline regression checks (Vitest, root `vitest.config.ts`); add `--project api-server|trellis|chain|workspace` to run one
 - `pnpm run contracts:compile` / `pnpm run contracts:test` — compile Solidity and run contract tests (Hardhat 3, in-process network, no secrets)
+- `pnpm run contracts:export-abis` — regenerate `lib/chain/src/abis/` after a contract change
 - `pnpm run build` — typecheck and build workspace packages (frontend needs `PORT` and `BASE_PATH`)
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API client and validation schemas after OpenAPI changes
 - `curl --fail http://localhost:80/api/healthz` — API health through the shared proxy
@@ -42,7 +43,7 @@ test locations, and phase gates.
 - `artifacts/trellis/` — existing React/Vite frontend
 - `artifacts/api-server/` — existing Express API
 - `artifacts/pitch-deck/` — judges' pitch deck (slides, `/pitch-deck/`); reads BRAND at build time and sources every number from `docs/research/problem-statement.md`
-- `lib/` — API specification, generated client/validators, database, future shared logic
+- `lib/` — API specification, generated client/validators, database, Monad chain client (`lib/chain`), future shared logic
 - `src/brand/brand.config.ts` — the single brand source
 - `public/brand/` — canonical brand assets served by the frontend
 - `contracts/` — Solidity contracts on Hardhat 3 with its ethers toolbox (MockUSD and FamilyCardNetwork: simulated bank, pot buckets, cards, merchants and authorizations)

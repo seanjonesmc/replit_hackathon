@@ -29,7 +29,7 @@ artifacts/
       family/                Demo family, simulated banks, deposits, contributions; startup seed
       policies/              Future policy management
       decisions/             Future spending decision orchestration
-      blockchain/            Future testnet adapter
+      blockchain/            Monad testnet connection from Secrets (configured flag, shared client, readiness check)
       attribution/           Future contribution/spend attribution
       events/                Chain-event indexing from transaction receipts (not called until Phase 3)
   mockup-sandbox/            Existing isolated design-preview artifact
@@ -39,6 +39,7 @@ lib/
   api-zod/src/              Generated API validation
   db/src/schema/            Database models (sign-in, family, banks, buckets, contributions, chain events), exported by index.ts
   replit-auth-web/src/      Browser sign-in hook (useAuth), not yet used by any screen
+  chain/src/                Monad chain library: contract ABIs, enum names, bytes32 IDs, explorer links, ethers v6 operator client
   shared/                   Reserved pure cross-package utilities
 src/brand/
   brand.config.ts           Single source for brand values
@@ -50,7 +51,7 @@ contracts/
   hardhat.config.ts         Hardhat 3 config (local and Monad testnet networks)
   src/                      Solidity sources
   test/                     Contract tests (Hardhat mocha + ethers)
-  scripts/                  Future testnet deployment scripts
+  scripts/                  ABI export to lib/chain; future testnet deployment scripts
 scripts/src/                Workspace maintenance commands
 design/reference/           Immutable Venmo reference
 docs/                       Contributor architecture documentation
@@ -93,7 +94,8 @@ docs/                       Contributor architecture documentation
 - OpenAPI changes precede API implementation and client usage; run codegen rather
   than hand-editing generated code. Keep the specification title `Api`.
 - `lib/shared/` is documentation only, not an importable package yet. Introduce a
-  focused workspace library only when real shared logic exists. Give it package
+  focused workspace library only when real shared logic exists (as `lib/chain/`
+  does for the API and the contracts' scripts). Give it package
   exports, a composite TS config and root project reference; declare each consumer's
   `workspace:*` dependency. Shared code must not depend on artifacts.
 - Database models belong in `lib/db/src/schema/`, one model per file, exported from
@@ -128,6 +130,8 @@ of these later features merely to populate the reserved folders.
 - Libraries: colocate tests with their source; database integration tests belong
   in `lib/db/tests/` and must use an explicit test database.
 - Solidity: `contracts/test/`, run by Hardhat 3 with `pnpm run contracts:test`.
+  This includes the `lib/chain` client driven against the in-process network
+  (`ChainClient.ts`) and the committed-ABI check (`ChainAbis.ts`).
 
 Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 `pnpm test`; select one project with `pnpm test --project <name>`:
@@ -138,6 +142,8 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | `api-server` | `artifacts/api-server/src/services/ai/*.test.ts`       | policy builder and AI guard with the model stubbed: valid parse, PENDING fallback, rule pass-through |
 | `api-server` | `artifacts/api-server/tests/auth.test.ts`              | `GET /api/auth/user` signed in/out; `requireAuth` 401 JSON (session store stubbed, no database) |
 | `api-server` | `artifacts/api-server/tests/family.test.ts`            | every family route returns 401 JSON signed out; 400 for invalid ids/amounts (no database) |
+| `api-server` | `artifacts/api-server/src/services/blockchain/blockchain.test.ts` | chain Secrets: not configured without them (never throws), problems named without values, Monad testnet defaults, readiness accepts only chain 10143 (local stub RPC) |
+| `chain`      | `lib/chain/src/*.test.ts`                              | SHA-256 bytes32 IDs, explorer links, enum names, JSON-safe args, RPC error classification and retries, write queue ordering |
 | `trellis`    | `artifacts/trellis/vite-brand-plugin.test.ts`          | BRAND-filled `index.html`, base-path asset URLs, SVG output  |
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
 | `trellis`    | `artifacts/trellis/src/lib/route-map.test.ts`          | roles, tabs and URLs; BRAND.demo names; last-used role       |

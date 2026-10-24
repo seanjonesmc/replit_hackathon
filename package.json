@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:build": "vitest run --config vitest.build.config.ts",
     "contracts:compile": "pnpm --filter @workspace/contracts run compile",
-    "contracts:test": "pnpm --filter @workspace/contracts run test"
+    "contracts:test": "pnpm --filter @workspace/contracts run test",
+    "contracts:export-abis": "pnpm --filter @workspace/contracts run export-abis"
   },
   "private": true,
   "dependencies": {

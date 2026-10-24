@@ -55,7 +55,7 @@ async function deployFamily() {
   ]);
   await token.setMinter(await cardNetwork.getAddress(), true);
 
-  await cardNetwork.linkBankAccount(PARENT, "Demo Bank", "4417");
+  await cardNetwork.linkBankAccount(PARENT, "Example Bank", "4417");
   await cardNetwork.bankDeposit(PARENT, 50000n);
   await cardNetwork.createBucket("Food", 6000n, 7500n);
   await cardNetwork.createBucket("School", 20000n, 10000n);
