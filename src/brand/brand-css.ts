@@ -22,10 +22,8 @@ function upsert(selector: string, create: () => HTMLElement, set: (el: HTMLEleme
   set(el);
 }
 
-const withBase = (p: string) => {
-  const base = (import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? "/";
-  return base.replace(/\/$/, "") + p;
-};
+// Literal `import.meta.env` so Vite (build) and Vitest (stubEnv) both see it.
+const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, "") + p;
 
 /** Called once at startup: writes CSS variables + metadata from BRAND. */
 export function applyBrand() {
