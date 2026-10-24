@@ -15,7 +15,7 @@ export default function ParentCardPolicy() {
     return (
       <LoadingRegion label="Loading the card and policy" className="flex flex-col gap-4">
         <Skeleton className="h-8 w-48" />
-        <Skeleton className="aspect-[1.586] max-w-[358px] rounded-card" />
+        <Skeleton className="aspect-[1.586] w-full rounded-card" />
         <Skeleton className="h-64 rounded-card" />
       </LoadingRegion>
     );

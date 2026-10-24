@@ -15,7 +15,7 @@ export default function DependentWallet() {
     return (
       <LoadingRegion label="Loading your wallet" className="flex flex-col gap-4">
         <Skeleton className="h-8 w-32" />
-        <Skeleton className="aspect-[1.586] max-w-[358px] rounded-card" />
+        <Skeleton className="aspect-[1.586] w-full rounded-card" />
         <HeroBalanceCardSkeleton className="bg-surface-alt" />
         <BucketCardSkeleton />
       </LoadingRegion>
