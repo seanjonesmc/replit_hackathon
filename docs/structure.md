@@ -49,6 +49,7 @@ contracts/
 scripts/src/                Workspace maintenance commands
 design/reference/           Immutable Venmo reference
 docs/                       Contributor architecture documentation
+  research/                 Sourced pitch research (problem statement)
 ```
 
 ## Dependency rules
