@@ -140,6 +140,12 @@ export const GetOverviewResponse = zod.object({
           ),
         txHash: zod.string().nullable(),
         confirmedAt: zod.coerce.date().nullable(),
+        explorerUrl: zod
+          .string()
+          .nullable()
+          .describe(
+            "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+          ),
       }),
     }),
   ),
@@ -172,6 +178,12 @@ export const ListMemberBankAccountsResponseItem = zod.object({
       ),
     txHash: zod.string().nullable(),
     confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
   }),
 });
 export const ListMemberBankAccountsResponse = zod.array(
@@ -210,6 +222,12 @@ export const LinkBankAccountResponse = zod.object({
       ),
     txHash: zod.string().nullable(),
     confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
   }),
 });
 
@@ -251,6 +269,12 @@ export const CreateBankDepositResponse = zod.object({
         ),
       txHash: zod.string().nullable(),
       confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
     }),
   }),
   bankAccount: zod.object({
@@ -267,6 +291,12 @@ export const CreateBankDepositResponse = zod.object({
         ),
       txHash: zod.string().nullable(),
       confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
     }),
   }),
 });
@@ -291,6 +321,8 @@ export const createContributionBodyBankAccountIdMax = 2147483647;
 
 export const createContributionBodyAmountCentsMax = 1000000;
 
+export const createContributionBodyNoteMax = 140;
+
 export const CreateContributionBody = zod.object({
   memberId: zod
     .number()
@@ -309,6 +341,13 @@ export const CreateContributionBody = zod.object({
     .int()
     .min(1)
     .max(createContributionBodyAmountCentsMax),
+  note: zod
+    .string()
+    .max(createContributionBodyNoteMax)
+    .nullish()
+    .describe(
+      'Shown with the contribution. Empty or missing becomes "<bucket>, from <funder name>".',
+    ),
 });
 
 export const CreateContributionResponse = zod.object({
@@ -321,6 +360,9 @@ export const CreateContributionResponse = zod.object({
     bankName: zod.string(),
     bankLast4: zod.string(),
     amountCents: zod.number().int(),
+    note: zod
+      .string()
+      .describe('The funder\'s note, or "<bucket>, from <funder name>".'),
     createdAt: zod.coerce.date(),
     chain: zod.object({
       status: zod
@@ -330,6 +372,12 @@ export const CreateContributionResponse = zod.object({
         ),
       txHash: zod.string().nullable(),
       confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
     }),
   }),
   bankAccount: zod.object({
@@ -346,6 +394,12 @@ export const CreateContributionResponse = zod.object({
         ),
       txHash: zod.string().nullable(),
       confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
     }),
   }),
   bucket: zod.object({
@@ -364,6 +418,160 @@ export const CreateContributionResponse = zod.object({
         ),
       txHash: zod.string().nullable(),
       confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
+    }),
+  }),
+});
+
+/**
+ * The named member (a parent or funder) sends money from their bank: a simulated deposit, then a contribution of the same amount into the bucket, in one database transaction. Both are then mirrored on the testnet in the background; the response never waits for the chain.
+ * @summary Deposit into a member's bank and move it into a bucket, in one step
+ */
+export const sendMoneyToBucketPathBucketIdMax = 2147483647;
+
+export const SendMoneyToBucketParams = zod.object({
+  bucketId: zod.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(sendMoneyToBucketPathBucketIdMax),
+});
+
+export const sendMoneyToBucketBodyMemberIdMax = 2147483647;
+
+export const sendMoneyToBucketBodyBankAccountIdMax = 2147483647;
+
+export const sendMoneyToBucketBodyAmountCentsMax = 1000000;
+
+export const sendMoneyToBucketBodyNoteMax = 140;
+
+export const SendMoneyToBucketBody = zod.object({
+  memberId: zod
+    .number()
+    .int()
+    .min(1)
+    .max(sendMoneyToBucketBodyMemberIdMax)
+    .describe("The parent or funder moving the money."),
+  bankAccountId: zod
+    .number()
+    .int()
+    .min(1)
+    .max(sendMoneyToBucketBodyBankAccountIdMax)
+    .describe("One of that member's linked banks."),
+  amountCents: zod
+    .number()
+    .int()
+    .min(1)
+    .max(sendMoneyToBucketBodyAmountCentsMax),
+  note: zod
+    .string()
+    .max(sendMoneyToBucketBodyNoteMax)
+    .nullish()
+    .describe(
+      'Shown with the contribution. Empty or missing becomes "<bucket>, from <funder name>".',
+    ),
+});
+
+export const SendMoneyToBucketResponse = zod.object({
+  deposit: zod.object({
+    id: zod.number().int(),
+    bankAccountId: zod.number().int(),
+    amountCents: zod.number().int(),
+    createdAt: zod.coerce.date(),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
+    }),
+  }),
+  contribution: zod.object({
+    id: zod.number().int(),
+    memberId: zod.number().int(),
+    bucketId: zod.number().int(),
+    bucketName: zod.string(),
+    bankAccountId: zod.number().int(),
+    bankName: zod.string(),
+    bankLast4: zod.string(),
+    amountCents: zod.number().int(),
+    note: zod
+      .string()
+      .describe('The funder\'s note, or "<bucket>, from <funder name>".'),
+    createdAt: zod.coerce.date(),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
+    }),
+  }),
+  bankAccount: zod.object({
+    id: zod.number().int(),
+    memberId: zod.number().int(),
+    bankName: zod.string(),
+    last4: zod.string(),
+    balanceCents: zod.number().int(),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
+    }),
+  }),
+  bucket: zod.object({
+    id: zod.number().int(),
+    name: zod.string(),
+    perPurchaseLimitCents: zod.number().int(),
+    approvalThresholdCents: zod.number().int(),
+    availableCents: zod.number().int(),
+    heldCents: zod.number().int().describe("Authorized but not yet settled."),
+    spentCents: zod.number().int(),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
     }),
   }),
 });
@@ -395,6 +603,9 @@ export const ListMemberContributionsResponse = zod.object({
       bankName: zod.string(),
       bankLast4: zod.string(),
       amountCents: zod.number().int(),
+      note: zod
+        .string()
+        .describe('The funder\'s note, or "<bucket>, from <funder name>".'),
       createdAt: zod.coerce.date(),
       chain: zod.object({
         status: zod
@@ -404,6 +615,12 @@ export const ListMemberContributionsResponse = zod.object({
           ),
         txHash: zod.string().nullable(),
         confirmedAt: zod.coerce.date().nullable(),
+        explorerUrl: zod
+          .string()
+          .nullable()
+          .describe(
+            "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+          ),
       }),
     }),
   ),
@@ -515,6 +732,12 @@ export const CreateSwipeResponse = zod.object({
       ),
     txHash: zod.string().nullable(),
     confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
   }),
 });
 
@@ -538,6 +761,12 @@ export const ListMerchantsResponseItem = zod.object({
       ),
     txHash: zod.string().nullable(),
     confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
   }),
 });
 export const ListMerchantsResponse = zod.array(ListMerchantsResponseItem);
@@ -629,6 +858,12 @@ export const ListAuthorizationsResponseItem = zod.object({
       ),
     txHash: zod.string().nullable(),
     confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
   }),
   captureChain: zod.object({
     status: zod
@@ -638,6 +873,12 @@ export const ListAuthorizationsResponseItem = zod.object({
       ),
     txHash: zod.string().nullable(),
     confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
   }),
 });
 export const ListAuthorizationsResponse = zod.array(
@@ -717,6 +958,12 @@ export const ListApprovalsResponseItem = zod.object({
       ),
     txHash: zod.string().nullable(),
     confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
   }),
   captureChain: zod.object({
     status: zod
@@ -726,6 +973,12 @@ export const ListApprovalsResponseItem = zod.object({
       ),
     txHash: zod.string().nullable(),
     confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
   }),
 });
 export const ListApprovalsResponse = zod.array(ListApprovalsResponseItem);
@@ -750,6 +1003,12 @@ export const GetCardResponse = zod.object({
       ),
     txHash: zod.string().nullable(),
     confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
   }),
 });
 
@@ -774,6 +1033,12 @@ export const FreezeCardResponse = zod.object({
       ),
     txHash: zod.string().nullable(),
     confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
   }),
 });
 
@@ -798,6 +1063,12 @@ export const UnfreezeCardResponse = zod.object({
       ),
     txHash: zod.string().nullable(),
     confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
   }),
 });
 
@@ -916,6 +1187,12 @@ export const GetParentOverviewResponse = zod.object({
             ),
           txHash: zod.string().nullable(),
           confirmedAt: zod.coerce.date().nullable(),
+          explorerUrl: zod
+            .string()
+            .nullable()
+            .describe(
+              "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+            ),
         }),
       })
       .describe(
@@ -965,6 +1242,12 @@ export const ListBucketsResponseItem = zod
         ),
       txHash: zod.string().nullable(),
       confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
     }),
   })
   .describe(
@@ -988,7 +1271,9 @@ export const ListActivityResponseItem = zod.object({
   detail: zod
     .string()
     .nullable()
-    .describe("The decision reason, when there is one."),
+    .describe(
+      "The decision reason for a purchase, or the note for a contribution.",
+    ),
   amountCents: zod.number().int().describe("Always positive; see direction."),
   direction: zod.enum(["in", "out"]),
   decision: zod.union([
@@ -1033,6 +1318,12 @@ export const ListActivityResponseItem = zod.object({
       ),
     txHash: zod.string().nullable(),
     confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
   }),
 });
 export const ListActivityResponse = zod.array(ListActivityResponseItem);
@@ -1058,6 +1349,12 @@ export const GetCardAndPolicyResponse = zod.object({
         ),
       txHash: zod.string().nullable(),
       confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
     }),
   }),
   policy: zod
@@ -1132,6 +1429,12 @@ export const GetDependentWalletResponse = zod.object({
         ),
       txHash: zod.string().nullable(),
       confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
     }),
   }),
   totalAvailableCents: zod.number().int(),
@@ -1179,6 +1482,12 @@ export const GetDependentWalletResponse = zod.object({
             ),
           txHash: zod.string().nullable(),
           confirmedAt: zod.coerce.date().nullable(),
+          explorerUrl: zod
+            .string()
+            .nullable()
+            .describe(
+              "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+            ),
         }),
       })
       .describe(

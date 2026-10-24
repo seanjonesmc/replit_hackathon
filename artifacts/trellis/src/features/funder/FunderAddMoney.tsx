@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Check, Landmark, PiggyBank } from 'lucide-react';
-import { useListBuckets } from '@workspace/api-client-react';
+import { useState, type FormEvent } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Check, Info, Landmark, PiggyBank, Send } from 'lucide-react';
+import { useListBuckets, useSendMoneyToBucket, type SendMoneyResult } from '@workspace/api-client-react';
 import { BucketIconBadge } from '@/components/trellis/bucket-card';
 import { EmptyState } from '@/components/trellis/empty-state';
 import { ChainBadge, PillButton, SectionTitle } from '@/components/trellis/primitives';
@@ -9,14 +10,33 @@ import { ComingSoonNote, ErrorState } from '@/components/trellis/states';
 import { ScreenHeader } from '@/features/shell/layout';
 import { HeroBalanceCard } from '@/components/trellis/hero-balance-card';
 import { chainStatusOf } from '@/lib/chain';
-import { formatCents } from '@/lib/format';
+import { formatCents, formatCentsShort, formatUsdc, parseDollarsToCents } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { SendMoneyConfirmation } from './SendMoneyConfirmation';
 import { useFunderContributions } from './use-funder';
+
+/** The demo script's opening amount: the presenter can send it as is. */
+const DEFAULT_AMOUNT = '50';
+const NOTE_MAX = 140;
+
+const fieldCls =
+  'w-full rounded-card-sm border-2 border-transparent bg-surface-alt px-4 text-ink outline-none transition-colors placeholder:text-ink-muted focus:border-primary';
+
+function errorMessage(error: unknown): string {
+  const data = (error as { data?: unknown } | null)?.data;
+  if (data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') return data.error;
+  return "Couldn't send the money. Please try again.";
+}
 
 export default function FunderAddMoney() {
   const funder = useFunderContributions();
   const buckets = useListBuckets();
-  const [selected, setSelected] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const send = useSendMoneyToBucket();
+  const [chosen, setChosen] = useState<number | null>(null);
+  const [amount, setAmount] = useState(DEFAULT_AMOUNT);
+  const [note, setNote] = useState('');
+  const [sent, setSent] = useState<SendMoneyResult | null>(null);
 
   if (funder.isLoading || buckets.isLoading) {
     return (
@@ -44,8 +64,51 @@ export default function FunderAddMoney() {
   const name = funder.funder?.displayName;
   const bank = funder.bank;
   const list = buckets.data ?? [];
+  // The first bucket is picked until the presenter chooses another.
+  const selected = list.find((b) => b.id === chosen) ?? list[0] ?? null;
+  const amountCents = parseDollarsToCents(amount);
+  const notePlaceholder = selected && name ? `${selected.name}, from ${name}` : 'Add a note';
+  const canSend = Boolean(funder.funder && bank && selected && amountCents !== null) && !send.isPending;
+
+  if (sent && funder.funder) {
+    return (
+      <SendMoneyConfirmation
+        result={sent}
+        funderId={funder.funder.id}
+        onDone={() => {
+          setSent(null);
+          setNote('');
+          send.reset();
+        }}
+      />
+    );
+  }
+
+  const onSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    if (!funder.funder || !bank || !selected || amountCents === null) return;
+    send.mutate(
+      {
+        bucketId: selected.id,
+        data: {
+          memberId: funder.funder.id,
+          bankAccountId: bank.id,
+          amountCents,
+          note: note.trim() || null,
+        },
+      },
+      {
+        onSuccess: (result) => {
+          setSent(result);
+          // Every screen showing a balance or the feed picks up the new money.
+          void queryClient.invalidateQueries();
+        },
+      },
+    );
+  };
+
   return (
-    <>
+    <form onSubmit={onSubmit} noValidate>
       <ScreenHeader title={name ? `Hi, ${name}` : 'Add money'} subtitle="Pick a bucket to top up." />
 
       <section aria-labelledby="bank-title">
@@ -88,14 +151,14 @@ export default function FunderAddMoney() {
         ) : (
           <div role="radiogroup" aria-labelledby="bucket-choice-title" className="flex flex-col gap-2">
             {list.map((b) => {
-              const isSelected = selected === b.id;
+              const isSelected = selected?.id === b.id;
               return (
                 <button
                   key={b.id}
                   type="button"
                   role="radio"
                   aria-checked={isSelected}
-                  onClick={() => setSelected(b.id)}
+                  onClick={() => setChosen(b.id)}
                   className={cn(
                     'flex items-center gap-3 rounded-card-sm border-2 bg-surface-alt p-4 text-left transition-colors',
                     isSelected ? 'border-primary' : 'border-transparent hover:border-hairline',
@@ -127,12 +190,83 @@ export default function FunderAddMoney() {
         )}
       </section>
 
-      <div className="mt-8 flex flex-col gap-2">
-        <PillButton block disabled icon={<PiggyBank className="size-5" aria-hidden="true" />} data-testid="button-add-money">
-          Add money
-        </PillButton>
-        <ComingSoonNote className="justify-center">Adding money arrives in a later step of the demo.</ComingSoonNote>
+      <section className="mt-8 flex flex-col gap-4" aria-labelledby="amount-title">
+        <SectionTitle>
+          <span id="amount-title">How much</span>
+        </SectionTitle>
+        <div>
+          <label htmlFor="send-amount" className="type-label mb-2 block px-1 text-ink-muted">
+            Amount in dollars
+          </label>
+          <div className="relative">
+            <span className="type-title pointer-events-none absolute inset-y-0 left-4 grid place-items-center text-ink-muted" aria-hidden="true">
+              $
+            </span>
+            <input
+              id="send-amount"
+              inputMode="decimal"
+              autoComplete="off"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              aria-invalid={amountCents === null}
+              aria-describedby="send-amount-help"
+              className={cn(fieldCls, 'type-title tnum h-14 pl-9', amountCents === null && 'border-rejected focus:border-rejected')}
+              data-testid="input-amount"
+            />
+          </div>
+          <p id="send-amount-help" className={cn('type-caption mt-2 px-1', amountCents === null ? 'text-rejected' : 'text-ink-muted')}>
+            {amountCents === null
+              ? 'Enter an amount, like 50 or 12.50.'
+              : `Arrives as ${formatUsdc(amountCents)} in ${selected?.name ?? 'the bucket'}.`}
+          </p>
+        </div>
+        <div>
+          <label htmlFor="send-note" className="type-label mb-2 block px-1 text-ink-muted">
+            Note <span className="font-normal">(optional)</span>
+          </label>
+          <input
+            id="send-note"
+            value={note}
+            maxLength={NOTE_MAX}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder={notePlaceholder}
+            className={cn(fieldCls, 'type-body-sm h-12')}
+            data-testid="input-note"
+          />
+        </div>
+      </section>
+
+      <div className="mt-6 rounded-card-sm bg-chain-bg p-4 text-chain" data-testid="note-usdc-testnet">
+        <p className="type-body-sm flex gap-2">
+          <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span>
+            Your bank sends dollars. Our partner bank converts them to USDC, one for one, and puts them in the family vault on
+            Monad.
+          </span>
+        </p>
+        <p className="type-caption mt-2 pl-6">
+          Testnet demo: the USDC here is a stand-in, the project's own test dollar token. No real money or real USDC moves.
+        </p>
       </div>
-    </>
+
+      <div className="mt-6 flex flex-col gap-2">
+        {send.isError && (
+          <p role="alert" className="type-caption rounded-card-sm bg-rejected-bg px-4 py-3 text-rejected" data-testid="text-send-error">
+            {errorMessage(send.error)}
+          </p>
+        )}
+        <PillButton
+          type="submit"
+          block
+          disabled={!canSend}
+          loading={send.isPending}
+          icon={<Send className="size-5" aria-hidden="true" />}
+          data-testid="button-send-money"
+        >
+          {amountCents !== null ? `Send ${formatCentsShort(amountCents)}` : 'Send'}
+        </PillButton>
+        <ComingSoonNote className="justify-center">Sending USDC straight from a wallet abroad arrives later.</ComingSoonNote>
+      </div>
+    </form>
   );
 }

@@ -50,3 +50,22 @@ export function formatWhen(iso: string, now: Date = new Date()): string {
 /** Card expiry as "10/29". */
 export const formatExpiry = (month: number, year: number) =>
   `${String(month).padStart(2, '0')}/${String(year % 100).padStart(2, '0')}`;
+
+/** Whole dollars drop their cents: 5000 -> "$50", 1250 -> "$12.50". */
+export const formatCentsShort = (cents: number) =>
+  cents % 100 === 0 ? (cents < 0 ? '-' : '') + '$' + Math.abs(cents / 100).toLocaleString('en-US') : formatCents(cents);
+
+/** Cents as the matching USDC amount (1 USD = 1 USDC): 5000 -> "50 USDC", 1250 -> "12.50 USDC". */
+export const formatUsdc = (cents: number) => formatCentsShort(cents).replace('$', '') + ' USDC';
+
+/**
+ * Parses a typed dollar amount into whole cents: "50" -> 5000, "$12.5" -> 1250.
+ * Returns null for anything that isn't a positive amount with at most two decimals.
+ */
+export function parseDollarsToCents(input: string): number | null {
+  const cleaned = input.trim().replace(/^\$/, '').replace(/,/g, '');
+  if (!/^\d+(\.\d{0,2})?$/.test(cleaned)) return null;
+  const [whole = '0', frac = ''] = cleaned.split('.');
+  const cents = Number(whole) * 100 + Number(frac.padEnd(2, '0'));
+  return Number.isSafeInteger(cents) && cents > 0 ? cents : null;
+}

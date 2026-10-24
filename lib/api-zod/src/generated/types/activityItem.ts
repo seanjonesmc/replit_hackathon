@@ -22,7 +22,7 @@ export interface ActivityItem {
   /** One plain-English sentence describing the row. */
   summary: string;
   /**
-   * The decision reason, when there is one.
+   * The decision reason for a purchase, or the note for a contribution.
    * @nullable
    */
   detail: string | null;

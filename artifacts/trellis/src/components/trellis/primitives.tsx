@@ -110,10 +110,17 @@ export function StatusPill({ status, className }: { status: Decision; className?
  * verified: only render with a real explorer href (never fabricated).
  * confirming: chain call in flight.
  * offchain: a real record that has not been written on chain yet.
+ * failed: the chain write failed, so the record is in the app only.
  * preview: design-preview sample, nothing was sent.
  */
-export function VerifiedBadge({ state, href }: { state: 'verified' | 'confirming' | 'offchain' | 'preview'; href?: string }) {
+export function VerifiedBadge({ state, href }: { state: 'verified' | 'confirming' | 'offchain' | 'failed' | 'preview'; href?: string }) {
   const base = 'inline-flex h-7 items-center gap-1.5 rounded-pill px-3 text-[13px] font-semibold';
+  if (state === 'failed')
+    return (
+      <span className={cn(base, 'border border-dashed border-hairline bg-surface text-ink-muted')} data-testid="badge-chain-failed">
+        <ShieldOff className="size-3.5" aria-hidden="true" /> Not on chain
+      </span>
+    );
   if (state === 'offchain')
     return (
       <span className={cn(base, 'border border-dashed border-hairline bg-surface text-ink-muted')} data-testid="badge-offchain">

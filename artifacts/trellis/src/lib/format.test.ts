@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatCents, formatDecisionTime, formatDurationMs, formatSignedCents } from './format';
+import { formatCents, formatCentsShort, formatDecisionTime, formatDurationMs, formatSignedCents, formatUsdc, parseDollarsToCents } from './format';
 import { cn } from './utils';
 
 describe('money formatting', () => {
@@ -27,6 +27,25 @@ describe('formatDurationMs', () => {
     [1520, '1.5 s'],
   ])('%s ms -> %s', (ms, label) => {
     expect(formatDurationMs(ms)).toBe(label);
+  });
+});
+
+describe('send-money amounts', () => {
+  it('shows whole dollars without cents, and the same amount in USDC', () => {
+    expect(formatCentsShort(5000)).toBe('$50');
+    expect(formatCentsShort(1250)).toBe('$12.50');
+    expect(formatUsdc(5000)).toBe('50 USDC');
+    expect(formatUsdc(1250)).toBe('12.50 USDC');
+    expect(formatUsdc(500000)).toBe('5,000 USDC');
+  });
+
+  it('parses typed dollars into cents and rejects anything else', () => {
+    expect(parseDollarsToCents('50')).toBe(5000);
+    expect(parseDollarsToCents('$12.5')).toBe(1250);
+    expect(parseDollarsToCents('1,000.05')).toBe(100005);
+    for (const bad of ['', '0', '0.00', '-5', '12.345', 'abc', '5e3']) {
+      expect(parseDollarsToCents(bad)).toBeNull();
+    }
   });
 });
 

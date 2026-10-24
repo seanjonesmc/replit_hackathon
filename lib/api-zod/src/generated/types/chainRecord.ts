@@ -13,4 +13,9 @@ export interface ChainRecord {
   txHash: string | null;
   /** @nullable */
   confirmedAt: Date | null;
+  /**
+   * The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.
+   * @nullable
+   */
+  explorerUrl: string | null;
 }

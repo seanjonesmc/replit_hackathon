@@ -47,6 +47,11 @@ export interface ChainRecord {
   txHash: string | null;
   /** @nullable */
   confirmedAt: string | null;
+  /**
+   * The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.
+   * @nullable
+   */
+  explorerUrl: string | null;
 }
 
 export type MemberRole = (typeof MemberRole)[keyof typeof MemberRole];
@@ -158,6 +163,12 @@ export interface ContributionRequest {
    * @maximum 1000000
    */
   amountCents: number;
+  /**
+   * Shown with the contribution. Empty or missing becomes "<bucket>, from <funder name>".
+   * @maxLength 140
+   * @nullable
+   */
+  note?: string | null;
 }
 
 export interface Contribution {
@@ -169,11 +180,20 @@ export interface Contribution {
   bankName: string;
   bankLast4: string;
   amountCents: number;
+  /** The funder's note, or "<bucket>, from <funder name>". */
+  note: string;
   createdAt: string;
   chain: ChainRecord;
 }
 
 export interface ContributionResult {
+  contribution: Contribution;
+  bankAccount: BankAccount;
+  bucket: Bucket;
+}
+
+export interface SendMoneyResult {
+  deposit: BankDeposit;
   contribution: Contribution;
   bankAccount: BankAccount;
   bucket: Bucket;
@@ -536,7 +556,7 @@ export interface ActivityItem {
   /** One plain-English sentence describing the row. */
   summary: string;
   /**
-   * The decision reason, when there is one.
+   * The decision reason for a purchase, or the note for a contribution.
    * @nullable
    */
   detail: string | null;

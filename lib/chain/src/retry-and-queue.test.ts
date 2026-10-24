@@ -39,6 +39,7 @@ describe("RPC error classification", () => {
   it("recognises nonce and already-known errors from the message or code", () => {
     expect(isNonceError(Object.assign(new Error("x"), { code: "NONCE_EXPIRED" }))).toBe(true);
     expect(isNonceError(rpcError(-32000, "Nonce too high"))).toBe(true);
+    expect(isNonceError(rpcError(-32000, "An existing transaction had higher priority"))).toBe(true);
     expect(isNonceError(rpcError(-32000, "gas too low"))).toBe(false);
     expect(isAlreadyKnownError(rpcError(-32000, "known transaction: 0xabc"))).toBe(true);
   });

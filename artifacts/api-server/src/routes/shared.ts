@@ -1,22 +1,13 @@
-import type { ChainRecord, ErrorEnvelope } from "@workspace/api-zod";
+import type { ErrorEnvelope } from "@workspace/api-zod";
 import type { ErrorRequestHandler, Response } from "express";
 import type { z } from "zod";
+import { toChainRecord } from "../services/events";
 import { FamilyServiceError } from "../services/family";
 
 /** Helpers shared by the product routers. */
 
-/** A row's chain columns as the API's ChainRecord. */
-export function toChain(row: {
-  chainStatus: ChainRecord["status"];
-  chainTxHash: string | null;
-  chainConfirmedAt: Date | null;
-}): ChainRecord {
-  return {
-    status: row.chainStatus,
-    txHash: row.chainTxHash,
-    confirmedAt: row.chainConfirmedAt,
-  };
-}
+/** A row's chain columns as the API's ChainRecord (with its explorer link). */
+export const toChain = toChainRecord;
 
 /** Parses input, or sends 400 with the first problem and returns undefined. */
 export function parseOr400<S extends z.ZodTypeAny>(

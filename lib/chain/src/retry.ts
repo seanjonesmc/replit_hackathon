@@ -19,7 +19,10 @@ const TRANSIENT_RPC_CODES = new Set([-32005, 429]);
 const TRANSIENT_MESSAGE =
   /timeout|timed out|rate limit|too many requests|temporarily unavailable|service unavailable|bad gateway|gateway timeout|socket hang up|connection reset|network error|fetch failed/i;
 
-const NONCE_MESSAGE = /nonce too (low|high)|invalid nonce|nonce has already been used|incorrect nonce/i;
+// Monad says "An existing transaction had higher priority" when another
+// sender with the same key already holds this nonce in the mempool.
+const NONCE_MESSAGE =
+  /nonce too (low|high)|invalid nonce|nonce has already been used|incorrect nonce|existing transaction had higher priority/i;
 const ALREADY_KNOWN_MESSAGE = /already known|known transaction|already imported|already in (the )?mempool/i;
 
 interface ErrorLayer {

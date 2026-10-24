@@ -16,6 +16,8 @@ export interface Contribution {
   bankName: string;
   bankLast4: string;
   amountCents: number;
+  /** The funder's note, or "<bucket>, from <funder name>". */
+  note: string;
   createdAt: Date;
   chain: ChainRecord;
 }

@@ -22,9 +22,19 @@ export {
 } from "./banks";
 export {
   contributeToBucket,
+  contributionNote,
+  defaultContributionNote,
   listMemberContributions,
+  sendMoneyToBucket,
   type ContributionDetail,
+  type ContributionInput,
+  type ContributionOutcome,
 } from "./contributions";
+export {
+  mirrorContributionOnChain,
+  mirrorDepositOnChain,
+  mirrorSendMoneyOnChain,
+} from "./chain-mirror";
 export { memberOnchainId, seedDemoFamily, type SeedResult } from "./seed";
 export {
   getActivity,

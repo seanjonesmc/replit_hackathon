@@ -60,6 +60,9 @@ export default function FunderMoney() {
                       <p className="type-body-sm">You added money to {c.bucketName}</p>
                       <span className="type-link-sm tnum shrink-0 text-approved">+{formatCents(c.amountCents)}</span>
                     </div>
+                    <p className="type-caption mt-1 text-ink-muted" data-testid={`text-contribution-note-${c.id}`}>
+                      {c.note}
+                    </p>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <span className="type-caption text-ink-muted">{formatWhen(c.createdAt)}</span>
                       <ChainBadge status={chainStatusOf(c.chain)} />

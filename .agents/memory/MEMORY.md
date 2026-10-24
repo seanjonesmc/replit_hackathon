@@ -10,7 +10,7 @@
 - [happy-dom quirks](happy-dom-quirks.md) — to fake blocked storage, spy on the window.localStorage getter; Storage.prototype spies do nothing.
 - [Effect return values](effect-return-values.md) — Chrome's scrollTo returns a Promise; expression-bodied effects crash on cleanup. Use braces.
 - [Brand scan covers tests](brand-values-scan.md) — `pnpm test` fails on BRAND names even in contract/lib tests; use neutral placeholders.
-- [Chain client invariants](chain-client.md) — SHA-256 IDs must never change; queue holds until mined because gas is unpadded.
+- [Chain client invariants](chain-client.md) — SHA-256 IDs never change; one tx in flight; shared deployer key → nonce clashes; writes go via background-submit.
 - [API codegen quirks](api-codegen-quirks.md) — generated client date-times are ISO strings while server Zod schemas use Date.
 - [Changing the demo seed](demo-seed-changes.md) — app and deploy seeds change together; old DBs/contract need reseed; Food's $60<$75 kept on purpose.
 - [Monad testnet deploy](monad-testnet-deploy.md) — ~1 MON per deploy+seed, Sourcify verify works, addresses are env vars, typechecking contracts scripts.

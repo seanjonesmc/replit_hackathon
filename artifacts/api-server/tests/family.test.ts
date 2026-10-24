@@ -52,6 +52,11 @@ const FAMILY_ROUTES = [
     path: "/api/buckets/1/contributions",
     body: { memberId: 1, bankAccountId: 1, amountCents: 100 },
   },
+  {
+    method: "POST",
+    path: "/api/buckets/1/send-money",
+    body: { memberId: 1, bankAccountId: 1, amountCents: 5000, note: "For lunch" },
+  },
   { method: "GET", path: "/api/members/1/contributions" },
 ] as const;
 
@@ -112,5 +117,22 @@ describe("family routes input validation", () => {
     expect(res.status).toBe(400);
     const body = (await res.json()) as { error: string };
     expect(body.error).toMatch(/^amountCents: /);
+  });
+
+  it("rejects a send-money note over 140 characters with 400 JSON", async () => {
+    const res = await fetch(`${baseUrl}/api/buckets/1/send-money`, {
+      method: "POST",
+      headers: signedIn,
+      body: JSON.stringify({
+        memberId: 1,
+        bankAccountId: 1,
+        amountCents: 5000,
+        note: "x".repeat(141),
+      }),
+    });
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toMatch(/^note: /);
   });
 });

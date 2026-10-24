@@ -709,7 +709,12 @@ export class ChainClient {
         return { txHash, nonce, startedAt };
       } catch (error) {
         this.#nonce = null;
-        if (isNonceError(error) && resync < this.#nonceResyncs) continue;
+        if (isNonceError(error) && resync < this.#nonceResyncs) {
+          // Give a competing transaction for this nonce time to be mined, so
+          // the fresh pending count moves past it.
+          await sleep(this.#retry.baseDelayMs * 2 ** resync);
+          continue;
+        }
         throw error;
       }
     }

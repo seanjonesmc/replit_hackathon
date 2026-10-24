@@ -10,7 +10,7 @@ const merchant = (id: number, name: string, mcc: string, category: string): Merc
   mcc,
   category,
   onchainId: `0x${String(id).padStart(64, '0')}`,
-  chain: { status: 'not_submitted', txHash: null, confirmedAt: null },
+  chain: { status: 'not_submitted', txHash: null, confirmedAt: null, explorerUrl: null },
 });
 
 // The seed's merchants, in seed order.

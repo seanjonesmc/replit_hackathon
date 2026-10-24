@@ -5,7 +5,7 @@ import { useListApprovals, type Authorization, type Card, type Merchant, type Sw
 import { byTestId, cleanupApi, countCalls, mockApi, renderWithApi, settle, type ApiRoutes } from '@/test/api-test-utils';
 import SwipeSimulator from './SwipeSimulator';
 
-const chain = { status: 'not_submitted', txHash: null, confirmedAt: null } as const;
+const chain = { status: 'not_submitted', txHash: null, confirmedAt: null, explorerUrl: null } as const;
 
 const card = (status: Card['status'] = 'active'): Card => ({
   id: 3,

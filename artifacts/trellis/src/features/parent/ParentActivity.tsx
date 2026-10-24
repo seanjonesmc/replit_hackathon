@@ -5,9 +5,13 @@ import { ActivityRowSkeleton, LoadingRegion } from '@/components/trellis/skeleto
 import { ErrorState } from '@/components/trellis/states';
 import { FamilyActivityRow } from '@/features/family/FamilyActivityRow';
 import { ScreenHeader } from '@/features/shell/layout';
+import { isChainInFlight } from '@/lib/chain';
 
 export default function ParentActivity() {
-  const { data, isLoading, isError, refetch, isFetching } = useListActivity();
+  // Poll while a chain write is in flight so its badge turns into a link once mined.
+  const { data, isLoading, isError, refetch, isFetching } = useListActivity({
+    query: { refetchInterval: (q) => (q.state.data?.some((a) => isChainInFlight(a.chain)) ? 2000 : false) },
+  });
   return (
     <>
       <ScreenHeader title="Activity" subtitle="Every purchase and every dollar added, newest first." />

@@ -5,6 +5,9 @@ import {
   CreateContributionBody,
   CreateContributionParams,
   CreateContributionResponse,
+  SendMoneyToBucketBody,
+  SendMoneyToBucketParams,
+  SendMoneyToBucketResponse,
   GetFamilyResponse,
   GetOverviewResponse,
   LinkBankAccountBody,
@@ -28,7 +31,13 @@ import { Router, type IRouter } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import {
   contributeToBucket,
+  contributionNote,
   depositToBank,
+  getFamilyMember,
+  mirrorContributionOnChain,
+  mirrorDepositOnChain,
+  mirrorSendMoneyOnChain,
+  sendMoneyToBucket,
   getFamilyWithMembers,
   getOverview,
   linkBankAccount,
@@ -110,6 +119,7 @@ function toContribution(d: ContributionDetail): ApiContribution {
     bankName: d.bankName,
     bankLast4: d.bankLast4,
     amountCents: c.amountCents,
+    note: contributionNote(c.note, d.bucketName, d.funderName),
     createdAt: c.createdAt,
     chain: toChain(c),
   };
@@ -178,6 +188,8 @@ router.post(
       bankAccountId: params.bankAccountId,
       amountCents: body.amountCents,
     });
+    const owner = await getFamilyMember(bankAccount.memberId);
+    void mirrorDepositOnChain({ deposit, memberOnchainId: owner.onchainId });
     res.status(201).json(
       CreateBankDepositResponse.parse({
         deposit: toDeposit(deposit),
@@ -195,11 +207,18 @@ router.post(
     if (!params) return;
     const body = parseOr400(CreateContributionBody, req.body, res);
     if (!body) return;
-    const { contribution, bankAccount, bucket } = await contributeToBucket({
-      bucketId: params.bucketId,
-      memberId: body.memberId,
-      bankAccountId: body.bankAccountId,
-      amountCents: body.amountCents,
+    const { contribution, bankAccount, bucket, funder } =
+      await contributeToBucket({
+        bucketId: params.bucketId,
+        memberId: body.memberId,
+        bankAccountId: body.bankAccountId,
+        amountCents: body.amountCents,
+        note: body.note,
+      });
+    void mirrorContributionOnChain({
+      contribution,
+      bucketName: bucket.name,
+      funderOnchainId: funder.onchainId,
     });
     res.status(201).json(
       CreateContributionResponse.parse({
@@ -208,6 +227,50 @@ router.post(
           bucketName: bucket.name,
           bankName: bankAccount.bankName,
           bankLast4: bankAccount.last4,
+          funderName: funder.displayName,
+        }),
+        bankAccount: toBankAccount(bankAccount),
+        bucket: toBucket(bucket),
+      }),
+    );
+  },
+);
+
+/**
+ * The funder's one-tap send: deposit, then contribute, in one transaction.
+ * The chain mirror runs after the commit and the response never waits on it.
+ */
+router.post(
+  "/buckets/:bucketId/send-money",
+  requireAuth,
+  async (req, res) => {
+    const params = parseOr400(SendMoneyToBucketParams, req.params, res);
+    if (!params) return;
+    const body = parseOr400(SendMoneyToBucketBody, req.body, res);
+    if (!body) return;
+    const { deposit, contribution, bankAccount, bucket, funder } =
+      await sendMoneyToBucket({
+        bucketId: params.bucketId,
+        memberId: body.memberId,
+        bankAccountId: body.bankAccountId,
+        amountCents: body.amountCents,
+        note: body.note,
+      });
+    void mirrorSendMoneyOnChain({
+      deposit,
+      contribution,
+      bucketName: bucket.name,
+      funderOnchainId: funder.onchainId,
+    });
+    res.status(201).json(
+      SendMoneyToBucketResponse.parse({
+        deposit: toDeposit(deposit),
+        contribution: toContribution({
+          contribution,
+          bucketName: bucket.name,
+          bankName: bankAccount.bankName,
+          bankLast4: bankAccount.last4,
+          funderName: funder.displayName,
         }),
         bankAccount: toBankAccount(bankAccount),
         bucket: toBucket(bucket),

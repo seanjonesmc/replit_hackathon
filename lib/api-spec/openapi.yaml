@@ -258,6 +258,39 @@ paths:
           $ref: "#/components/responses/NotFound"
         "422":
           $ref: "#/components/responses/Unprocessable"
+  /buckets/{bucketId}/send-money:
+    parameters:
+      - $ref: "#/components/parameters/BucketId"
+    post:
+      tags: [Family]
+      operationId: sendMoneyToBucket
+      summary: Deposit into a member's bank and move it into a bucket, in one step
+      description: >-
+        The named member (a parent or funder) sends money from their bank: a
+        simulated deposit, then a contribution of the same amount into the
+        bucket, in one database transaction. Both are then mirrored on the
+        testnet in the background; the response never waits for the chain.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContributionRequest"
+      responses:
+        "201":
+          description: The deposit, the contribution, and the bank and bucket after the move.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendMoneyResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
   /members/{memberId}/contributions:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -657,7 +690,7 @@ components:
       enum: [not_submitted, submitted, confirmed, failed]
     ChainRecord:
       type: object
-      required: [status, txHash, confirmedAt]
+      required: [status, txHash, confirmedAt, explorerUrl]
       properties:
         status:
           $ref: "#/components/schemas/ChainStatus"
@@ -666,6 +699,11 @@ components:
         confirmedAt:
           type: [string, "null"]
           format: date-time
+        explorerUrl:
+          type: [string, "null"]
+          description: >-
+            The transaction on the testnet block explorer. Set only once the
+            transaction is confirmed; null otherwise.
     MemberRole:
       type: string
       enum: [parent, funder, dependent]
@@ -828,6 +866,12 @@ components:
           type: integer
           minimum: 1
           maximum: 1000000
+        note:
+          type: [string, "null"]
+          maxLength: 140
+          description: >-
+            Shown with the contribution. Empty or missing becomes
+            "<bucket>, from <funder name>".
     Contribution:
       type: object
       required:
@@ -839,6 +883,7 @@ components:
         - bankName
         - bankLast4
         - amountCents
+        - note
         - createdAt
         - chain
       properties:
@@ -858,6 +903,9 @@ components:
           type: string
         amountCents:
           type: integer
+        note:
+          type: string
+          description: The funder's note, or "<bucket>, from <funder name>".
         createdAt:
           type: string
           format: date-time
@@ -867,6 +915,18 @@ components:
       type: object
       required: [contribution, bankAccount, bucket]
       properties:
+        contribution:
+          $ref: "#/components/schemas/Contribution"
+        bankAccount:
+          $ref: "#/components/schemas/BankAccount"
+        bucket:
+          $ref: "#/components/schemas/Bucket"
+    SendMoneyResult:
+      type: object
+      required: [deposit, contribution, bankAccount, bucket]
+      properties:
+        deposit:
+          $ref: "#/components/schemas/BankDeposit"
         contribution:
           $ref: "#/components/schemas/Contribution"
         bankAccount:
@@ -1362,7 +1422,9 @@ components:
           description: One plain-English sentence describing the row.
         detail:
           type: [string, "null"]
-          description: The decision reason, when there is one.
+          description: >-
+            The decision reason for a purchase, or the note for a
+            contribution.
         amountCents:
           type: integer
           description: Always positive; see direction.

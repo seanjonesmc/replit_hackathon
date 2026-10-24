@@ -10,7 +10,6 @@ import {
   policiesTable,
   type Authorization as AuthorizationRow,
   type Card as CardRow,
-  type ChainStatus,
   type DecidedBy as DecidedByRow,
   type Member as MemberRow,
 } from "@workspace/db/schema";
@@ -19,7 +18,6 @@ import type {
   BucketSummary,
   Card,
   CardAndPolicy,
-  ChainRecord,
   DecidedBy,
   Decision,
   DependentWallet,
@@ -27,7 +25,9 @@ import type {
   ParentOverview,
   TimelineStep,
 } from "@workspace/api-zod";
+import { toChainRecord } from "../events/chain-record";
 import { describePolicy } from "../policies/plain-english";
+import { contributionNote } from "./contributions";
 import { FamilyServiceError } from "./errors";
 import { formatAmount } from "./format";
 import { categoryLabel, spentOnPhrase } from "./labels";
@@ -45,9 +45,7 @@ const DECIDED_BY: Record<DecidedByRow, DecidedBy> = {
   ai_guard: "AI guard",
 };
 
-function chain(row: { chainStatus: ChainStatus; chainTxHash: string | null; chainConfirmedAt: Date | null }): ChainRecord {
-  return { status: row.chainStatus, txHash: row.chainTxHash, confirmedAt: row.chainConfirmedAt };
-}
+const chain = toChainRecord;
 
 function toMember(m: MemberRow): Member {
   return {
@@ -284,7 +282,7 @@ export async function getActivity(familyId: number, database: Database = default
       occurredAt: c.createdAt,
       actorName: funder,
       summary: `${funder} added ${formatAmount(c.amountCents)} to ${bucketName}`,
-      detail: null,
+      detail: contributionNote(c.note, bucketName, funder),
       amountCents: c.amountCents,
       direction: "in",
       decision: null,

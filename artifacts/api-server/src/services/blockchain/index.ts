@@ -5,11 +5,14 @@
  */
 import {
   createChainClient,
+  DEFAULT_EXPLORER_URL,
+  explorerTxUrl,
   type ChainClient,
   type ChainReadiness,
 } from "@workspace/chain";
 import { readChainSetup, type ChainEnv, type ChainSetup } from "./config";
 
+export { ChainBucketNotFoundError, findChainBucketId } from "./buckets";
 export { CHAIN_ENV_NAMES, readChainSetup, type ChainEnv, type ChainSetup } from "./config";
 
 export class ChainNotConfiguredError extends Error {
@@ -52,6 +55,18 @@ let processService: BlockchainService | null = null;
 /** The process-wide service, read from process.env on first use. */
 function service(): BlockchainService {
   return (processService ??= createBlockchainService(process.env));
+}
+
+/**
+ * The block explorer's page for a transaction, from MONAD_EXPLORER_URL (or
+ * the default explorer). Works whether or not the chain is configured.
+ */
+export function chainTxUrl(txHash: string): string {
+  const { setup } = service();
+  const base = setup.configured
+    ? setup.options.explorerUrl
+    : process.env["MONAD_EXPLORER_URL"]?.trim() || DEFAULT_EXPLORER_URL;
+  return explorerTxUrl(base, txHash);
 }
 
 export const isChainConfigured = (): boolean => service().isConfigured();

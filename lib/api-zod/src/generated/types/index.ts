@@ -61,6 +61,7 @@ export * from "./policyTimeWindow";
 export * from "./policyView";
 export * from "./potTotals";
 export * from "./reasonCode";
+export * from "./sendMoneyResult";
 export * from "./swipeRequest";
 export * from "./swipeResult";
 export * from "./timelineStep";

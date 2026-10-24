@@ -1,4 +1,5 @@
 import { useGetFamily, useListMemberBankAccounts, useListMemberContributions } from '@workspace/api-client-react';
+import { isChainInFlight } from '@/lib/chain';
 
 /**
  * The grandparent's view: finds their member record in the family, then loads
@@ -10,9 +11,17 @@ export function useFunderContributions() {
   const funder = members.find((m) => m.relationship === 'grandparent') ?? members.find((m) => m.role === 'funder');
   const enabled = funder !== undefined;
   const banks = useListMemberBankAccounts(funder?.id ?? 0, { query: { enabled } });
-  const contributions = useListMemberContributions(funder?.id ?? 0, { query: { enabled } });
+  // Poll while a contribution's chain write is in flight, until it is mined or fails.
+  const contributions = useListMemberContributions(funder?.id ?? 0, {
+    query: {
+      enabled,
+      refetchInterval: (q) => (q.state.data?.contributions.some((c) => isChainInFlight(c.chain)) ? 2000 : false),
+    },
+  });
   return {
     funder,
+    /** Every bank the funder linked. */
+    banks: banks.data ?? [],
     /** The bank they add money from (the first one linked). */
     bank: banks.data?.[0] ?? null,
     totalCents: contributions.data?.totalCents ?? 0,

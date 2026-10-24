@@ -24,4 +24,10 @@ export interface ContributionRequest {
    * @maximum 1000000
    */
   amountCents: number;
+  /**
+   * Shown with the contribution. Empty or missing becomes "<bucket>, from <funder name>".
+   * @maxLength 140
+   * @nullable
+   */
+  note?: string | null;
 }

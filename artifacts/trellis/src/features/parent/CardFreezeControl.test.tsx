@@ -4,7 +4,7 @@ import type { Card, CardAndPolicy } from '@workspace/api-client-react';
 import { byTestId, cleanupApi, countCalls, mockApi, renderWithApi, settle } from '@/test/api-test-utils';
 import ParentCardPolicy from './ParentCardPolicy';
 
-const chain = { status: 'not_submitted', txHash: null, confirmedAt: null } as const;
+const chain = { status: 'not_submitted', txHash: null, confirmedAt: null, explorerUrl: null } as const;
 
 const card = (status: Card['status']): Card => ({
   id: 3,

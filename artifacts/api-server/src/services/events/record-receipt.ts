@@ -1,4 +1,5 @@
-import { eq } from "drizzle-orm";
+import { and, eq, ne, type SQL } from "drizzle-orm";
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import {
   bankAccountsTable,
   bankDepositsTable,
@@ -6,6 +7,7 @@ import {
   chainEventsTable,
   contributionsTable,
   db,
+  type ChainStatus,
   type DbExecutor,
 } from "@workspace/db";
 
@@ -37,6 +39,11 @@ export interface ReceiptEvents {
   /** When the block was confirmed (block timestamp). */
   confirmedAt: Date;
   events: DecodedChainEvent[];
+  /**
+   * The row the whole transaction mirrors. Marked confirmed even when the
+   * receipt decoded no events.
+   */
+  owner?: { table: ChainOwnerTable; id: number } | null;
 }
 
 const TX_HASH = /^0x[0-9a-fA-F]{64}$/;
@@ -58,22 +65,41 @@ export function toJsonSafe(value: unknown): unknown {
   return value;
 }
 
-async function updateOwnerChainStatus(
+export interface OwnerChainUpdate {
+  chainStatus: ChainStatus;
+  chainTxHash?: string | null;
+  chainConfirmedAt?: Date | null;
+}
+
+function ownerWhere(
+  table: { id: AnyPgColumn; chainStatus: AnyPgColumn },
+  id: number,
+  keepConfirmed: boolean,
+): SQL | undefined {
+  return keepConfirmed
+    ? and(eq(table.id, id), ne(table.chainStatus, "confirmed"))
+    : eq(table.id, id);
+}
+
+/**
+ * Sets the chain columns of the row a transaction mirrors and returns how
+ * many rows changed. With `keepConfirmed`, a row already confirmed is left
+ * alone, so a late failure or retry can never un-verify it.
+ */
+export async function updateOwnerChainStatus(
   executor: DbExecutor,
   owner: { table: ChainOwnerTable; id: number },
-  set: {
-    chainStatus: "confirmed";
-    chainTxHash: string;
-    chainConfirmedAt: Date;
-  },
+  set: OwnerChainUpdate,
+  options: { keepConfirmed?: boolean } = {},
 ): Promise<number> {
+  const keep = options.keepConfirmed ?? false;
   switch (owner.table) {
     case "bank_accounts":
       return (
         await executor
           .update(bankAccountsTable)
           .set(set)
-          .where(eq(bankAccountsTable.id, owner.id))
+          .where(ownerWhere(bankAccountsTable, owner.id, keep))
           .returning({ id: bankAccountsTable.id })
       ).length;
     case "bank_deposits":
@@ -81,7 +107,7 @@ async function updateOwnerChainStatus(
         await executor
           .update(bankDepositsTable)
           .set(set)
-          .where(eq(bankDepositsTable.id, owner.id))
+          .where(ownerWhere(bankDepositsTable, owner.id, keep))
           .returning({ id: bankDepositsTable.id })
       ).length;
     case "buckets":
@@ -89,7 +115,7 @@ async function updateOwnerChainStatus(
         await executor
           .update(bucketsTable)
           .set(set)
-          .where(eq(bucketsTable.id, owner.id))
+          .where(ownerWhere(bucketsTable, owner.id, keep))
           .returning({ id: bucketsTable.id })
       ).length;
     case "contributions":
@@ -97,7 +123,7 @@ async function updateOwnerChainStatus(
         await executor
           .update(contributionsTable)
           .set(set)
-          .where(eq(contributionsTable.id, owner.id))
+          .where(ownerWhere(contributionsTable, owner.id, keep))
           .returning({ id: contributionsTable.id })
       ).length;
     default: {
@@ -113,7 +139,7 @@ async function updateOwnerChainStatus(
  *
  * Re-indexing the same receipt is safe: `(tx_hash, log_index)` is unique, so
  * existing events are skipped. An owner that doesn't exist rolls the whole
- * batch back. Called by the Phase 3 chain adapter; nothing calls it yet.
+ * batch back. Called by `submitInBackground` once a write is mined.
  */
 export async function recordReceiptEvents(
   receipt: ReceiptEvents,
@@ -129,6 +155,12 @@ export async function recordReceiptEvents(
   const txHash = receipt.txHash.toLowerCase();
 
   const owners = new Map<string, { table: ChainOwnerTable; id: number }>();
+  if (receipt.owner) {
+    if (!CHAIN_OWNER_TABLES.includes(receipt.owner.table)) {
+      throw new Error(`Unknown chain owner table: ${receipt.owner.table}`);
+    }
+    owners.set(`${receipt.owner.table}:${receipt.owner.id}`, receipt.owner);
+  }
   const rows = receipt.events.map((event) => {
     if (!ADDRESS.test(event.contractAddress)) {
       throw new Error(`Invalid contract address: ${event.contractAddress}`);
