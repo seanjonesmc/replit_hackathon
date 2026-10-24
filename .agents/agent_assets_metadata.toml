@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "oxt7t4RYrC1Dg68JNv1CO"
+uri = "file://.local/outputs/Trellis-Pitch-Deck.pdf"
+type = "pdf"
+title = "Trellis Pitch Deck.pdf"
