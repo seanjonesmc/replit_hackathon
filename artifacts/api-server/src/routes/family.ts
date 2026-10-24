@@ -23,6 +23,10 @@ import {
   GetCardAndPolicyResponse,
   GetDependentWalletResponse,
   GetParentOverviewResponse,
+  GetFundingInsightsParams,
+  GetFundingInsightsResponse,
+  GetSpendingInsightsQueryParams,
+  GetSpendingInsightsResponse,
   ListActivityResponse,
   ListBucketsResponse,
 } from "@workspace/api-zod";
@@ -50,6 +54,8 @@ import {
   getDemoFamily,
   getDependentWallet,
   getParentOverview,
+  getFundingInsights,
+  getSpendingInsights,
 } from "../services/family";
 import { parseOr400, serviceErrorHandler, toChain } from "./shared";
 
@@ -298,6 +304,16 @@ router.get(
   },
 );
 
+router.get(
+  "/members/:memberId/funding-insights",
+  requireAuth,
+  async (req, res) => {
+    const params = parseOr400(GetFundingInsightsParams, req.params, res);
+    if (!params) return;
+    res.json(GetFundingInsightsResponse.parse(await getFundingInsights(params.memberId)));
+  },
+);
+
 // ---- Screen reads: one response per screen --------------------------------
 
 router.get("/family/overview", requireAuth, async (_req, res) => {
@@ -313,6 +329,17 @@ router.get("/family/buckets", requireAuth, async (_req, res) => {
 router.get("/family/activity", requireAuth, async (_req, res) => {
   const family = await getDemoFamily();
   res.json(ListActivityResponse.parse(await getActivity(family.id)));
+});
+
+router.get("/family/insights", requireAuth, async (req, res) => {
+  const query = parseOr400(GetSpendingInsightsQueryParams, req.query, res);
+  if (!query) return;
+  const family = await getDemoFamily();
+  res.json(
+    GetSpendingInsightsResponse.parse(
+      await getSpendingInsights(family.id, { period: query.period, dependentId: query.dependentId }),
+    ),
+  );
 });
 
 router.get("/family/card-policy", requireAuth, async (_req, res) => {

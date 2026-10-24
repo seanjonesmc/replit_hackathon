@@ -12,6 +12,7 @@ import NotFound from '@/pages/not-found';
 import BrandPage from '@/pages/brand';
 import ParentHomePage from '@/pages/parent/home';
 import ParentAddMoneyPage from '@/pages/parent/add-money';
+import ParentInsightsPage from '@/pages/parent/insights';
 import ParentApprovalsPage from '@/pages/parent/approvals';
 import ParentActivityPage from '@/pages/parent/activity';
 import ParentCardPage from '@/pages/parent/card';
@@ -36,6 +37,7 @@ const queryClient = new QueryClient({
 const screens: Record<ScreenPath, ComponentType> = {
   '/parent/home': ParentHomePage,
   '/parent/add-money': ParentAddMoneyPage,
+  '/parent/insights': ParentInsightsPage,
   '/parent/approvals': ParentApprovalsPage,
   '/parent/activity': ParentActivityPage,
   '/parent/card': ParentCardPage,

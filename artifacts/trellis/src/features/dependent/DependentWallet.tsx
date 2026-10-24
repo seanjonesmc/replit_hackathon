@@ -8,6 +8,7 @@ import { ErrorState } from '@/components/trellis/states';
 import { VirtualCard } from '@/components/trellis/virtual-card';
 import { CardFacts } from '@/features/family/CardFacts';
 import { FamilyBucketCard } from '@/features/family/FamilyBucketCard';
+import { WeekSpendCard } from '@/features/insights/WeekSpendCard';
 import { ScreenHeader } from '@/features/shell/layout';
 
 export default function DependentWallet() {
@@ -52,6 +53,7 @@ export default function DependentWallet() {
           ))}
         </div>
       </section>
+      <WeekSpendCard dependentId={data.dependent.id} />
       <div className="mt-8">
         <PillButton block icon={<Zap className="size-5" aria-hidden="true" />} onClick={() => navigate('/dependent/swipe')} data-testid="button-swipe">
           Swipe card

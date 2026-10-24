@@ -13,6 +13,9 @@ const FAMILY_ENDPOINTS = [
   "/api/family/activity",
   "/api/family/card-policy",
   "/api/family/wallet",
+  "/api/family/insights",
+  "/api/family/insights?period=30d&dependentId=1",
+  "/api/members/1/funding-insights",
 ];
 
 let server: Server;

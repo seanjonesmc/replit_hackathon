@@ -86,7 +86,10 @@ export const ALL_TABS: readonly TabDef[] = ROLES.flatMap((role) => role.tabs);
  * to one tab of its role: the shell keeps that role's tab bar with the owning
  * tab marked. URLs are `/<role>/<id>` like tabs, and must not clash with them.
  */
-const SUB_SCREEN_DEFS = [{ role: 'parent', id: 'add-money', label: 'Add money', tab: 'home' }] as const;
+const SUB_SCREEN_DEFS = [
+  { role: 'parent', id: 'add-money', label: 'Add money', tab: 'home' },
+  { role: 'parent', id: 'insights', label: 'Insights', tab: 'home' },
+] as const;
 
 type SubScreenInput = (typeof SUB_SCREEN_DEFS)[number];
 

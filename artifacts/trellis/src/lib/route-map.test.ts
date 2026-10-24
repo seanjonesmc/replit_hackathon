@@ -47,7 +47,10 @@ describe('route map', () => {
 
 describe('sub-screens', () => {
   it("gives the parent an Add money screen opened from Home, off the tab bar", () => {
-    expect(SUB_SCREENS.map((s) => [s.path, s.label, s.tab.path])).toEqual([['/parent/add-money', 'Add money', '/parent/home']]);
+    expect(SUB_SCREENS.map((s) => [s.path, s.label, s.tab.path])).toEqual([
+      ['/parent/add-money', 'Add money', '/parent/home'],
+      ['/parent/insights', 'Insights', '/parent/home'],
+    ]);
     expect(getRole('parent').tabs.map((t) => t.path)).not.toContain('/parent/add-money');
   });
 

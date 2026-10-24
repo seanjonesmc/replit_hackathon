@@ -7,6 +7,7 @@ import { ActivityRowSkeleton, BucketCardSkeleton, HeroBalanceCardSkeleton, Loadi
 import { ErrorState } from '@/components/trellis/states';
 import { FamilyActivityRow } from '@/features/family/FamilyActivityRow';
 import { FamilyBucketCard } from '@/features/family/FamilyBucketCard';
+import { SpendingCard } from '@/features/insights/SpendingCard';
 import { ScreenHeader } from '@/features/shell/layout';
 import { SettlementControl } from './SettlementControl';
 
@@ -98,6 +99,7 @@ export default function ParentHome() {
         <ApprovalsLink count={o.pendingApprovalsCount} />
       </div>
       <SettlementControl heldCount={o.heldPurchasesCount} heldTotalCents={o.heldTotalCents} />
+      <SpendingCard />
 
       <section className="mt-8" aria-labelledby="buckets-title">
         <SectionTitle>

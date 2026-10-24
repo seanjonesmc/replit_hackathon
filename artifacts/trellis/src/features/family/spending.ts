@@ -9,6 +9,7 @@ import {
   getListApprovalsQueryKey,
   getListAuthorizationsQueryKey,
   getListBucketsQueryKey,
+  getGetSpendingInsightsQueryKey,
   type DecidedBy as ApiDecidedBy,
   type Decision as ApiDecision,
 } from '@workspace/api-client-react';
@@ -49,6 +50,8 @@ export function refreshAfterSwipe(queryClient: QueryClient) {
       getListBucketsQueryKey(),
       getGetDependentWalletQueryKey(),
       getGetOverviewQueryKey(),
+      // No params: matches every period and child filter.
+      getGetSpendingInsightsQueryKey(),
     ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
   );
 }

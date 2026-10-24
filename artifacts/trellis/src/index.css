@@ -77,6 +77,13 @@
   --color-destructive: var(--color-rejected);
   --color-destructive-foreground: var(--color-on-primary);
 
+  /* Chart series, in the design system's order (trellis-design chart1–5). */
+  --color-chart-1: var(--color-primary);
+  --color-chart-2: var(--color-signature);
+  --color-chart-3: var(--color-approved);
+  --color-chart-4: var(--color-pending);
+  --color-chart-5: var(--color-rejected);
+
   --font-sans: var(--font-body);
   --radius-sm: var(--radius-tag);
   --radius-md: var(--radius-input);

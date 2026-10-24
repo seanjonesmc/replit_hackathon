@@ -12,7 +12,7 @@ import {
   type DbExecutor,
   type ReasonCode,
 } from "@workspace/db";
-import { getDemoFamily } from "../family";
+import { getDemoFamily, primaryDependent } from "../family";
 import { toLocalIso, zonedParts, zonedTimeToInstant } from "./clock";
 import { settleSeededPurchase } from "./settlement";
 import {
@@ -143,7 +143,7 @@ export async function seedSpendingDemo(
       .select()
       .from(membersTable)
       .where(eq(membersTable.familyId, family.id));
-    const dependent = members.find((m) => m.role === "dependent");
+    const dependent = primaryDependent(members);
     const parent = members.find((m) => m.role === "parent");
     if (!dependent || !parent) {
       throw new Error("The demo family needs a parent and a dependent before its card can be seeded.");

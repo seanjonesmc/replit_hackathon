@@ -58,6 +58,7 @@ const FAMILY_ROUTES = [
     body: { memberId: 1, bankAccountId: 1, amountCents: 5000, note: "For lunch" },
   },
   { method: "GET", path: "/api/members/1/contributions" },
+  { method: "GET", path: "/api/members/1/funding-insights" },
 ] as const;
 
 let server: Server;
@@ -134,5 +135,25 @@ describe("family routes input validation", () => {
     expect(res.status).toBe(400);
     const body = (await res.json()) as { error: string };
     expect(body.error).toMatch(/^note: /);
+  });
+
+  it("rejects an unknown insights period with 400 JSON", async () => {
+    const res = await fetch(`${baseUrl}/api/family/insights?period=90d`, {
+      headers: signedIn,
+    });
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toMatch(/^period: /);
+  });
+
+  it("rejects a non-numeric insights dependent id with 400 JSON", async () => {
+    const res = await fetch(`${baseUrl}/api/family/insights?dependentId=abc`, {
+      headers: signedIn,
+    });
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toMatch(/^dependentId: /);
   });
 });

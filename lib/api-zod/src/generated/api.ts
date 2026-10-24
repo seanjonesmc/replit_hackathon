@@ -2443,3 +2443,240 @@ export const GetDependentWalletResponse = zod.object({
       ),
   ),
 });
+
+/**
+ * Server-computed spending KPIs. "Spent" is approved purchases, held or settled; a parent-approved retry counts once, as its final swipe. "Stopped" is declined purchases (by the rules or a parent). Pending purchases count toward neither. Days and periods follow the family's clock. The bucket usage section is all time and family wide, since buckets are shared. Nothing here reads the chain.
+ * @summary Spending numbers for one period, for the whole family or one dependent
+ */
+export const getSpendingInsightsQueryDependentIdMax = 2147483647;
+
+export const GetSpendingInsightsQueryParams = zod.object({
+  period: zod
+    .enum(["7d", "30d", "all"])
+    .optional()
+    .describe(
+      "`7d` and `30d` are the last 7 or 30 days on the family's clock, today included. `all` is all time (no previous-period comparison).",
+    ),
+  dependentId: zod.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(getSpendingInsightsQueryDependentIdMax)
+    .optional()
+    .describe("Only this dependent's purchases. Omit for every dependent."),
+});
+
+export const GetSpendingInsightsResponse = zod.object({
+  period: zod.enum(["7d", "30d", "all"]),
+  periodStart: zod.coerce
+    .date()
+    .nullable()
+    .describe(
+      "Start of the period (family-clock midnight); null for all time.",
+    ),
+  periodEnd: zod.coerce.date(),
+  timeZone: zod
+    .string()
+    .describe("The family's clock, e.g. America/Los_Angeles."),
+  dependentId: zod
+    .number()
+    .int()
+    .nullable()
+    .describe("The dependent filter, or null for every dependent."),
+  dependents: zod
+    .array(
+      zod.object({
+        id: zod.number().int(),
+        displayName: zod.string(),
+      }),
+    )
+    .describe(
+      "Every dependent in the family, for the filter. Demo dependent first.",
+    ),
+  spentCents: zod
+    .number()
+    .int()
+    .describe(
+      "Approved purchases in the period, held or settled, each counted once.",
+    ),
+  previousPeriodSpentCents: zod
+    .number()
+    .int()
+    .nullable()
+    .describe(
+      "Spent in the same-length period just before; null for all time or when nothing was spent then.",
+    ),
+  purchaseCount: zod
+    .number()
+    .int()
+    .describe("Approved purchases in the period."),
+  averagePurchaseCents: zod
+    .number()
+    .int()
+    .nullable()
+    .describe("Spent divided by purchases, rounded; null with no purchases."),
+  decidedCount: zod
+    .number()
+    .int()
+    .describe("Approved plus declined purchases."),
+  approvalRate: zod
+    .number()
+    .nullable()
+    .describe("Approved out of decided, 0–1; null when nothing was decided."),
+  declinedCount: zod.number().int(),
+  declinedCents: zod
+    .number()
+    .int()
+    .describe("Dollars stopped (declined by the rules or a parent)."),
+  pendingCount: zod
+    .number()
+    .int()
+    .describe(
+      "Still waiting on a parent; counted as neither spent nor stopped.",
+    ),
+  byBucket: zod
+    .array(
+      zod.object({
+        bucketId: zod
+          .number()
+          .int()
+          .nullable()
+          .describe(
+            "Null for approved purchases whose bucket no longer exists.",
+          ),
+        bucketName: zod.string(),
+        icon: zod.union([
+          zod.enum(["food", "school", "social", "transit"]),
+          zod.null(),
+        ]),
+        spentCents: zod.number().int(),
+        purchaseCount: zod.number().int(),
+        share: zod
+          .number()
+          .describe(
+            "Share of the period's spending, 0–1 (0 when nothing was spent).",
+          ),
+      }),
+    )
+    .describe(
+      "Every bucket in display order, plus any purchases with no bucket.",
+    ),
+  byDependent: zod
+    .array(
+      zod.object({
+        dependentId: zod.number().int(),
+        dependentName: zod.string(),
+        spentCents: zod.number().int(),
+        purchaseCount: zod.number().int(),
+        declinedCount: zod.number().int(),
+        declinedCents: zod.number().int(),
+        share: zod.number().describe("Share of the period's spending, 0–1."),
+      }),
+    )
+    .describe("Every dependent in the filter, demo dependent first."),
+  daily: zod
+    .array(
+      zod.object({
+        date: zod
+          .string()
+          .describe("The family-clock calendar day, YYYY-MM-DD."),
+        spentCents: zod.number().int(),
+      }),
+    )
+    .describe(
+      "One entry per family-clock day of the period, oldest first. For all time it starts on the first day with a purchase; empty with none.",
+    ),
+  topMerchants: zod
+    .array(
+      zod.object({
+        merchantName: zod.string(),
+        spentCents: zod.number().int(),
+        purchaseCount: zod.number().int(),
+      }),
+    )
+    .describe("Up to five merchants by amount spent."),
+  bucketUsage: zod
+    .array(
+      zod.object({
+        bucketId: zod.number().int(),
+        bucketName: zod.string(),
+        icon: zod.union([
+          zod.enum(["food", "school", "social", "transit"]),
+          zod.null(),
+        ]),
+        fundedCents: zod.number().int().describe("Total ever added, all time."),
+        spentCents: zod.number().int().describe("Settled, all time."),
+        heldCents: zod.number().int().describe("Approved but not settled yet."),
+        availableCents: zod.number().int(),
+      }),
+    )
+    .describe(
+      "Each bucket's funding, spent and held money. All time, family wide.",
+    ),
+});
+
+/**
+ * Contributions are pooled in shared buckets, so this reports what the member put into each bucket and what has been spent from those buckets overall. It never claims which purchases their exact dollars paid for.
+ * @summary One funder's contributions by bucket and their share of the family's funding
+ */
+export const getFundingInsightsPathMemberIdMax = 2147483647;
+
+export const GetFundingInsightsParams = zod.object({
+  memberId: zod.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(getFundingInsightsPathMemberIdMax),
+});
+
+export const GetFundingInsightsResponse = zod.object({
+  memberId: zod.number().int(),
+  contributedCents: zod.number().int(),
+  familyFundedCents: zod
+    .number()
+    .int()
+    .describe("Everything anyone added to the family's buckets."),
+  shareOfFamilyFunding: zod
+    .number()
+    .nullable()
+    .describe(
+      "This member's part of the family's total funding, 0–1; null when nothing was added.",
+    ),
+  spentFromFundedBucketsCents: zod
+    .number()
+    .int()
+    .describe(
+      "Settled from the buckets this member added to, all time. Pooled money.",
+    ),
+  heldInFundedBucketsCents: zod.number().int(),
+  byBucket: zod
+    .array(
+      zod.object({
+        bucketId: zod.number().int(),
+        bucketName: zod.string(),
+        icon: zod.union([
+          zod.enum(["food", "school", "social", "transit"]),
+          zod.null(),
+        ]),
+        contributedCents: zod
+          .number()
+          .int()
+          .describe("What this member added to the bucket."),
+        share: zod
+          .number()
+          .describe("Share of this member's own contributions, 0–1."),
+        bucketFundedCents: zod
+          .number()
+          .int()
+          .describe("Everything anyone added to the bucket."),
+        bucketSpentCents: zod
+          .number()
+          .int()
+          .describe(
+            "Settled from the bucket, all time, whoever's money it was.",
+          ),
+        bucketHeldCents: zod.number().int(),
+      }),
+    )
+    .describe("Buckets this member added to, in display order."),
+});

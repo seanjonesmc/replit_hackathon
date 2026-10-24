@@ -42,6 +42,8 @@ import type {
   DepositResult,
   Family,
   ForbiddenResponse,
+  FundingInsights,
+  GetSpendingInsightsParams,
   HandleBrowserLoginCallbackParams,
   HealthStatus,
   LinkBankAccountRequest,
@@ -56,6 +58,7 @@ import type {
   ResolveApprovalRequest,
   SendMoneyResult,
   Settlement,
+  SpendingInsights,
   SwipeRequest,
   SwipeResult,
   UnauthorizedResponse,
@@ -4601,6 +4604,383 @@ export function useGetDependentWallet<
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
   const queryOptions = getGetDependentWalletQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getGetSpendingInsightsUrl = (
+  params?: GetSpendingInsightsParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/family/insights?${stringifiedParams}`
+    : `/api/family/insights`;
+};
+
+/**
+ * Server-computed spending KPIs. "Spent" is approved purchases, held or settled; a parent-approved retry counts once, as its final swipe. "Stopped" is declined purchases (by the rules or a parent). Pending purchases count toward neither. Days and periods follow the family's clock. The bucket usage section is all time and family wide, since buckets are shared. Nothing here reads the chain.
+ * @summary Spending numbers for one period, for the whole family or one dependent
+ */
+export const getSpendingInsights = async (
+  params?: GetSpendingInsightsParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<SpendingInsights> => {
+  return customFetch<SpendingInsights>(getGetSpendingInsightsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSpendingInsightsQueryKey = (
+  params?: GetSpendingInsightsParams,
+) => {
+  return [`/api/family/insights`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetSpendingInsightsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSpendingInsights>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  params?: GetSpendingInsightsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSpendingInsights>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetSpendingInsightsQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getSpendingInsights>>
+  > = ({ signal }) =>
+    getSpendingInsights(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSpendingInsights>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetSpendingInsightsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSpendingInsights>>
+>;
+export type GetSpendingInsightsQueryError = ErrorType<
+  BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+>;
+
+export function useGetSpendingInsights<
+  TData = Awaited<ReturnType<typeof getSpendingInsights>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  params: undefined | GetSpendingInsightsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSpendingInsights>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSpendingInsights>>,
+          TError,
+          Awaited<ReturnType<typeof getSpendingInsights>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSpendingInsights<
+  TData = Awaited<ReturnType<typeof getSpendingInsights>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  params?: GetSpendingInsightsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSpendingInsights>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSpendingInsights>>,
+          TError,
+          Awaited<ReturnType<typeof getSpendingInsights>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSpendingInsights<
+  TData = Awaited<ReturnType<typeof getSpendingInsights>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  params?: GetSpendingInsightsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSpendingInsights>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Spending numbers for one period, for the whole family or one dependent
+ */
+
+export function useGetSpendingInsights<
+  TData = Awaited<ReturnType<typeof getSpendingInsights>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  params?: GetSpendingInsightsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSpendingInsights>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetSpendingInsightsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getGetFundingInsightsUrl = (memberId: number) => {
+  return `/api/members/${memberId}/funding-insights`;
+};
+
+/**
+ * Contributions are pooled in shared buckets, so this reports what the member put into each bucket and what has been spent from those buckets overall. It never claims which purchases their exact dollars paid for.
+ * @summary One funder's contributions by bucket and their share of the family's funding
+ */
+export const getFundingInsights = async (
+  memberId: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<FundingInsights> => {
+  return customFetch<FundingInsights>(getGetFundingInsightsUrl(memberId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetFundingInsightsQueryKey = (memberId: number) => {
+  return [`/api/members/${memberId}/funding-insights`] as const;
+};
+
+export const getGetFundingInsightsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getFundingInsights>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  memberId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getFundingInsights>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetFundingInsightsQueryKey(memberId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getFundingInsights>>
+  > = ({ signal }) =>
+    getFundingInsights(memberId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: memberId !== null && memberId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getFundingInsights>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetFundingInsightsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getFundingInsights>>
+>;
+export type GetFundingInsightsQueryError = ErrorType<
+  BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+>;
+
+export function useGetFundingInsights<
+  TData = Awaited<ReturnType<typeof getFundingInsights>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  memberId: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getFundingInsights>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFundingInsights>>,
+          TError,
+          Awaited<ReturnType<typeof getFundingInsights>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetFundingInsights<
+  TData = Awaited<ReturnType<typeof getFundingInsights>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  memberId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getFundingInsights>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFundingInsights>>,
+          TError,
+          Awaited<ReturnType<typeof getFundingInsights>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetFundingInsights<
+  TData = Awaited<ReturnType<typeof getFundingInsights>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  memberId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getFundingInsights>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary One funder's contributions by bucket and their share of the family's funding
+ */
+
+export function useGetFundingInsights<
+  TData = Awaited<ReturnType<typeof getFundingInsights>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  memberId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getFundingInsights>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetFundingInsightsQueryOptions(memberId, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,

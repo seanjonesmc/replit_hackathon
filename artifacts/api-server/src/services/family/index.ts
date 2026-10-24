@@ -12,6 +12,8 @@ export {
   getFamilyMember,
   getFamilyWithMembers,
   getOverview,
+  orderDependents,
+  primaryDependent,
   type PotTotals,
 } from "./family";
 export {
@@ -48,3 +50,12 @@ export {
   getDependentWallet,
   getParentOverview,
 } from "./read-models";
+export {
+  computeFundingInsights,
+  computeSpendingInsights,
+  getFundingInsights,
+  getSpendingInsights,
+  INSIGHTS_PERIODS,
+  type InsightsPeriod,
+  type InsightPurchase,
+} from "./insights";

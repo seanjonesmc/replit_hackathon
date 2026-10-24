@@ -24,6 +24,7 @@ describe('parent home', () => {
       'GET /api/family/overview': { body: overview },
       'GET /api/family/activity': { body: [] },
       'GET /api/family': { body: { id: 1, name: 'Sample family', members: [] } },
+      'GET /api/family/insights': { status: 500, body: { error: 'not under test' } },
     });
     renderWithApi(<ParentHome />);
     await settle();

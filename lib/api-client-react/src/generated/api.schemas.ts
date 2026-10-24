@@ -5,6 +5,166 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type InsightsPeriod =
+  (typeof InsightsPeriod)[keyof typeof InsightsPeriod];
+
+export const InsightsPeriod = {
+  "7d": "7d",
+  "30d": "30d",
+  all: "all",
+} as const;
+
+export interface InsightsDependent {
+  id: number;
+  displayName: string;
+}
+
+export type BucketIcon = (typeof BucketIcon)[keyof typeof BucketIcon];
+
+export const BucketIcon = {
+  food: "food",
+  school: "school",
+  social: "social",
+  transit: "transit",
+} as const;
+
+export interface InsightsBucketSpend {
+  /**
+   * Null for approved purchases whose bucket no longer exists.
+   * @nullable
+   */
+  bucketId: number | null;
+  bucketName: string;
+  icon: BucketIcon | null;
+  spentCents: number;
+  purchaseCount: number;
+  /** Share of the period's spending, 0–1 (0 when nothing was spent). */
+  share: number;
+}
+
+export interface InsightsDependentSpend {
+  dependentId: number;
+  dependentName: string;
+  spentCents: number;
+  purchaseCount: number;
+  declinedCount: number;
+  declinedCents: number;
+  /** Share of the period's spending, 0–1. */
+  share: number;
+}
+
+export interface InsightsDay {
+  /** The family-clock calendar day, YYYY-MM-DD. */
+  date: string;
+  spentCents: number;
+}
+
+export interface InsightsMerchant {
+  merchantName: string;
+  spentCents: number;
+  purchaseCount: number;
+}
+
+export interface InsightsBucketUsage {
+  bucketId: number;
+  bucketName: string;
+  icon: BucketIcon | null;
+  /** Total ever added, all time. */
+  fundedCents: number;
+  /** Settled, all time. */
+  spentCents: number;
+  /** Approved but not settled yet. */
+  heldCents: number;
+  availableCents: number;
+}
+
+export interface SpendingInsights {
+  period: InsightsPeriod;
+  /**
+   * Start of the period (family-clock midnight); null for all time.
+   * @nullable
+   */
+  periodStart: string | null;
+  periodEnd: string;
+  /** The family's clock, e.g. America/Los_Angeles. */
+  timeZone: string;
+  /**
+   * The dependent filter, or null for every dependent.
+   * @nullable
+   */
+  dependentId: number | null;
+  /** Every dependent in the family, for the filter. Demo dependent first. */
+  dependents: InsightsDependent[];
+  /** Approved purchases in the period, held or settled, each counted once. */
+  spentCents: number;
+  /**
+   * Spent in the same-length period just before; null for all time or when nothing was spent then.
+   * @nullable
+   */
+  previousPeriodSpentCents: number | null;
+  /** Approved purchases in the period. */
+  purchaseCount: number;
+  /**
+   * Spent divided by purchases, rounded; null with no purchases.
+   * @nullable
+   */
+  averagePurchaseCents: number | null;
+  /** Approved plus declined purchases. */
+  decidedCount: number;
+  /**
+   * Approved out of decided, 0–1; null when nothing was decided.
+   * @nullable
+   */
+  approvalRate: number | null;
+  declinedCount: number;
+  /** Dollars stopped (declined by the rules or a parent). */
+  declinedCents: number;
+  /** Still waiting on a parent; counted as neither spent nor stopped. */
+  pendingCount: number;
+  /** Every bucket in display order, plus any purchases with no bucket. */
+  byBucket: InsightsBucketSpend[];
+  /** Every dependent in the filter, demo dependent first. */
+  byDependent: InsightsDependentSpend[];
+  /** One entry per family-clock day of the period, oldest first. For all time it starts on the first day with a purchase; empty with none. */
+  daily: InsightsDay[];
+  /** Up to five merchants by amount spent. */
+  topMerchants: InsightsMerchant[];
+  /** Each bucket's funding, spent and held money. All time, family wide. */
+  bucketUsage: InsightsBucketUsage[];
+}
+
+export interface FundingBucketShare {
+  bucketId: number;
+  bucketName: string;
+  icon: BucketIcon | null;
+  /** What this member added to the bucket. */
+  contributedCents: number;
+  /** Share of this member's own contributions, 0–1. */
+  share: number;
+  /** Everything anyone added to the bucket. */
+  bucketFundedCents: number;
+  /** Settled from the bucket, all time, whoever's money it was. */
+  bucketSpentCents: number;
+  bucketHeldCents: number;
+}
+
+export interface FundingInsights {
+  memberId: number;
+  contributedCents: number;
+  /** Everything anyone added to the family's buckets. */
+  familyFundedCents: number;
+  /**
+   * This member's part of the family's total funding, 0–1; null when nothing was added.
+   * @nullable
+   */
+  shareOfFamilyFunding: number | null;
+  /** Settled from the buckets this member added to, all time. Pooled money. */
+  spentFromFundedBucketsCents: number;
+  heldInFundedBucketsCents: number;
+  /** Buckets this member added to, in display order. */
+  byBucket: FundingBucketShare[];
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -595,15 +755,6 @@ export interface PolicyView {
   policy: FamilyPolicy;
 }
 
-export type BucketIcon = (typeof BucketIcon)[keyof typeof BucketIcon];
-
-export const BucketIcon = {
-  food: "food",
-  school: "school",
-  social: "social",
-  transit: "transit",
-} as const;
-
 /**
  * A bucket with the extra numbers the screens show: total funded, spent this week and who funded it.
  */
@@ -832,4 +983,17 @@ export type ListAuthorizationsParams = {
    * @maximum 200
    */
   limit?: number;
+};
+
+export type GetSpendingInsightsParams = {
+  /**
+   * `7d` and `30d` are the last 7 or 30 days on the family's clock, today included. `all` is all time (no previous-period comparison).
+   */
+  period?: InsightsPeriod;
+  /**
+   * Only this dependent's purchases. Omit for every dependent.
+   * @minimum 1
+   * @maximum 2147483647
+   */
+  dependentId?: number;
 };

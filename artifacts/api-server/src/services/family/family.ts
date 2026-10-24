@@ -1,4 +1,5 @@
 import { asc, eq } from "drizzle-orm";
+import { BRAND } from "@brand/brand.config";
 import {
   bucketsTable,
   db,
@@ -39,6 +40,25 @@ export async function getFamilyWithMembers(
     .where(eq(membersTable.familyId, family.id))
     .orderBy(asc(membersTable.id));
   return { family, members };
+}
+
+/**
+ * The family's dependents in a fixed order: the BRAND demo dependent first,
+ * then the rest by lowest id. Reads that show "the dependent" (wallet, card,
+ * overview) take the first, so adding a second child never replaces them.
+ */
+export function orderDependents<M extends Pick<Member, "id" | "role" | "displayName">>(members: readonly M[]): M[] {
+  const isDemo = (m: M) => m.displayName === BRAND.demo.dependent;
+  return members
+    .filter((m) => m.role === "dependent")
+    .sort((a, b) => Number(isDemo(b)) - Number(isDemo(a)) || a.id - b.id);
+}
+
+/** The dependent the single-dependent screens show; see `orderDependents`. */
+export function primaryDependent<M extends Pick<Member, "id" | "role" | "displayName">>(
+  members: readonly M[],
+): M | undefined {
+  return orderDependents(members)[0];
 }
 
 /** A member of the demo family, or a not-found error naming the id. */

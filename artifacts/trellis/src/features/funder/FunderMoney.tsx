@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/trellis/empty-state';
 import { ChainBadge, SectionTitle } from '@/components/trellis/primitives';
 import { LoadingRegion, Skeleton } from '@/components/trellis/skeletons';
 import { ComingSoonNote, ErrorState } from '@/components/trellis/states';
+import { FundingBreakdown } from '@/features/insights/FundingBreakdown';
 import { ScreenHeader } from '@/features/shell/layout';
 import { chainStatusOf } from '@/lib/chain';
 import { formatCents, formatWhen } from '@/lib/format';
@@ -47,6 +48,7 @@ export default function FunderMoney() {
             <p className="type-display-md tnum mt-2">{formatCents(funder.totalCents)}</p>
             <p className="type-caption mt-1 text-ink-muted">Test dollars, across {bucketCount} {bucketCount === 1 ? 'bucket' : 'buckets'}</p>
           </div>
+          {funder.funder && <FundingBreakdown memberId={funder.funder.id} bucketOrder={buckets.data?.map((b) => b.id) ?? []} />}
           <section className="mt-8" aria-labelledby="contributions-title">
             <SectionTitle>
               <span id="contributions-title">Your contributions</span>

@@ -31,6 +31,7 @@ import { toChainRecord } from "../events/chain-record";
 import { describePolicy } from "../policies/plain-english";
 import { contributionNote } from "./contributions";
 import { FamilyServiceError } from "./errors";
+import { primaryDependent } from "./family";
 import { formatAmount } from "./format";
 import { categoryLabel, spentOnPhrase } from "./labels";
 
@@ -89,7 +90,7 @@ async function loadMembers(database: Database, familyId: number) {
     .orderBy(asc(membersTable.id));
   const byId = new Map(members.map((m) => [m.id, m]));
   const parent = members.find((m) => m.role === "parent");
-  const dependent = members.find((m) => m.role === "dependent");
+  const dependent = primaryDependent(members);
   if (!parent || !dependent) {
     throw new Error(`Family ${familyId} is missing its parent or dependent`);
   }
@@ -279,7 +280,7 @@ function purchaseItem(
 }
 
 export async function getActivity(familyId: number, database: Database = defaultDb): Promise<ActivityItem[]> {
-  const { byId, dependent } = await loadMembers(database, familyId);
+  const { byId } = await loadMembers(database, familyId);
   const nameOf = (id: number | null) => (id !== null ? byId.get(id)?.displayName : undefined);
 
   const swipes = await database
@@ -304,7 +305,9 @@ export async function getActivity(familyId: number, database: Database = default
   for (const { authorization: a, bucketName } of swipes) {
     if (retried.has(a.id)) continue;
     const original = a.previousAuthorizationId !== null ? byAuthId.get(a.previousAuthorizationId) : undefined;
-    items.push(purchaseItem(a, bucketName ?? null, original, dependent.displayName, nameOf));
+    // Name whoever made the swipe, not "the" dependent: a family can have several.
+    const who = nameOf(a.dependentMemberId) ?? "A dependent";
+    items.push(purchaseItem(a, bucketName ?? null, original, who, nameOf));
   }
 
   for (const { contribution: c, bucketName } of contributions) {

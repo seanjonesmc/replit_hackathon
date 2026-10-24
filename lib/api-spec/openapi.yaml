@@ -727,6 +727,73 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /family/insights:
+    get:
+      tags: [Family]
+      operationId: getSpendingInsights
+      summary: Spending numbers for one period, for the whole family or one dependent
+      description: >-
+        Server-computed spending KPIs. "Spent" is approved purchases, held or
+        settled; a parent-approved retry counts once, as its final swipe.
+        "Stopped" is declined purchases (by the rules or a parent). Pending
+        purchases count toward neither. Days and periods follow the family's
+        clock. The bucket usage section is all time and family wide, since
+        buckets are shared. Nothing here reads the chain.
+      parameters:
+        - name: period
+          in: query
+          required: false
+          description: >-
+            `7d` and `30d` are the last 7 or 30 days on the family's clock,
+            today included. `all` is all time (no previous-period comparison).
+          schema:
+            $ref: "#/components/schemas/InsightsPeriod"
+        - name: dependentId
+          in: query
+          required: false
+          description: Only this dependent's purchases. Omit for every dependent.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: The spending insights.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpendingInsights"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /members/{memberId}/funding-insights:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      tags: [Family]
+      operationId: getFundingInsights
+      summary: One funder's contributions by bucket and their share of the family's funding
+      description: >-
+        Contributions are pooled in shared buckets, so this reports what the
+        member put into each bucket and what has been spent from those buckets
+        overall. It never claims which purchases their exact dollars paid for.
+      responses:
+        "200":
+          description: The member's funding insights.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FundingInsights"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
   parameters:
     MemberId:
@@ -821,6 +888,254 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorEnvelope"
   schemas:
+    InsightsPeriod:
+      type: string
+      enum: ["7d", "30d", "all"]
+    InsightsDependent:
+      type: object
+      required: [id, displayName]
+      properties:
+        id:
+          type: integer
+        displayName:
+          type: string
+    InsightsBucketSpend:
+      type: object
+      required: [bucketId, bucketName, icon, spentCents, purchaseCount, share]
+      properties:
+        bucketId:
+          type: [integer, "null"]
+          description: Null for approved purchases whose bucket no longer exists.
+        bucketName:
+          type: string
+        icon:
+          oneOf:
+            - $ref: "#/components/schemas/BucketIcon"
+            - type: "null"
+        spentCents:
+          type: integer
+        purchaseCount:
+          type: integer
+        share:
+          type: number
+          description: Share of the period's spending, 0–1 (0 when nothing was spent).
+    InsightsDependentSpend:
+      type: object
+      required: [dependentId, dependentName, spentCents, purchaseCount, declinedCount, declinedCents, share]
+      properties:
+        dependentId:
+          type: integer
+        dependentName:
+          type: string
+        spentCents:
+          type: integer
+        purchaseCount:
+          type: integer
+        declinedCount:
+          type: integer
+        declinedCents:
+          type: integer
+        share:
+          type: number
+          description: Share of the period's spending, 0–1.
+    InsightsDay:
+      type: object
+      required: [date, spentCents]
+      properties:
+        date:
+          type: string
+          description: The family-clock calendar day, YYYY-MM-DD.
+        spentCents:
+          type: integer
+    InsightsMerchant:
+      type: object
+      required: [merchantName, spentCents, purchaseCount]
+      properties:
+        merchantName:
+          type: string
+        spentCents:
+          type: integer
+        purchaseCount:
+          type: integer
+    InsightsBucketUsage:
+      type: object
+      required: [bucketId, bucketName, icon, fundedCents, spentCents, heldCents, availableCents]
+      properties:
+        bucketId:
+          type: integer
+        bucketName:
+          type: string
+        icon:
+          oneOf:
+            - $ref: "#/components/schemas/BucketIcon"
+            - type: "null"
+        fundedCents:
+          type: integer
+          description: Total ever added, all time.
+        spentCents:
+          type: integer
+          description: Settled, all time.
+        heldCents:
+          type: integer
+          description: Approved but not settled yet.
+        availableCents:
+          type: integer
+    SpendingInsights:
+      type: object
+      required:
+        - period
+        - periodStart
+        - periodEnd
+        - timeZone
+        - dependentId
+        - dependents
+        - spentCents
+        - previousPeriodSpentCents
+        - purchaseCount
+        - averagePurchaseCents
+        - decidedCount
+        - approvalRate
+        - declinedCount
+        - declinedCents
+        - pendingCount
+        - byBucket
+        - byDependent
+        - daily
+        - topMerchants
+        - bucketUsage
+      properties:
+        period:
+          $ref: "#/components/schemas/InsightsPeriod"
+        periodStart:
+          type: [string, "null"]
+          format: date-time
+          description: Start of the period (family-clock midnight); null for all time.
+        periodEnd:
+          type: string
+          format: date-time
+        timeZone:
+          type: string
+          description: The family's clock, e.g. America/Los_Angeles.
+        dependentId:
+          type: [integer, "null"]
+          description: The dependent filter, or null for every dependent.
+        dependents:
+          type: array
+          description: Every dependent in the family, for the filter. Demo dependent first.
+          items:
+            $ref: "#/components/schemas/InsightsDependent"
+        spentCents:
+          type: integer
+          description: Approved purchases in the period, held or settled, each counted once.
+        previousPeriodSpentCents:
+          type: [integer, "null"]
+          description: >-
+            Spent in the same-length period just before; null for all time or
+            when nothing was spent then.
+        purchaseCount:
+          type: integer
+          description: Approved purchases in the period.
+        averagePurchaseCents:
+          type: [integer, "null"]
+          description: Spent divided by purchases, rounded; null with no purchases.
+        decidedCount:
+          type: integer
+          description: Approved plus declined purchases.
+        approvalRate:
+          type: [number, "null"]
+          description: Approved out of decided, 0–1; null when nothing was decided.
+        declinedCount:
+          type: integer
+        declinedCents:
+          type: integer
+          description: Dollars stopped (declined by the rules or a parent).
+        pendingCount:
+          type: integer
+          description: Still waiting on a parent; counted as neither spent nor stopped.
+        byBucket:
+          type: array
+          description: Every bucket in display order, plus any purchases with no bucket.
+          items:
+            $ref: "#/components/schemas/InsightsBucketSpend"
+        byDependent:
+          type: array
+          description: Every dependent in the filter, demo dependent first.
+          items:
+            $ref: "#/components/schemas/InsightsDependentSpend"
+        daily:
+          type: array
+          description: >-
+            One entry per family-clock day of the period, oldest first. For
+            all time it starts on the first day with a purchase; empty with none.
+          items:
+            $ref: "#/components/schemas/InsightsDay"
+        topMerchants:
+          type: array
+          description: Up to five merchants by amount spent.
+          items:
+            $ref: "#/components/schemas/InsightsMerchant"
+        bucketUsage:
+          type: array
+          description: Each bucket's funding, spent and held money. All time, family wide.
+          items:
+            $ref: "#/components/schemas/InsightsBucketUsage"
+    FundingBucketShare:
+      type: object
+      required: [bucketId, bucketName, icon, contributedCents, share, bucketFundedCents, bucketSpentCents, bucketHeldCents]
+      properties:
+        bucketId:
+          type: integer
+        bucketName:
+          type: string
+        icon:
+          oneOf:
+            - $ref: "#/components/schemas/BucketIcon"
+            - type: "null"
+        contributedCents:
+          type: integer
+          description: What this member added to the bucket.
+        share:
+          type: number
+          description: Share of this member's own contributions, 0–1.
+        bucketFundedCents:
+          type: integer
+          description: Everything anyone added to the bucket.
+        bucketSpentCents:
+          type: integer
+          description: Settled from the bucket, all time, whoever's money it was.
+        bucketHeldCents:
+          type: integer
+    FundingInsights:
+      type: object
+      required:
+        - memberId
+        - contributedCents
+        - familyFundedCents
+        - shareOfFamilyFunding
+        - spentFromFundedBucketsCents
+        - heldInFundedBucketsCents
+        - byBucket
+      properties:
+        memberId:
+          type: integer
+        contributedCents:
+          type: integer
+        familyFundedCents:
+          type: integer
+          description: Everything anyone added to the family's buckets.
+        shareOfFamilyFunding:
+          type: [number, "null"]
+          description: This member's part of the family's total funding, 0–1; null when nothing was added.
+        spentFromFundedBucketsCents:
+          type: integer
+          description: Settled from the buckets this member added to, all time. Pooled money.
+        heldInFundedBucketsCents:
+          type: integer
+        byBucket:
+          type: array
+          description: Buckets this member added to, in display order.
+          items:
+            $ref: "#/components/schemas/FundingBucketShare"
     HealthStatus:
       type: object
       properties:

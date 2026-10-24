@@ -6,25 +6,35 @@ import {
   type Card,
   type DbExecutor,
 } from "@workspace/db";
-import { FamilyServiceError, getDemoFamily } from "../family";
+import { FamilyServiceError, getDemoFamily, primaryDependent } from "../family";
 
 export interface CardDetail {
   card: Card;
   dependentName: string;
 }
 
-/** The demo family's card (one dependent, one card). */
+/**
+ * The demo dependent's card. With several dependents it is always the
+ * primary one's (the BRAND demo dependent, else the lowest id).
+ */
 export async function getDependentCard(
   executor: DbExecutor = db,
 ): Promise<CardDetail> {
   const family = await getDemoFamily(executor);
-  const [row] = await executor
-    .select({ card: cardsTable, dependentName: membersTable.displayName })
-    .from(cardsTable)
-    .innerJoin(membersTable, eq(membersTable.id, cardsTable.dependentMemberId))
-    .where(eq(membersTable.familyId, family.id))
-    .orderBy(asc(cardsTable.id))
-    .limit(1);
+  const members = await executor
+    .select()
+    .from(membersTable)
+    .where(eq(membersTable.familyId, family.id));
+  const dependent = primaryDependent(members);
+  const [row] = dependent
+    ? await executor
+        .select({ card: cardsTable, dependentName: membersTable.displayName })
+        .from(cardsTable)
+        .innerJoin(membersTable, eq(membersTable.id, cardsTable.dependentMemberId))
+        .where(eq(cardsTable.dependentMemberId, dependent.id))
+        .orderBy(asc(cardsTable.id))
+        .limit(1)
+    : [];
   if (!row) {
     throw new FamilyServiceError(
       "not_found",
