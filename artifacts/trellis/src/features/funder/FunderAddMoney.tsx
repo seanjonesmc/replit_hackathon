@@ -4,9 +4,10 @@ import { useListBuckets } from '@workspace/api-client-react';
 import { BucketIconBadge } from '@/components/trellis/bucket-card';
 import { EmptyState } from '@/components/trellis/empty-state';
 import { ChainBadge, PillButton, SectionTitle } from '@/components/trellis/primitives';
-import { LoadingRegion, Skeleton } from '@/components/trellis/skeletons';
+import { HeroBalanceCardSkeleton, LoadingRegion, Skeleton } from '@/components/trellis/skeletons';
 import { ComingSoonNote, ErrorState } from '@/components/trellis/states';
 import { ScreenHeader } from '@/features/shell/layout';
+import { HeroBalanceCard } from '@/components/trellis/hero-balance-card';
 import { chainStatusOf } from '@/lib/chain';
 import { formatCents } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -21,7 +22,7 @@ export default function FunderAddMoney() {
     return (
       <LoadingRegion label="Loading your bank and buckets" className="flex flex-col gap-4">
         <Skeleton className="h-8 w-40" />
-        <Skeleton className="h-24 rounded-card-sm" />
+        <HeroBalanceCardSkeleton className="bg-surface-alt" />
         <Skeleton className="h-[72px] rounded-card-sm" />
         <Skeleton className="h-[72px] rounded-card-sm" />
         <Skeleton className="h-[72px] rounded-card-sm" />
@@ -52,26 +53,15 @@ export default function FunderAddMoney() {
           <span id="bank-title">From</span>
         </SectionTitle>
         {bank ? (
-          <div className="rounded-card-sm bg-surface-alt p-4" data-testid="card-linked-bank">
-            <div className="flex items-center gap-3">
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface text-ink">
-                <Landmark className="size-5" aria-hidden="true" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="type-link-sm">
-                  {bank.bankName} <span className="tnum text-ink-muted">••{bank.last4}</span>
-                </p>
-                <p className="type-caption text-ink-muted">Simulated bank · test dollars</p>
-              </div>
-              <div className="text-right">
-                <p className="type-link-sm tnum" data-testid="text-bank-balance">{formatCents(bank.balanceCents)}</p>
-                <p className="type-caption text-ink-muted">available</p>
-              </div>
-            </div>
-            <div className="mt-3">
-              <ChainBadge status={chainStatusOf(bank.chain)} />
-            </div>
-          </div>
+          <HeroBalanceCard
+            eyebrow={`${bank.bankName} ••${bank.last4}`}
+            amountCents={bank.balanceCents}
+            caption="Available to add · simulated bank · test dollars"
+            badge={<Landmark className="size-5 shrink-0" aria-hidden="true" />}
+            data-testid="card-linked-bank"
+          >
+            <ChainBadge status={chainStatusOf(bank.chain)} />
+          </HeroBalanceCard>
         ) : (
           <EmptyState
             icon={Landmark}
