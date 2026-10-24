@@ -18,7 +18,7 @@ export default defineConfig({
         test: {
           name: "api-server",
           environment: "node",
-          include: ["tests/**/*.test.ts"],
+          include: ["tests/**/*.test.ts", "src/**/*.test.ts"],
           // Production mode skips the pino-pretty worker; silent keeps output clean.
           env: { LOG_LEVEL: "silent", NODE_ENV: "production" },
         },

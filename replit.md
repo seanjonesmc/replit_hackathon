@@ -66,6 +66,8 @@ currently exposes health only and the database schema is empty. Directory README
 reserve responsibilities, not implemented functionality or authorization boundaries.
 Baseline Vitest checks cover API health, BRAND asset URLs under the frontend
 base path, and the byte-for-byte reference checksum. No blockchain tooling.
+The API's AI service layer (`services/ai/`: policy builder and AI guard) exists
+but is not yet wired to routes or a decision engine.
 
 ## Stack
 

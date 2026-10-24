@@ -25,6 +25,7 @@ artifacts/
     middlewares/             Request middleware
     lib/                     Server-only infrastructure, including logger
     services/
+      ai/                    Policy builder and AI guard (Anthropic via AI Integrations)
       policies/              Future policy management
       decisions/             Future spending decision orchestration
       blockchain/            Future testnet adapter
@@ -123,6 +124,7 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | Project      | File                                                   | Guards                                                      |
 | ------------ | ------------------------------------------------------ | ----------------------------------------------------------- |
 | `api-server` | `artifacts/api-server/tests/health.test.ts`            | `GET /api/healthz` status and contract-valid payload         |
+| `api-server` | `artifacts/api-server/src/services/ai/*.test.ts`       | policy builder and AI guard with the model stubbed: valid parse, PENDING fallback, rule pass-through |
 | `trellis`    | `artifacts/trellis/vite-brand-plugin.test.ts`          | BRAND-filled `index.html`, base-path asset URLs, SVG output  |
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
 | `workspace`  | `scripts/tests/design-reference.test.ts`               | reference checksum; no code references the reference        |
