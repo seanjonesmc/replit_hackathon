@@ -6,5 +6,7 @@ bars and route map are the app shell in `components/app-shell.tsx`,
 
 - `session.tsx` checks the session once and shares the user, `login` and `logout`.
 - `SignedOut.tsx` is the branded welcome; it never names the sign-in provider.
+  Under the Log in button it shows `BRAND.copy.poweredByLabel` and the
+  official `BRAND.partnerLogo` image (stored in root `public/brand/`).
 - `layout.tsx` holds the phone column (signed-out screens), the per-tab
   `Screen` wrapper and the `ScreenHeader` every screen uses.

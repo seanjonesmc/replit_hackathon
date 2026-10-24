@@ -174,6 +174,26 @@ describe('sign-in gate', () => {
     }
   });
 
+  it('shows "Powered by" and the partner logo from BRAND under the log in button', () => {
+    session.isAuthenticated = false;
+    open('/');
+    const line = byTestId('text-powered-by');
+    expect(line?.textContent).toContain(BRAND.copy.poweredByLabel);
+    const logo = byTestId('img-partner-logo') as HTMLImageElement | null;
+    expect(logo?.getAttribute('src')).toBe(BRAND.partnerLogo.src);
+    expect(logo?.getAttribute('alt')).toBe(BRAND.partnerLogo.alt);
+    expect(logo?.className.split(/\s+/)).toContain('h-[18px]');
+    // The testnet line stays alongside it.
+    expect(host.textContent).toContain('A testnet demo. No real money moves.');
+  });
+
+  it('resolves the partner logo under BASE_URL', () => {
+    vi.stubEnv('BASE_URL', '/sub/path/');
+    session.isAuthenticated = false;
+    open('/sub/path/');
+    expect(byTestId('img-partner-logo')?.getAttribute('src')).toBe('/sub/path' + BRAND.partnerLogo.src);
+  });
+
   it('shows a loading state while the session is checked', () => {
     session.isLoading = true;
     open('/parent/home');

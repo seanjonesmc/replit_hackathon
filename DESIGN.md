@@ -63,6 +63,7 @@ Calm, friendly and trustworthy: a family tool, not a trading app.
 | appName, tagline, copy | Product identity, metadata, reusable brand copy |
 | logo, favicon, ogImage, backgroundImage | Canonical asset URLs, relative to the app base path |
 | backgroundImageOpacity | How strongly the screen background image shows over the plain surface (0 to 1) |
+| partnerLogo | The chain partner's official logo (`src`, relative to the app base path, and `alt`), shown after `copy.poweredByLabel` on the sign-in screen |
 | colors | Signature, on-colors, action, surface, text and semantic tokens (light) |
 | darkColors | Optional explicit dark palette; design-system tokens and docs only, the app has no dark mode |
 | fonts | Heading, body and mono families and the font stylesheet |
@@ -280,6 +281,7 @@ through props, and never import preview samples.
 | Bucket card | Built | Icon, amount left of total, progress bar, held amount, who funds it |
 | Activity feed row | Built | Plain-English sentence, signed amount, status pill, optional steps and chain badge |
 | “Verified on Monad” badge | Built | Sky `color.chainBg` pill with `color.chain` text with `BRAND.copy.verifiedLabel`, links to the explorer; real confirmed transactions only |
+| “Powered by Monad” mark | Built | Sign-in screen only, under the Log in button: `BRAND.copy.poweredByLabel` in `type.caption` muted ink, then the official `BRAND.partnerLogo` image at 18px tall, never recoloured or cropped |
 | Onboarding step layout | Built | Back button, progress dots, one question, single-tap pill answers, large continue button, “Skip to demo” |
 | Full-screen decision result card | Built | Icon + label, amount, merchant, plain-English reason, reason code in small `font.mono` text, who decided (Rule or AI guard, with its confidence), measured decision time, when, chain status; `BRAND.copy.askParentLabel` button for declined and pending (disabled until asking arrives). Rows for who decided and the measured time appear only with real values |
 | Empty states | Built | Tint icon circle, title, one sentence, optional action |
@@ -399,7 +401,8 @@ surface with a hairline border so they stand out from the cream.
    their on-colors, the optional `darkColors` palette, heading/body/mono fonts,
    radii, spacing, demo identities, reusable copy).
 2. Replace files in `/public/brand/`, keeping the same filenames. Generated SVGs
-   update themselves; replace `og.png` and `background.webp` by hand.
+   update themselves; replace `og.png`, `background.webp` and the partner logo
+   (`partner-monad.webp`) by hand.
 3. Add the new app name, demo names, bank names, fonts, font stylesheet URL and
    any non-hex colors to `/src/brand/brand-history.ts`, keeping the old ones.
    `pnpm test` lists any that are missing, and keeps flagging the old values if

@@ -22,7 +22,7 @@ const viteBin = path.join(artifactDir, 'node_modules', '.bin', 'vite');
 const BASE_PATH = '/smoke/sub-path/';
 const prefix = BASE_PATH.replace(/\/$/, '');
 
-const brandAssetPaths = [BRAND.logo.mark, BRAND.logo.wordmark, BRAND.favicon, BRAND.ogImage, BRAND.backgroundImage];
+const brandAssetPaths = [BRAND.logo.mark, BRAND.logo.wordmark, BRAND.favicon, BRAND.ogImage, BRAND.backgroundImage, BRAND.partnerLogo.src];
 
 let html = '';
 let bundledJs = '';

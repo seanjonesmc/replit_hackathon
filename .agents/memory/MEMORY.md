@@ -18,3 +18,4 @@
 - [Brand logo](brand-logo.md) — sprout paths hand-traced from a PNG; in-app lockup drawn inline because SVG-in-img text loses the web font.
 - [Screen background and nav](screen-backdrop.md) — background faint (35%); cards plain surface + border; tab bar stays black per user.
 - [Hold then settle](hold-then-settle.md) — approvals only hold; money reaches spent via a settlement run or seed history; resets must clear holds.
+- [Partner logo raster](partner-logo.md) — official Monad PNG un-blended from white, never redrawn/recoloured; magick available, no PIL.

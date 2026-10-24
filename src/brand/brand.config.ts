@@ -53,6 +53,8 @@ export interface BrandConfig {
   backgroundImage: string;
   /** How strongly the background image shows over the plain surface, 0 to 1. */
   backgroundImageOpacity: number;
+  /** The chain partner's official logo, shown after `copy.poweredByLabel` on sign-in. Trimmed, transparent, compressed web format at 2x. */
+  partnerLogo: { src: string; alt: string };
   colors: BrandColors;
   /**
    * Optional dark palette. Used by the design-system tokens and docs only; the
@@ -71,7 +73,7 @@ export interface BrandConfig {
     cardLast4: string;
     banks: string[];
   };
-  copy: { verifiedLabel: string; askParentLabel: string };
+  copy: { verifiedLabel: string; poweredByLabel: string; askParentLabel: string };
 }
 
 export const BRAND: BrandConfig = {
@@ -82,6 +84,7 @@ export const BRAND: BrandConfig = {
   ogImage: "/brand/og.png",
   backgroundImage: "/brand/background.webp",
   backgroundImageOpacity: 0.35,
+  partnerLogo: { src: "/brand/partner-monad.webp", alt: "Monad" },
   colors: {
     signature: "#dcf26e", onSignature: "#1c2008",
     primary: "#171815", primaryHover: "#31332d", onPrimary: "#f6f5f1",
@@ -121,5 +124,5 @@ export const BRAND: BrandConfig = {
     cardLast4: "4242",
     banks: ["Demo Bank", "Sample Credit Union", "Test Savings"],
   },
-  copy: { verifiedLabel: "Verified on Monad", askParentLabel: "Ask Parent" },
+  copy: { verifiedLabel: "Verified on Monad", poweredByLabel: "Powered by", askParentLabel: "Ask Parent" },
 };

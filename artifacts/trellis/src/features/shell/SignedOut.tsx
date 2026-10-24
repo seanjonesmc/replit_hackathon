@@ -1,6 +1,6 @@
 import { Bell, Gift, ShieldCheck } from 'lucide-react';
 import { BRAND } from '@brand/brand.config';
-import { LogoMark, PillButton, Wordmark } from '@/components/trellis/primitives';
+import { LogoMark, PillButton, Wordmark, brandAsset } from '@/components/trellis/primitives';
 import { PhoneColumn } from './layout';
 import { useSession } from './session';
 
@@ -38,6 +38,16 @@ export function SignedOut() {
           Log in
         </PillButton>
         <p className="type-caption text-center text-ink-muted">A testnet demo. No real money moves.</p>
+        <p className="type-caption flex items-center justify-center gap-1.5 text-ink-muted" data-testid="text-powered-by">
+          <span>{BRAND.copy.poweredByLabel}</span>
+          {/* Official partner logo: fixed height, natural width, never recoloured or cropped. */}
+          <img
+            src={brandAsset(BRAND.partnerLogo.src)}
+            alt={BRAND.partnerLogo.alt}
+            className="h-[18px] w-auto"
+            data-testid="img-partner-logo"
+          />
+        </p>
       </div>
     </PhoneColumn>
   );

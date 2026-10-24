@@ -175,7 +175,7 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
 | `trellis`    | `artifacts/trellis/src/lib/route-map.test.ts`          | roles, tabs and URLs; sub-screens and the tab they mark; BRAND.demo names; last-used role |
 | `trellis`    | `artifacts/trellis/src/components/trellis/shell-nav.test.tsx` | role switcher and tab bar links, current marks, count badge |
-| `trellis`    | `artifacts/trellis/src/App.test.tsx`                   | root and deep-link routing, role/tab switching, not-found, the swipe tab, the parent's Add money sub-screen, sub-path base |
+| `trellis`    | `artifacts/trellis/src/App.test.tsx`                   | root and deep-link routing, role/tab switching, not-found, the swipe tab, the parent's Add money sub-screen, sub-path base, the signed-out welcome (feature cards, "Powered by" partner logo from BRAND) |
 | `trellis`    | `artifacts/trellis/src/lib/swipe-presets.test.ts`      | the spec's six demo swipes and amounts, grid order, 2:10am on the family clock (never in the future), swipe payloads |
 | `trellis`    | `artifacts/trellis/src/features/dependent/SwipeSimulator.test.tsx` | grid from `GET /api/merchants`, the swipe request, the result card (decision, Rule/AI guard, ms), feed and approvals refetch, frozen card, server errors (`fetch` mocked) |
 | `trellis`    | `artifacts/trellis/src/features/funder/AddMoneyFlow.test.tsx` | the parent adds money as herself from her own bank (not the grandparent's), default and own notes, the shared confirmation; the grandparent's tab unchanged (`fetch` mocked) |
