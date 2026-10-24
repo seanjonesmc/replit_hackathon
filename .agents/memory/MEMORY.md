@@ -1,2 +1,3 @@
 - [Product scope and branding](product-scope.md) — phased testnet-only family spending demo with strict centralized branding and an immutable reference.
 - [Vitest env stubbing](vitest-env-stubbing.md) — use literal import.meta.env so vi.stubEnv(BASE_URL) works; casts bypass it in tests only.
+- [Pitch deck, video and claims](pitch-deck.md) — judges see only the 90s video, not the deck; BRAND-sourced text; stats follow the weak-spots list.

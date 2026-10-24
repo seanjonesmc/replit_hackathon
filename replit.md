@@ -39,6 +39,7 @@ test locations, and phase gates.
 - `docs/plans/` — saved, agreed plans for individual phases and tasks
 - `artifacts/trellis/` — existing React/Vite frontend
 - `artifacts/api-server/` — existing Express API
+- `artifacts/pitch-deck/` — judges' pitch deck (slides, `/pitch-deck/`); reads BRAND at build time and sources every number from `docs/research/problem-statement.md`
 - `lib/` — API specification, generated client/validators, database, future shared logic
 - `src/brand/brand.config.ts` — the single brand source
 - `public/brand/` — canonical brand assets served by the frontend

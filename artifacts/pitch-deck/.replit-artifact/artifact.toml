@@ -1,0 +1,28 @@
+kind = "slides"
+previewPath = "/pitch-deck/"
+title = "Trellis Pitch Deck"
+description = "A short hackathon pitch deck for Trellis, a testnet-only family spending demo. Leads with sourced problem numbers, then who it hurts, the demo, and how it works on testnet."
+version = "1.0.0"
+id = "artifacts/pitch-deck"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/pitch-deck/" ]
+localPort = 18522
+
+[services.development]
+run = "pnpm --filter @workspace/pitch-deck run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/pitch-deck", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/pitch-deck/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18522"
+BASE_PATH = "/pitch-deck/"

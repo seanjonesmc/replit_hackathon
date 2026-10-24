@@ -1,0 +1,62 @@
+@import 'tailwindcss';
+
+/*
+ * Theme tokens. Every --brand-* value is injected into :root from the root
+ * BRAND config (src/brand/brand.config.ts) by deck-brand-plugin.ts, following
+ * the Trellis design system. Do not hardcode brand values here.
+ */
+@theme inline {
+  --color-signature: var(--brand-signature);
+  --color-primary: var(--brand-primary);
+  --color-primary-hover: var(--brand-primary-hover);
+  --color-tint: var(--brand-tint);
+  --color-ink: var(--brand-ink);
+  --color-muted: var(--brand-ink-muted);
+  --color-surface: var(--brand-surface);
+  --color-sand: var(--brand-surface-alt);
+  --color-hairline: var(--brand-hairline);
+  --color-approved: var(--brand-approved);
+  --color-approved-bg: var(--brand-approved-bg);
+  --color-rejected: var(--brand-rejected);
+  --color-rejected-bg: var(--brand-rejected-bg);
+  --color-pending: var(--brand-pending);
+  --color-pending-bg: var(--brand-pending-bg);
+  --color-chain: var(--brand-chain);
+  --color-chain-bg: var(--brand-chain-bg);
+  --radius-pill: var(--brand-radius-pill);
+  --radius-card: var(--brand-radius-card);
+  --radius-card-sm: var(--brand-radius-card-sm);
+  --radius-tag: var(--brand-radius-tag);
+  --font-display: var(--brand-font-heading);
+  --font-body: var(--brand-font-body);
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--brand-surface-alt);
+  color: var(--brand-ink);
+  font-family: var(--brand-font-body);
+}
+
+.slide {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.slide-viewer {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}

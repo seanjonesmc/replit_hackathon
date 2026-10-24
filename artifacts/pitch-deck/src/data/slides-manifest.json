@@ -1,0 +1,58 @@
+[
+  {
+    "id": "f0411695-bc84-4e95-b5d3-dbb49a2591be",
+    "position": 1,
+    "filepath": "src/pages/slides/Cover.tsx",
+    "title": "Cover",
+    "description": "Trellis name, tagline and testnet-only label",
+    "speakerNotes": ""
+  },
+  {
+    "id": "ac1d1e14-04ce-49df-bdc9-3abe40c38f6d",
+    "position": 2,
+    "filepath": "src/pages/slides/Problem.tsx",
+    "title": "The problem",
+    "description": "One-sentence hook and three sourced headline numbers",
+    "speakerNotes": ""
+  },
+  {
+    "id": "8720efee-cbad-4dc2-a0d4-d7ebe888ab5d",
+    "position": 3,
+    "filepath": "src/pages/slides/WhoItHurts.tsx",
+    "title": "Who it hurts",
+    "description": "Parents at home, students abroad, families paying across borders",
+    "speakerNotes": ""
+  },
+  {
+    "id": "860515a8-91ac-419b-b0df-928a2664f389",
+    "position": 4,
+    "filepath": "src/pages/slides/WhatItDoes.tsx",
+    "title": "What Trellis does",
+    "description": "Pot, buckets, approval and transparency",
+    "speakerNotes": ""
+  },
+  {
+    "id": "ce98ef3e-0d71-457e-bd13-5935418cae1b",
+    "position": 5,
+    "filepath": "src/pages/slides/Demo.tsx",
+    "title": "The demo",
+    "description": "Six-step live demo script with the seeded family",
+    "speakerNotes": ""
+  },
+  {
+    "id": "e956b762-f28e-4280-8861-ab2b38a5427f",
+    "position": 6,
+    "filepath": "src/pages/slides/Testnet.tsx",
+    "title": "How it runs on testnet",
+    "description": "Simulated bank and card stack on Monad testnet",
+    "speakerNotes": ""
+  },
+  {
+    "id": "1b3b7693-b3a3-4934-8cb3-ed04fdd15c45",
+    "position": 7,
+    "filepath": "src/pages/slides/Close.tsx",
+    "title": "Close",
+    "description": "Tagline and testnet-only reminder",
+    "speakerNotes": ""
+  }
+]

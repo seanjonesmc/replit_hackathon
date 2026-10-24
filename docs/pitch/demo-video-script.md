@@ -1,64 +1,118 @@
 # Trellis — 90-second demo video script
 
-About 210 spoken words, or roughly 85 seconds at a normal pace. That leaves a few
-seconds of room for the on-screen moments.
+This video replaces the pitch deck, so it carries everything the deck did:
+the sourced problem, who it hurts, what Trellis does, the live demo, how it
+runs on testnet, and the testnet-only disclaimer.
 
-The script follows the planned end-to-end demo with the seeded Rivera family:
-Maya (parent), Grandma Rose (funder), and Leo (19, dependent). Names come from
-the brand config. If the names change there, update them here as well.
+**Concept: "Friday night, rewound."** The video opens on Leo's card being
+declined at a bar, rewinds to show the problem and how his family set Trellis
+up, and returns to the same declined card at the end. By then the "no" reads
+as the family's own rules, not an app being strict.
 
-> **Before recording:** these screens are planned but not built yet. The app
-> currently contains the brand and design foundation only. Record this video after
-> funding, the swipe simulator, approvals, the activity feed, and card freeze all
-> work. Do not mock up results that the app cannot produce.
+**How the numbers fit in 90 seconds:** the voiceover tells the story; the
+numbers appear on screen as large type with a source line. The narrator
+reads only the numbers that carry the story (73%, 50%, 600,000+, 15%). The
+rest stay on screen long enough to read.
+
+About 210 spoken words, or roughly 85 seconds at a relaxed pace, leaving time
+to hold on the result cards.
+
+Cast (from the brand config; update here if the names change there): **Maya**
+(parent), **Grandma Rose** (funder), **Leo** (19, dependent), card ending
+**4242**, **Demo Bank**.
+
+> **Before recording:** these screens are planned but not built yet. Record
+> this video only after funding, the swipe simulator, rules, Ask Parent, the
+> "where my money went" view, card freeze and the explorer link all work on
+> testnet. Do not mock up results the app cannot produce.
 
 ---
 
 ## The script
 
-| Time | On screen | Voiceover |
-|---|---|---|
-| **0:00–0:08**<br>Cold open | Leo's phone. He taps **The Tipsy Tavern · $32**. A full-screen red **Declined** card appears with the reason in plain English. Hold for one beat. | "Leo is nineteen. That's his family's money, and it just said no." |
-| **0:08–0:20**<br>Problem | Black screen. Two numbers animate in large type: **73%** *pay allowance in cash*, then **50%** *struggle to track spending without feeling controlling*. Small source line: *Wells Fargo/Ipsos, 2025.* | "Nearly three in four parents still give allowance in cash. Once it's handed over, nobody can see where it goes. Half of parents say they struggle to keep an eye on spending without feeling controlling." |
-| **0:20–0:28**<br>Introduction | Trellis logo on the signature blue. Tagline appears below it. | "This is Trellis: family money, with guardrails. Everyone who chips in can see where it goes, and the rules apply *before* the money is spent." |
-| **0:28–0:38**<br>Fund | Role switcher → **Grandma Rose**. She adds **$50 from Demo Bank → Food**. Celebration animation, then the **Verified on Monad** badge. | "Grandma Rose adds fifty dollars to Leo's food budget. It's recorded on Monad, so it's verified, not just promised." |
-| **0:38–0:50**<br>Rules | Role switcher → **Maya**. She types the rule; the parsed **policy card** appears; she taps **Confirm**. | "Maya, Leo's mom, sets the rules in plain English: nothing at bars, no gaming, and ask me before anything over seventy-five dollars." |
-| **0:50–1:00**<br>Spend + transparency | Leo swipes **Trader Joe's · $18.40** → **Approved**. Cut to Grandma's **Where my money went**: *Your $50 → groceries $18.40, $31.60 remaining.* | "Groceries? Approved. And Grandma sees exactly where her fifty dollars went." |
-| **1:00–1:15**<br>Approval | Leo swipes **Apple Store · $129** → **Pending** → taps **Ask Parent**. Maya's screen shows the request → **Approve**. The automatic retry goes through, and the approval appears in the activity feed. | "A hundred and twenty-nine dollars at the Apple Store is over the limit, so Leo taps *Ask Parent*. Maya approves from her phone, and the purchase goes through, with every step on the record." |
-| **1:15–1:22**<br>Freeze | Maya taps **Freeze card**. Leo swipes anything → **Declined: card inactive**. | "Card lost? One tap freezes it. Every swipe after that is declined." |
-| **1:22–1:30**<br>Close | Quick montage: pot → budgets → approval → activity feed. End on the logo and tagline. Small text: *Testnet demo. Simulated bank and card. No real money.* | "One shared pot, clear budgets, real-time approvals, and a plain-English record the whole family can check. Trellis. Family money, with guardrails." |
+| Time | What it covers | On screen | Voiceover |
+|---|---|---|---|
+| **0:00–0:06**<br>Cold open | Hook | Close-up of Leo's phone at night. Swipe: **bar · $32**. Full-screen red **Declined** card: *Bars are blocked by your family's rules.* Hold. Sound: crowd noise, then a sharp thud; music cuts. | "Friday night. Leo's nineteen, and his card just said no." |
+| **0:06–0:20**<br>Rewind → problem | The problem | Freeze, quick rewind, then black screen with kinetic type, one number at a time:<br>**71%** *of parents give kids an allowance* (stays small)<br>**73%** *pay it at least partly in cash*<br>**50%** *find it hard to track spending without feeling controlling*<br>Source line throughout: *Wells Fargo / Ipsos survey of about 1,600 US parents, 2025.* | "Let's back up. Seventy-three percent of parents still pay allowance at least partly in cash. Once it's handed over, it's gone. Half find it hard to keep track without feeling controlling." |
+| **0:20–0:30**<br>Who it hurts | Families far apart | Split screen: a phone at a campus and a phone in a kitchen far away. Two numbers:<br>**600,000+** *international students in the US rely mainly on family money*. Source: *IIE Open Doors 2025.*<br>**~15%** *average cost to send $200 abroad through a bank*. Source: *World Bank, Remittance Prices Worldwide, Q3 2025.* | "Distance makes it harder. Over six hundred thousand international students in the US live mainly on family money, and banks charge about fifteen percent to send two hundred dollars abroad." |
+| **0:30–0:38**<br>What Trellis does | The four features | Trellis logo on the signature blue, tagline below. Four icons appear in sequence: **Pot · Buckets · Approval · Transparency.** Music starts. | "Trellis gives the family one shared pot, a budget for each need, rules checked before every purchase, and a record every funder can read." |
+| **0:38–0:46**<br>Fund | Pot + proof | Role switcher → **Grandma Rose**. **$50 from Demo Bank → Food**. **Verified on Monad** badge → tap → testnet explorer opens on the transaction. | "Grandma Rose adds fifty dollars for food. Tap the badge: there's the transaction on Monad testnet." |
+| **0:46–0:54**<br>Rules | Buckets + rules | Role switcher → **Maya**. She types the rule; the parsed **policy card** builds line by line; she taps **Confirm**. | "Maya sets the rules the way she'd say them: no bars, no gaming, and ask me before anything over seventy-five." |
+| **0:54–1:00**<br>Spend + transparency | Transparency | Leo swipes **grocery store · $18.40** → green **Approved** (ding). Cut to Grandma's **Where my money went**: *Your $50 → groceries $18.40, $31.60 left.* | "Groceries? Approved. And Grandma sees exactly where it went." |
+| **1:00–1:10**<br>Ask Parent | Approval | Leo swipes **electronics · $129** → amber **Pending** → taps **Ask Parent**. Maya's phone lights up → **Approve**. The retry goes through and appears in the activity feed. | "Headphones for a hundred and twenty-nine? Over the line. So Leo asks, Maya approves… and it goes through." |
+| **1:10–1:19**<br>Under the hood | How it runs on testnet | The app shrinks to one side. The four-step flow animates beside it: **Demo bank** (mints test dollars) → **Contract** (tracks who funded what) → **Rules first** (AI never overrides a hard rule) → **On-chain** (card decision with explorer link). | "Under the hood: a demo bank mints test dollars, a Monad contract tracks who funded what, hard rules decide first, and every card decision lands on-chain." |
+| **1:19–1:30**<br>Callback + close | Testnet disclaimer | Quick montage: Maya taps **Freeze card** → Leo's swipe **Declined: card inactive** → back to the cold-open bar decline, now with the family's rule shown beside it. End on the logo and tagline. On screen: *Testnet-only demo on Monad. Simulated bank and card. No real money.* | "So that 'no' on Friday night? His family's own rules, set in advance. Trellis. Family money, with guardrails. Testnet only: no real money, banks, or cards." |
 
 ---
 
-## Why this order works
+## Voiceover only (for the recording booth)
 
-- **It opens on conflict.** A declined swipe shows the product working in the
-  first second. The explanation comes after.
-- **One family carries the story.** Each role appears when its action matters,
-  so viewers never have to learn a feature in the abstract.
-- **The problem section uses only two numbers.** Both come from the same sourced
-  survey (see `docs/research/problem-statement.md`), and they set up the two
-  ideas Trellis answers: *visibility* and *guardrails without hovering*.
-- **The ending repeats the cold open's promise.** The tagline closes the story.
+> Friday night. Leo's nineteen, and his card just said no.
+>
+> Let's back up. Seventy-three percent of parents still pay allowance at least partly in cash. Once it's handed over, it's gone. Half find it hard to keep track without feeling controlling.
+>
+> Distance makes it harder. Over six hundred thousand international students in the US live mainly on family money, and banks charge about fifteen percent to send two hundred dollars abroad.
+>
+> Trellis gives the family one shared pot, a budget for each need, rules checked before every purchase, and a record every funder can read.
+>
+> Grandma Rose adds fifty dollars for food. Tap the badge: there's the transaction on Monad testnet.
+>
+> Maya sets the rules the way she'd say them: no bars, no gaming, and ask me before anything over seventy-five.
+>
+> Groceries? Approved. And Grandma sees exactly where it went.
+>
+> Headphones for a hundred and twenty-nine? Over the line. So Leo asks, Maya approves… and it goes through.
+>
+> Under the hood: a demo bank mints test dollars, a Monad contract tracks who funded what, hard rules decide first, and every card decision lands on-chain.
+>
+> So that "no" on Friday night? His family's own rules, set in advance. Trellis. Family money, with guardrails. Testnet only: no real money, banks, or cards.
 
-## Recording tips
+---
 
-- Use **Reset demo → Reset with seeded family** before every take, so balances
-  match the script.
-- Record at the phone-width layout (390px). Zoom in on the decision card for the
-  cold open and each verdict.
-- Record the voiceover separately and cut the screen capture to match it. Live
-  narration over clicking usually runs long.
-- Hold every result card for at least one full second. Viewers need time to
-  read the reason.
-- If the video runs long, cut the **Freeze** beat first. The story still works
-  without it.
+## Where each deck section went
+
+| Deck section | In the video |
+|---|---|
+| Cover (name, tagline, testnet-only) | 0:30 logo and tagline; closing card |
+| The problem (hook + 73% / 50% / ~15%) | 0:06–0:30, spoken and on screen with sources |
+| Who it hurts (71% / 600K+ / ~$3B) | 71% and 600K+ on screen. **~$3B (India, RBI) is left out**: it covers one country and would crowd the frame. Keep it ready for Q&A. |
+| What Trellis does (pot, buckets, approval, transparency) | 0:30 icon sequence, then each one shown in the demo |
+| Planned demo (6 steps) | 0:38–1:10, plus the freeze and bar decline in the closing montage |
+| How it runs on testnet | 1:10–1:19 animated flow beside the app |
+| Testnet-only disclaimer | Spoken and on screen in the closing shot |
+
+## Why it holds attention
+
+- **The first second shows a result.** A declined card at a bar raises a
+  question the rest of the video answers.
+- **The numbers come during the rewind.** They explain why Leo's family wanted
+  rules, so the statistics feel like backstory rather than a lecture.
+- **The badge tap is the proof.** Opening the explorer on camera shows the
+  testnet claim instead of just stating it.
+- **The ending returns to the opening.** The same declined card closes the
+  video, now as a feature.
+
+## Recording and edit tips
+
+- Use **Reset demo → Reset with seeded family** before every take.
+- Record at the phone-width layout (390px). Zoom in on each decision card.
+- Shoot the bar decline after the rules are set, so it shows the real rule
+  text, then move it to the front in the edit.
+- Record the voiceover first and cut the screen capture to match it.
+- Build the number cards and the testnet flow diagram in the brand colors
+  (signature blue, Inter bold). Hold each number at least 2 seconds.
+- Burn in captions; many judges watch with the sound off.
+- If it runs long, cut in this order: the freeze shot, then "Once it's
+  handed over, it's gone", then the 600,000+ line (keep it on screen only).
 
 ## Claims to keep accurate
 
-- Say "recorded on Monad" or "verified on Monad". Don't promise speeds the
-  recording doesn't show.
-- Keep the on-screen disclaimer in the closing shot. No real money, banks, or
-  cards are involved.
-- Name the source on screen when you show the survey numbers. Use **73%** and
-  **50%** exactly as researched; don't round them up.
+- Every number appears on screen with its source, exactly as researched. Say
+  "about fifteen percent" and "two hundred dollars"; never link the 15% to
+  tuition.
+- Do not say or imply Trellis cuts transfer fees. The 15% describes the
+  problem; on testnet, Trellis moves test dollars only.
+- Do not say kids' card apps fail abroad.
+- The voiceover names no real merchant. Use whatever names the swipe simulator
+  shows on screen.
+- Keep the testnet disclaimer both spoken and on screen.
