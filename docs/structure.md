@@ -110,6 +110,18 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
 | `workspace`  | `scripts/tests/design-reference.test.ts`               | reference checksum; no code references the reference        |
 
+A production build smoke check is opt-in because it runs a real `vite build`
+(a few seconds). Run it with `pnpm test:build` (root `vitest.build.config.ts`)
+after changing `artifacts/trellis/vite.config.ts`, the brand plugin, `public/`,
+or BRAND asset paths:
+
+| Project         | File                                               | Guards                                                                 |
+| --------------- | -------------------------------------------------- | ---------------------------------------------------------------------- |
+| `trellis-build` | `artifacts/trellis/tests/build-smoke.build-test.ts` | build with `BASE_PATH=/smoke/sub-path/`: favicon, `og:image` and entry script are prefixed; every BRAND asset is in the output and matches root `public/` |
+
+It writes to the gitignored `generated-artifacts/trellis-build-smoke/`, never to
+the artifact's real `dist/`. The `.build-test.ts` suffix keeps it out of `pnpm test`.
+
 Tests derive expected values from `BRAND`, so rebranding does not break them.
 The reference checksum must never be updated to accommodate an edit.
 
