@@ -4,7 +4,9 @@ description: Where Anthropic (Replit AI Integrations) can be provisioned and how
 ---
 The Anthropic integration setup callback is not available inside isolated task environments, so the AI_INTEGRATIONS_ANTHROPIC_* env vars may be absent there. Provisioning and any live model checks must happen from the main session.
 
-**Why:** Observed 2026-10-24 while building the policy builder and AI guard; only stubbed unit checks could run in the task.
+**Why:** Task environments have no setup callback and the integration search lists no Anthropic entry, so only stubbed checks can run there. A project task created solely to provision it cannot finish either.
+
+**Don't** plan provisioning or live AI checks as a project task; do them directly in the main chat.
 
 Provisioned from the main session on 2026-10-24 with the user's consent (usage billed to Replit credits); live calls to both the policy builder and the guard returned real, non-fallback answers.
 
