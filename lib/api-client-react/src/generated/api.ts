@@ -18,9 +18,11 @@ import type {
 
 import type {
   AuthUserEnvelope,
+  Authorization,
   BadRequestResponse,
   BankAccount,
   BeginBrowserLoginParams,
+  Card,
   ConflictResponse,
   ContributionRequest,
   ContributionResult,
@@ -30,10 +32,15 @@ import type {
   HandleBrowserLoginCallbackParams,
   HealthStatus,
   LinkBankAccountRequest,
+  ListAuthorizationsParams,
   LogoutBrowserSessionParams,
   MemberContributions,
+  Merchant,
   NotFoundResponse,
   Overview,
+  PolicyView,
+  SwipeRequest,
+  SwipeResult,
   UnauthorizedResponse,
   UnprocessableResponse,
 } from "./api.schemas";
@@ -1249,6 +1256,702 @@ export function useListMemberContributions<
     memberId,
     options,
   );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getCreateSwipeUrl = () => {
+  return `/api/swipes`;
+};
+
+/**
+ * Runs the hard rules in order (the first match decides), then the AI guard only for swipes the rules can't place in a bucket or whose items look suspicious. Stores the authorization and, when approved, moves the amount out of the bucket at once. For seeded merchants the stored name, category and MCC are used instead of the values sent. Never waits on the chain; the chain status starts as `not_submitted`.
+ * @summary Swipe the simulated card through the decision engine
+ */
+export const createSwipe = async (
+  swipeRequest: SwipeRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<SwipeResult> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<SwipeResult>(getCreateSwipeUrl(), {
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(swipeRequest),
+  });
+};
+
+export const getCreateSwipeMutationKey = () => ["createSwipe"] as const;
+
+export const getCreateSwipeMutationOptions = <
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createSwipe>>,
+    TError,
+    CreateSwipeMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createSwipe>>,
+  TError,
+  CreateSwipeMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreateSwipeMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createSwipe>>,
+    CreateSwipeMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createSwipe(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateSwipeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createSwipe>>
+>;
+export type CreateSwipeMutationBody = BodyType<SwipeRequest>;
+export type CreateSwipeMutationError = ErrorType<
+  BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+>;
+export type CreateSwipeMutationVariables = { data: BodyType<SwipeRequest> };
+
+/**
+ * @summary Swipe the simulated card through the decision engine
+ */
+export const useCreateSwipe = <
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createSwipe>>,
+    TError,
+    CreateSwipeMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createSwipe>>,
+  TError,
+  CreateSwipeMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreateSwipeMutationOptions(options));
+};
+
+export const getListMerchantsUrl = () => {
+  return `/api/merchants`;
+};
+
+/**
+ * The simulated merchants for the swipe grid, in seed order.
+ * @summary List the seeded merchants
+ */
+export const listMerchants = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<Merchant[]> => {
+  return customFetch<Merchant[]>(getListMerchantsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListMerchantsQueryKey = () => {
+  return [`/api/merchants`] as const;
+};
+
+export const getListMerchantsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listMerchants>>,
+  TError = ErrorType<UnauthorizedResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listMerchants>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListMerchantsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listMerchants>>> = ({
+    signal,
+  }) => listMerchants({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listMerchants>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListMerchantsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listMerchants>>
+>;
+export type ListMerchantsQueryError = ErrorType<UnauthorizedResponse>;
+
+/**
+ * @summary List the seeded merchants
+ */
+
+export function useListMerchants<
+  TData = Awaited<ReturnType<typeof listMerchants>>,
+  TError = ErrorType<UnauthorizedResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listMerchants>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListMerchantsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getListAuthorizationsUrl = (params?: ListAuthorizationsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/authorizations?${stringifiedParams}`
+    : `/api/authorizations`;
+};
+
+/**
+ * Every swipe for the demo family, newest first, with merchant and bucket names and the links of any approval chain.
+ * @summary The activity feed
+ */
+export const listAuthorizations = async (
+  params?: ListAuthorizationsParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<Authorization[]> => {
+  return customFetch<Authorization[]>(getListAuthorizationsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAuthorizationsQueryKey = (
+  params?: ListAuthorizationsParams,
+) => {
+  return [`/api/authorizations`, ...(params ? [params] : [])] as const;
+};
+
+export const getListAuthorizationsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAuthorizations>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  params?: ListAuthorizationsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAuthorizations>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListAuthorizationsQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAuthorizations>>
+  > = ({ signal }) => listAuthorizations(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAuthorizations>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAuthorizationsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAuthorizations>>
+>;
+export type ListAuthorizationsQueryError = ErrorType<
+  BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+>;
+
+/**
+ * @summary The activity feed
+ */
+
+export function useListAuthorizations<
+  TData = Awaited<ReturnType<typeof listAuthorizations>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  params?: ListAuthorizationsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAuthorizations>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAuthorizationsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getListApprovalsUrl = () => {
+  return `/api/approvals`;
+};
+
+/**
+ * @summary Pending authorizations waiting for a parent
+ */
+export const listApprovals = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<Authorization[]> => {
+  return customFetch<Authorization[]>(getListApprovalsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListApprovalsQueryKey = () => {
+  return [`/api/approvals`] as const;
+};
+
+export const getListApprovalsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listApprovals>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listApprovals>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListApprovalsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listApprovals>>> = ({
+    signal,
+  }) => listApprovals({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listApprovals>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListApprovalsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listApprovals>>
+>;
+export type ListApprovalsQueryError = ErrorType<
+  UnauthorizedResponse | NotFoundResponse
+>;
+
+/**
+ * @summary Pending authorizations waiting for a parent
+ */
+
+export function useListApprovals<
+  TData = Awaited<ReturnType<typeof listApprovals>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listApprovals>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListApprovalsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getGetCardUrl = () => {
+  return `/api/card`;
+};
+
+/**
+ * @summary Get the dependent's card
+ */
+export const getCard = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<Card> => {
+  return customFetch<Card>(getGetCardUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCardQueryKey = () => {
+  return [`/api/card`] as const;
+};
+
+export const getGetCardQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCard>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getCard>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCardQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCard>>> = ({
+    signal,
+  }) => getCard({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCard>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCardQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCard>>
+>;
+export type GetCardQueryError = ErrorType<
+  UnauthorizedResponse | NotFoundResponse
+>;
+
+/**
+ * @summary Get the dependent's card
+ */
+
+export function useGetCard<
+  TData = Awaited<ReturnType<typeof getCard>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getCard>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCardQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getFreezeCardUrl = () => {
+  return `/api/card/freeze`;
+};
+
+/**
+ * Active → frozen; freezing a frozen card changes nothing. Every swipe on a frozen card is rejected with `card_inactive`. Database only for now.
+ * @summary Freeze the dependent's card
+ */
+export const freezeCard = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<Card> => {
+  return customFetch<Card>(getFreezeCardUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getFreezeCardMutationKey = () => ["freezeCard"] as const;
+
+export const getFreezeCardMutationOptions = <
+  TError = ErrorType<
+    UnauthorizedResponse | NotFoundResponse | UnprocessableResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof freezeCard>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof freezeCard>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = getFreezeCardMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof freezeCard>>,
+    void
+  > = () => {
+    return freezeCard(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type FreezeCardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof freezeCard>>
+>;
+
+export type FreezeCardMutationError = ErrorType<
+  UnauthorizedResponse | NotFoundResponse | UnprocessableResponse
+>;
+
+/**
+ * @summary Freeze the dependent's card
+ */
+export const useFreezeCard = <
+  TError = ErrorType<
+    UnauthorizedResponse | NotFoundResponse | UnprocessableResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof freezeCard>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof freezeCard>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getFreezeCardMutationOptions(options));
+};
+
+export const getUnfreezeCardUrl = () => {
+  return `/api/card/unfreeze`;
+};
+
+/**
+ * Frozen → active; unfreezing an active card changes nothing. Database only for now.
+ * @summary Unfreeze the dependent's card
+ */
+export const unfreezeCard = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<Card> => {
+  return customFetch<Card>(getUnfreezeCardUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getUnfreezeCardMutationKey = () => ["unfreezeCard"] as const;
+
+export const getUnfreezeCardMutationOptions = <
+  TError = ErrorType<
+    UnauthorizedResponse | NotFoundResponse | UnprocessableResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof unfreezeCard>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof unfreezeCard>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = getUnfreezeCardMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof unfreezeCard>>,
+    void
+  > = () => {
+    return unfreezeCard(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UnfreezeCardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof unfreezeCard>>
+>;
+
+export type UnfreezeCardMutationError = ErrorType<
+  UnauthorizedResponse | NotFoundResponse | UnprocessableResponse
+>;
+
+/**
+ * @summary Unfreeze the dependent's card
+ */
+export const useUnfreezeCard = <
+  TError = ErrorType<
+    UnauthorizedResponse | NotFoundResponse | UnprocessableResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof unfreezeCard>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof unfreezeCard>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getUnfreezeCardMutationOptions(options));
+};
+
+export const getGetPolicyUrl = () => {
+  return `/api/policy`;
+};
+
+/**
+ * The policy in FamilyPolicy shape (each bucket with its per-purchase limit and approval threshold), plus the preset it started from and the time zone its time windows are read in.
+ * @summary Get the family's spending policy
+ */
+export const getPolicy = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PolicyView> => {
+  return customFetch<PolicyView>(getGetPolicyUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPolicyQueryKey = () => {
+  return [`/api/policy`] as const;
+};
+
+export const getGetPolicyQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPolicy>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getPolicy>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPolicyQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getPolicy>>> = ({
+    signal,
+  }) => getPolicy({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPolicy>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPolicyQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPolicy>>
+>;
+export type GetPolicyQueryError = ErrorType<
+  UnauthorizedResponse | NotFoundResponse
+>;
+
+/**
+ * @summary Get the family's spending policy
+ */
+
+export function useGetPolicy<
+  TData = Awaited<ReturnType<typeof getPolicy>>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getPolicy>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPolicyQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

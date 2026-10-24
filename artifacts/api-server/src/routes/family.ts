@@ -16,23 +16,14 @@ import {
   ListMemberContributionsResponse,
   type BankAccount as ApiBankAccount,
   type Bucket as ApiBucket,
-  type ChainRecord,
   type Contribution as ApiContribution,
-  type ErrorEnvelope,
 } from "@workspace/api-zod";
 import type { BankAccount, BankDeposit, Bucket, Member } from "@workspace/db";
-import {
-  Router,
-  type ErrorRequestHandler,
-  type IRouter,
-  type Response,
-} from "express";
-import type { z } from "zod";
+import { Router, type IRouter } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import {
   contributeToBucket,
   depositToBank,
-  FamilyServiceError,
   getFamilyWithMembers,
   getOverview,
   linkBankAccount,
@@ -40,6 +31,7 @@ import {
   listMemberContributions,
   type ContributionDetail,
 } from "../services/family";
+import { parseOr400, serviceErrorHandler, toChain } from "./shared";
 
 /**
  * Family, bank and bucket routes. Every route is behind `requireAuth`; the
@@ -48,18 +40,6 @@ import {
 const router: IRouter = Router();
 
 // ---- Serializers: database rows -> API shapes ------------------------------
-
-function toChain(row: {
-  chainStatus: ChainRecord["status"];
-  chainTxHash: string | null;
-  chainConfirmedAt: Date | null;
-}): ChainRecord {
-  return {
-    status: row.chainStatus,
-    txHash: row.chainTxHash,
-    confirmedAt: row.chainConfirmedAt,
-  };
-}
 
 function toMember(m: Member) {
   return {
@@ -121,24 +101,6 @@ function toContribution(d: ContributionDetail): ApiContribution {
     createdAt: c.createdAt,
     chain: toChain(c),
   };
-}
-
-// ---- Input validation -------------------------------------------------------
-
-/** Parses input, or sends 400 with the first problem and returns undefined. */
-function parseOr400<S extends z.ZodTypeAny>(
-  schema: S,
-  value: unknown,
-  res: Response<ErrorEnvelope>,
-): z.infer<S> | undefined {
-  const result = schema.safeParse(value);
-  if (result.success) return result.data;
-  const issue = result.error.issues[0];
-  const where = issue?.path.length ? `${issue.path.join(".")}: ` : "";
-  res
-    .status(400)
-    .json({ error: `${where}${issue?.message ?? "Invalid request."}` });
-  return undefined;
 }
 
 // ---- Routes -----------------------------------------------------------------
@@ -261,28 +223,6 @@ router.get(
   },
 );
 
-// ---- Errors -----------------------------------------------------------------
-
-const STATUS_BY_KIND: Record<FamilyServiceError["kind"], number> = {
-  not_found: 404,
-  conflict: 409,
-  rule: 422,
-};
-
-/** Service errors become their status with the message; anything else is a 500. */
-const handleFamilyErrors: ErrorRequestHandler = (err, req, res, next) => {
-  if (res.headersSent) {
-    next(err);
-    return;
-  }
-  if (err instanceof FamilyServiceError) {
-    res.status(STATUS_BY_KIND[err.kind]).json({ error: err.message });
-    return;
-  }
-  req.log.error({ err }, "Family route failed");
-  res.status(500).json({ error: "Something went wrong. Please try again." });
-};
-
-router.use(handleFamilyErrors);
+router.use(serviceErrorHandler("Family route"));
 
 export default router;

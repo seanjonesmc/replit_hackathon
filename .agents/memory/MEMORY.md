@@ -5,7 +5,7 @@
 - [Sign-in decisions](auth-decisions.md) — web-only Replit Auth; tests stub the session store; manual curl checks use a temp session row, then reseed.
 - [/brand route vs asset folder](brand-route-asset-folder.md) — /brand route and public/brand/ share a path; published-site behavior unverified.
 - [On-chain authorize constraints](chain-authorize-contract.md) — approve needs a bucket and a matching code; categories must be lowercase; matters when wiring the engine.
-- [pnpm installs here](pnpm-workspace-installs.md) — never `pnpm add` with catalog: (rewrites workspace yaml); peers must be listed explicitly.
+- [pnpm installs here](pnpm-workspace-installs.md) — never `pnpm add` with catalog:; peers listed explicitly; vite type clash → frozen offline reinstall.
 - [happy-dom quirks](happy-dom-quirks.md) — to fake blocked storage, spy on the window.localStorage getter; Storage.prototype spies do nothing.
 - [Effect return values](effect-return-values.md) — Chrome's scrollTo returns a Promise; expression-bodied effects crash on cleanup. Use braces.
 - [Brand scan covers tests](brand-values-scan.md) — `pnpm test` fails on BRAND names even in contract/lib tests; use neutral placeholders.

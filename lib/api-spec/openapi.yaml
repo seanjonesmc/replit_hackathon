@@ -17,6 +17,11 @@ tags:
       The single demo family, its simulated banks and its buckets. Every route
       requires sign-in. The API acts for whichever member the request names;
       any signed-in account can act for the demo family.
+  - name: Spending
+    description: >-
+      The dependent's card, the simulated merchants, the decision engine
+      (swipes), the activity feed and pending approvals, and the family's
+      spending policy. Every route requires sign-in.
 paths:
   /healthz:
     get:
@@ -269,6 +274,183 @@ paths:
                 $ref: "#/components/schemas/MemberContributions"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /swipes:
+    post:
+      tags: [Spending]
+      operationId: createSwipe
+      summary: Swipe the simulated card through the decision engine
+      description: >-
+        Runs the hard rules in order (the first match decides), then the AI
+        guard only for swipes the rules can't place in a bucket or whose items
+        look suspicious. Stores the authorization and, when approved, moves the
+        amount out of the bucket at once. For seeded merchants the stored name,
+        category and MCC are used instead of the values sent. Never waits on the
+        chain; the chain status starts as `not_submitted`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SwipeRequest"
+      responses:
+        "201":
+          description: The decision and the stored authorization's id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SwipeResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /merchants:
+    get:
+      tags: [Spending]
+      operationId: listMerchants
+      summary: List the seeded merchants
+      description: The simulated merchants for the swipe grid, in seed order.
+      responses:
+        "200":
+          description: The merchants.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Merchant"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /authorizations:
+    get:
+      tags: [Spending]
+      operationId: listAuthorizations
+      summary: The activity feed
+      description: >-
+        Every swipe for the demo family, newest first, with merchant and bucket
+        names and the links of any approval chain.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: How many rows to return (newest first).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+      responses:
+        "200":
+          description: The authorizations, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Authorization"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /approvals:
+    get:
+      tags: [Spending]
+      operationId: listApprovals
+      summary: Pending authorizations waiting for a parent
+      responses:
+        "200":
+          description: Pending authorizations, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Authorization"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /card:
+    get:
+      tags: [Spending]
+      operationId: getCard
+      summary: Get the dependent's card
+      responses:
+        "200":
+          description: The card and its status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Card"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /card/freeze:
+    post:
+      tags: [Spending]
+      operationId: freezeCard
+      summary: Freeze the dependent's card
+      description: >-
+        Active → frozen; freezing a frozen card changes nothing. Every swipe on
+        a frozen card is rejected with `card_inactive`. Database only for now.
+      responses:
+        "200":
+          description: The card after the change.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Card"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+  /card/unfreeze:
+    post:
+      tags: [Spending]
+      operationId: unfreezeCard
+      summary: Unfreeze the dependent's card
+      description: >-
+        Frozen → active; unfreezing an active card changes nothing. Database
+        only for now.
+      responses:
+        "200":
+          description: The card after the change.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Card"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+  /policy:
+    get:
+      tags: [Spending]
+      operationId: getPolicy
+      summary: Get the family's spending policy
+      description: >-
+        The policy in FamilyPolicy shape (each bucket with its per-purchase
+        limit and approval threshold), plus the preset it started from and the
+        time zone its time windows are read in.
+      responses:
+        "200":
+          description: The policy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyView"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -617,3 +799,349 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Contribution"
+    Decision:
+      type: string
+      enum: [APPROVED, REJECTED, PENDING]
+    ReasonCode:
+      type: string
+      description: Matches the contract's reason codes.
+      enum:
+        - approved
+        - blocked_category
+        - insufficient_funds
+        - over_limit
+        - card_inactive
+        - needs_approval
+        - outside_hours
+    DecidedBy:
+      type: string
+      enum: [Rule, AI guard]
+    AuthorizationStatus:
+      type: string
+      description: >-
+        Where the swipe stands now. A pending swipe stays `pending` until a
+        parent resolves it; the retry after a parent's OK is a new, linked
+        authorization.
+      enum: [approved, rejected, pending, parent_approved, parent_declined]
+    SwipeRequest:
+      type: object
+      description: >-
+        The spec's swipe payload. For a seeded merchant (merchantId set) the
+        stored name, category and MCC replace the values sent.
+      required:
+        - cardId
+        - dependentId
+        - merchantName
+        - mcc
+        - merchantCategory
+        - items
+        - amount
+        - location
+        - timestamp
+      properties:
+        cardId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        dependentId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        merchantId:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 2147483647
+          description: A seeded merchant's id; omit or null for a custom swipe.
+        merchantName:
+          type: string
+          minLength: 1
+          maxLength: 120
+        mcc:
+          type: string
+          pattern: "^[0-9]{4}$"
+          description: Four-digit merchant category code, e.g. 5411.
+        merchantCategory:
+          type: string
+          minLength: 1
+          maxLength: 60
+          description: Plain category, e.g. grocery, bar or rideshare.
+        items:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            minLength: 1
+            maxLength: 80
+        amount:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          description: The purchase amount in integer cents.
+        location:
+          type: string
+          maxLength: 200
+        timestamp:
+          type: string
+          minLength: 16
+          maxLength: 40
+          description: >-
+            When the card was swiped, ISO 8601, e.g. 2026-10-24T02:10:00-07:00.
+            Without an offset it is read as the family's local time. Time
+            windows are checked in the family's time zone.
+    SwipeResult:
+      type: object
+      required:
+        - authorizationId
+        - decision
+        - reasonCode
+        - reason
+        - decidedBy
+        - aiConfidence
+        - bucketId
+        - bucketName
+        - decisionMs
+        - chain
+      properties:
+        authorizationId:
+          type: integer
+        decision:
+          $ref: "#/components/schemas/Decision"
+        reasonCode:
+          $ref: "#/components/schemas/ReasonCode"
+        reason:
+          type: string
+          description: One short sentence a teenager would understand.
+        decidedBy:
+          $ref: "#/components/schemas/DecidedBy"
+        aiConfidence:
+          type: [number, "null"]
+          description: The AI guard's confidence (0–1) when it decided.
+        bucketId:
+          type: [integer, "null"]
+        bucketName:
+          type: [string, "null"]
+        decisionMs:
+          type: number
+          description: Measured rule evaluation time, plus the AI guard's when it ran.
+        chain:
+          $ref: "#/components/schemas/ChainRecord"
+    Authorization:
+      type: object
+      required:
+        - id
+        - cardId
+        - dependentId
+        - merchantId
+        - merchantName
+        - mcc
+        - merchantCategory
+        - items
+        - amountCents
+        - location
+        - swipedAt
+        - bucketId
+        - bucketName
+        - decision
+        - status
+        - reasonCode
+        - reason
+        - decidedBy
+        - aiConfidence
+        - decisionMs
+        - previousAuthorizationId
+        - nextAuthorizationId
+        - resolvedAt
+        - settledAt
+        - createdAt
+        - chain
+        - captureChain
+      properties:
+        id:
+          type: integer
+        cardId:
+          type: [integer, "null"]
+        dependentId:
+          type: integer
+        merchantId:
+          type: [integer, "null"]
+        merchantName:
+          type: string
+        mcc:
+          type: string
+        merchantCategory:
+          type: string
+        items:
+          type: array
+          items:
+            type: string
+        amountCents:
+          type: integer
+        location:
+          type: string
+        swipedAt:
+          type: string
+          format: date-time
+        bucketId:
+          type: [integer, "null"]
+        bucketName:
+          type: [string, "null"]
+        decision:
+          $ref: "#/components/schemas/Decision"
+        status:
+          $ref: "#/components/schemas/AuthorizationStatus"
+        reasonCode:
+          $ref: "#/components/schemas/ReasonCode"
+        reason:
+          type: string
+        decidedBy:
+          $ref: "#/components/schemas/DecidedBy"
+        aiConfidence:
+          type: [number, "null"]
+        decisionMs:
+          type: number
+        previousAuthorizationId:
+          type: [integer, "null"]
+          description: The earlier authorization in an approval chain that this one retries.
+        nextAuthorizationId:
+          type: [integer, "null"]
+          description: The later authorization that retried this one, if any.
+        resolvedAt:
+          type: [string, "null"]
+          format: date-time
+          description: When a parent approved or declined this pending swipe.
+        settledAt:
+          type: [string, "null"]
+          format: date-time
+          description: When the money moved to spent.
+        createdAt:
+          type: string
+          format: date-time
+        chain:
+          $ref: "#/components/schemas/ChainRecord"
+        captureChain:
+          $ref: "#/components/schemas/ChainRecord"
+    Merchant:
+      type: object
+      required: [id, name, mcc, category, onchainId, chain]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        mcc:
+          type: string
+        category:
+          type: string
+        onchainId:
+          type: string
+          description: The merchant's fixed 32-byte contract id, 0x-prefixed hex.
+        chain:
+          $ref: "#/components/schemas/ChainRecord"
+    CardStatus:
+      type: string
+      enum: [issued, active, frozen]
+    Card:
+      type: object
+      required:
+        - id
+        - dependentId
+        - dependentName
+        - last4
+        - expiryMonth
+        - expiryYear
+        - status
+        - onchainCardId
+        - chain
+      properties:
+        id:
+          type: integer
+        dependentId:
+          type: integer
+        dependentName:
+          type: string
+        last4:
+          type: string
+        expiryMonth:
+          type: integer
+        expiryYear:
+          type: integer
+        status:
+          $ref: "#/components/schemas/CardStatus"
+        onchainCardId:
+          type: [integer, "null"]
+        chain:
+          $ref: "#/components/schemas/ChainRecord"
+    PolicyBucket:
+      type: object
+      required: [name, budgetCents, period, perTxLimitCents, approvalThresholdCents]
+      properties:
+        name:
+          type: string
+        budgetCents:
+          type: integer
+          description: Everything put into the bucket so far (available + held + spent).
+        period:
+          type: [string, "null"]
+          enum: [week, month, null]
+        perTxLimitCents:
+          type: [integer, "null"]
+        approvalThresholdCents:
+          type: [integer, "null"]
+    PolicyTimeWindow:
+      type: object
+      required: [start, end]
+      properties:
+        start:
+          type: string
+          description: 24-hour HH:MM. An end before the start wraps past midnight.
+        end:
+          type: string
+    FamilyPolicy:
+      type: object
+      description: The API's FamilyPolicy shape (the AI policy builder's output).
+      required:
+        - buckets
+        - blockedCategories
+        - approvalThresholdCents
+        - timeWindows
+        - blockedMerchants
+        - allowedMerchants
+      properties:
+        buckets:
+          type: array
+          items:
+            $ref: "#/components/schemas/PolicyBucket"
+        blockedCategories:
+          type: array
+          items:
+            type: string
+        approvalThresholdCents:
+          type: [integer, "null"]
+          description: Family-wide "ask me before anything over" amount.
+        timeWindows:
+          type: array
+          description: Purchases inside any window need a parent's approval.
+          items:
+            $ref: "#/components/schemas/PolicyTimeWindow"
+        blockedMerchants:
+          type: array
+          items:
+            type: string
+        allowedMerchants:
+          type: array
+          description: Allowed merchants are never sent to the AI guard.
+          items:
+            type: string
+    PolicyView:
+      type: object
+      required: [familyId, presetName, timeZone, policy]
+      properties:
+        familyId:
+          type: integer
+        presetName:
+          type: string
+        timeZone:
+          type: string
+          description: IANA time zone the time windows are read in.
+        policy:
+          $ref: "#/components/schemas/FamilyPolicy"

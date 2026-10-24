@@ -185,6 +185,267 @@ export interface MemberContributions {
   contributions: Contribution[];
 }
 
+export type Decision = (typeof Decision)[keyof typeof Decision];
+
+export const Decision = {
+  APPROVED: "APPROVED",
+  REJECTED: "REJECTED",
+  PENDING: "PENDING",
+} as const;
+
+/**
+ * Matches the contract's reason codes.
+ */
+export type ReasonCode = (typeof ReasonCode)[keyof typeof ReasonCode];
+
+export const ReasonCode = {
+  approved: "approved",
+  blocked_category: "blocked_category",
+  insufficient_funds: "insufficient_funds",
+  over_limit: "over_limit",
+  card_inactive: "card_inactive",
+  needs_approval: "needs_approval",
+  outside_hours: "outside_hours",
+} as const;
+
+export type DecidedBy = (typeof DecidedBy)[keyof typeof DecidedBy];
+
+export const DecidedBy = {
+  Rule: "Rule",
+  AI_guard: "AI guard",
+} as const;
+
+/**
+ * Where the swipe stands now. A pending swipe stays `pending` until a parent resolves it; the retry after a parent's OK is a new, linked authorization.
+ */
+export type AuthorizationStatus =
+  (typeof AuthorizationStatus)[keyof typeof AuthorizationStatus];
+
+export const AuthorizationStatus = {
+  approved: "approved",
+  rejected: "rejected",
+  pending: "pending",
+  parent_approved: "parent_approved",
+  parent_declined: "parent_declined",
+} as const;
+
+/**
+ * The spec's swipe payload. For a seeded merchant (merchantId set) the stored name, category and MCC replace the values sent.
+ */
+export interface SwipeRequest {
+  /**
+   * @minimum 1
+   * @maximum 2147483647
+   */
+  cardId: number;
+  /**
+   * @minimum 1
+   * @maximum 2147483647
+   */
+  dependentId: number;
+  /**
+   * A seeded merchant's id; omit or null for a custom swipe.
+   * @minimum 1
+   * @maximum 2147483647
+   * @nullable
+   */
+  merchantId?: number | null;
+  /**
+   * @minLength 1
+   * @maxLength 120
+   */
+  merchantName: string;
+  /**
+   * Four-digit merchant category code, e.g. 5411.
+   * @pattern ^[0-9]{4}$
+   */
+  mcc: string;
+  /**
+   * Plain category, e.g. grocery, bar or rideshare.
+   * @minLength 1
+   * @maxLength 60
+   */
+  merchantCategory: string;
+  /**
+   * @maxItems 20
+   * @items.minLength 1
+   * @items.maxLength 80
+   */
+  items: string[];
+  /**
+   * The purchase amount in integer cents.
+   * @minimum 1
+   * @maximum 1000000
+   */
+  amount: number;
+  /** @maxLength 200 */
+  location: string;
+  /**
+   * When the card was swiped, ISO 8601, e.g. 2026-10-24T02:10:00-07:00. Without an offset it is read as the family's local time. Time windows are checked in the family's time zone.
+   * @minLength 16
+   * @maxLength 40
+   */
+  timestamp: string;
+}
+
+export interface SwipeResult {
+  authorizationId: number;
+  decision: Decision;
+  reasonCode: ReasonCode;
+  /** One short sentence a teenager would understand. */
+  reason: string;
+  decidedBy: DecidedBy;
+  /**
+   * The AI guard's confidence (0–1) when it decided.
+   * @nullable
+   */
+  aiConfidence: number | null;
+  /** @nullable */
+  bucketId: number | null;
+  /** @nullable */
+  bucketName: string | null;
+  /** Measured rule evaluation time, plus the AI guard's when it ran. */
+  decisionMs: number;
+  chain: ChainRecord;
+}
+
+export interface Authorization {
+  id: number;
+  /** @nullable */
+  cardId: number | null;
+  dependentId: number;
+  /** @nullable */
+  merchantId: number | null;
+  merchantName: string;
+  mcc: string;
+  merchantCategory: string;
+  items: string[];
+  amountCents: number;
+  location: string;
+  swipedAt: string;
+  /** @nullable */
+  bucketId: number | null;
+  /** @nullable */
+  bucketName: string | null;
+  decision: Decision;
+  status: AuthorizationStatus;
+  reasonCode: ReasonCode;
+  reason: string;
+  decidedBy: DecidedBy;
+  /** @nullable */
+  aiConfidence: number | null;
+  decisionMs: number;
+  /**
+   * The earlier authorization in an approval chain that this one retries.
+   * @nullable
+   */
+  previousAuthorizationId: number | null;
+  /**
+   * The later authorization that retried this one, if any.
+   * @nullable
+   */
+  nextAuthorizationId: number | null;
+  /**
+   * When a parent approved or declined this pending swipe.
+   * @nullable
+   */
+  resolvedAt: string | null;
+  /**
+   * When the money moved to spent.
+   * @nullable
+   */
+  settledAt: string | null;
+  createdAt: string;
+  chain: ChainRecord;
+  captureChain: ChainRecord;
+}
+
+export interface Merchant {
+  id: number;
+  name: string;
+  mcc: string;
+  category: string;
+  /** The merchant's fixed 32-byte contract id, 0x-prefixed hex. */
+  onchainId: string;
+  chain: ChainRecord;
+}
+
+export type CardStatus = (typeof CardStatus)[keyof typeof CardStatus];
+
+export const CardStatus = {
+  issued: "issued",
+  active: "active",
+  frozen: "frozen",
+} as const;
+
+export interface Card {
+  id: number;
+  dependentId: number;
+  dependentName: string;
+  last4: string;
+  expiryMonth: number;
+  expiryYear: number;
+  status: CardStatus;
+  /** @nullable */
+  onchainCardId: number | null;
+  chain: ChainRecord;
+}
+
+/**
+ * @nullable
+ */
+export type PolicyBucketPeriod =
+  (typeof PolicyBucketPeriod)[keyof typeof PolicyBucketPeriod] | null;
+
+export const PolicyBucketPeriod = {
+  week: "week",
+  month: "month",
+} as const;
+
+export interface PolicyBucket {
+  name: string;
+  /** Everything put into the bucket so far (available + held + spent). */
+  budgetCents: number;
+  /** @nullable */
+  period: PolicyBucketPeriod;
+  /** @nullable */
+  perTxLimitCents: number | null;
+  /** @nullable */
+  approvalThresholdCents: number | null;
+}
+
+export interface PolicyTimeWindow {
+  /** 24-hour HH:MM. An end before the start wraps past midnight. */
+  start: string;
+  end: string;
+}
+
+/**
+ * The API's FamilyPolicy shape (the AI policy builder's output).
+ */
+export interface FamilyPolicy {
+  buckets: PolicyBucket[];
+  blockedCategories: string[];
+  /**
+   * Family-wide "ask me before anything over" amount.
+   * @nullable
+   */
+  approvalThresholdCents: number | null;
+  /** Purchases inside any window need a parent's approval. */
+  timeWindows: PolicyTimeWindow[];
+  blockedMerchants: string[];
+  /** Allowed merchants are never sent to the AI guard. */
+  allowedMerchants: string[];
+}
+
+export interface PolicyView {
+  familyId: number;
+  presetName: string;
+  /** IANA time zone the time windows are read in. */
+  timeZone: string;
+  policy: FamilyPolicy;
+}
+
 /**
  * The path parameters or request body are invalid.
  */
@@ -230,4 +491,13 @@ export type HandleBrowserLoginCallbackParams = {
 
 export type LogoutBrowserSessionParams = {
   returnTo?: string;
+};
+
+export type ListAuthorizationsParams = {
+  /**
+   * How many rows to return (newest first).
+   * @minimum 1
+   * @maximum 200
+   */
+  limit?: number;
 };

@@ -5,8 +5,10 @@
  * - `not_found`: a named member, bank account, bucket or the family is missing.
  * - `conflict`: the request duplicates something that already exists.
  * - `rule`: well-formed but not allowed, e.g. the bank balance is too low.
+ * - `invalid`: a value passed schema checks but can't be read, e.g. a
+ *   timestamp that isn't a real date.
  */
-export type FamilyErrorKind = "not_found" | "conflict" | "rule";
+export type FamilyErrorKind = "not_found" | "conflict" | "rule" | "invalid";
 
 export class FamilyServiceError extends Error {
   constructor(

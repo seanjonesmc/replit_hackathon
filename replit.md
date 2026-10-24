@@ -68,19 +68,25 @@ components, an editable root `DESIGN.md`, the app shell (role switcher, per-role
 tab bars and a coming-soon placeholder for every main screen; no data yet),
 and a development-only component preview at the hidden `/brand` route. The API
 exposes health and sign-in (`/api/login`, `/api/callback`, `/api/logout`,
-`/api/auth/user`) and the family routes (`/api/family`, `/api/overview`, bank
-linking, simulated deposits, bucket contributions), each behind the `requireAuth`
-guard. The database holds sign-in users/sessions plus the demo family, its
-simulated banks, deposits, buckets, contributions and a `chain_events` table; the
-API seeds the family from BRAND.demo at startup when none exists. Every mirrored
-row stays `not_submitted` on chain until Phase 3. The browser
+`/api/auth/user`), the family routes (`/api/family`, `/api/overview`, bank
+linking, simulated deposits, bucket contributions) and the spending routes
+(`POST /api/swipes` through the rule-based decision engine, merchants, the
+activity feed, approvals, card freeze/unfreeze, the policy), each behind the
+`requireAuth` guard. The database holds sign-in users/sessions plus the demo
+family, its simulated banks, deposits, buckets, contributions, card, merchants,
+policy, temporary passes, authorizations and a `chain_events` table; the API
+seeds the family from BRAND.demo at startup when none exists, then adds any
+missing merchants, policy, card and purchase history. Every mirrored row stays
+`not_submitted` on chain until Phase 3. The browser
 sign-in hook (`lib/replit-auth-web`) is not yet wired into any screen. Directory
 READMEs reserve responsibilities, not implemented functionality or authorization
 boundaries. Baseline Vitest checks cover API health and sign-in, BRAND asset URLs
-under the frontend base path, and the byte-for-byte reference checksum. Contracts
+under the frontend base path, the byte-for-byte reference checksum, and the
+rule engine's preset swipes. Contracts
 use Hardhat 3; MockUSD and FamilyCardNetwork (simulated bank, pot buckets, cards, merchants and authorizations) exist and nothing is deployed.
-The API's AI service layer (`services/ai/`: policy builder and AI guard) exists
-but is not yet wired to routes or a decision engine.
+The API's AI service layer (`services/ai/`: policy builder and AI guard) exists;
+the decision engine calls the AI guard for swipes no hard rule decided, and the
+policy builder is not yet wired to routes.
 
 ## Stack
 

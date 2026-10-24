@@ -408,3 +408,453 @@ export const ListMemberContributionsResponse = zod.object({
     }),
   ),
 });
+
+/**
+ * Runs the hard rules in order (the first match decides), then the AI guard only for swipes the rules can't place in a bucket or whose items look suspicious. Stores the authorization and, when approved, moves the amount out of the bucket at once. For seeded merchants the stored name, category and MCC are used instead of the values sent. Never waits on the chain; the chain status starts as `not_submitted`.
+ * @summary Swipe the simulated card through the decision engine
+ */
+export const createSwipeBodyCardIdMax = 2147483647;
+
+export const createSwipeBodyDependentIdMax = 2147483647;
+
+export const createSwipeBodyMerchantIdMax = 2147483647;
+
+export const createSwipeBodyMerchantNameMax = 120;
+
+export const createSwipeBodyMccRegExp = new RegExp("^[0-9]{4}$");
+export const createSwipeBodyMerchantCategoryMax = 60;
+
+export const createSwipeBodyItemsItemMax = 80;
+
+export const createSwipeBodyItemsMax = 20;
+
+export const createSwipeBodyAmountMax = 1000000;
+
+export const createSwipeBodyLocationMax = 200;
+
+export const createSwipeBodyTimestampMin = 16;
+export const createSwipeBodyTimestampMax = 40;
+
+export const CreateSwipeBody = zod
+  .object({
+    cardId: zod.number().int().min(1).max(createSwipeBodyCardIdMax),
+    dependentId: zod.number().int().min(1).max(createSwipeBodyDependentIdMax),
+    merchantId: zod
+      .number()
+      .int()
+      .min(1)
+      .max(createSwipeBodyMerchantIdMax)
+      .nullish()
+      .describe("A seeded merchant's id; omit or null for a custom swipe."),
+    merchantName: zod.string().min(1).max(createSwipeBodyMerchantNameMax),
+    mcc: zod
+      .string()
+      .regex(createSwipeBodyMccRegExp)
+      .describe("Four-digit merchant category code, e.g. 5411."),
+    merchantCategory: zod
+      .string()
+      .min(1)
+      .max(createSwipeBodyMerchantCategoryMax)
+      .describe("Plain category, e.g. grocery, bar or rideshare."),
+    items: zod
+      .array(zod.string().min(1).max(createSwipeBodyItemsItemMax))
+      .max(createSwipeBodyItemsMax),
+    amount: zod
+      .number()
+      .int()
+      .min(1)
+      .max(createSwipeBodyAmountMax)
+      .describe("The purchase amount in integer cents."),
+    location: zod.string().max(createSwipeBodyLocationMax),
+    timestamp: zod
+      .string()
+      .min(createSwipeBodyTimestampMin)
+      .max(createSwipeBodyTimestampMax)
+      .describe(
+        "When the card was swiped, ISO 8601, e.g. 2026-10-24T02:10:00-07:00. Without an offset it is read as the family's local time. Time windows are checked in the family's time zone.",
+      ),
+  })
+  .describe(
+    "The spec's swipe payload. For a seeded merchant (merchantId set) the stored name, category and MCC replace the values sent.",
+  );
+
+export const CreateSwipeResponse = zod.object({
+  authorizationId: zod.number().int(),
+  decision: zod.enum(["APPROVED", "REJECTED", "PENDING"]),
+  reasonCode: zod
+    .enum([
+      "approved",
+      "blocked_category",
+      "insufficient_funds",
+      "over_limit",
+      "card_inactive",
+      "needs_approval",
+      "outside_hours",
+    ])
+    .describe("Matches the contract's reason codes."),
+  reason: zod
+    .string()
+    .describe("One short sentence a teenager would understand."),
+  decidedBy: zod.enum(["Rule", "AI guard"]),
+  aiConfidence: zod
+    .number()
+    .nullable()
+    .describe("The AI guard's confidence (0–1) when it decided."),
+  bucketId: zod.number().int().nullable(),
+  bucketName: zod.string().nullable(),
+  decisionMs: zod
+    .number()
+    .describe(
+      "Measured rule evaluation time, plus the AI guard's when it ran.",
+    ),
+  chain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+  }),
+});
+
+/**
+ * The simulated merchants for the swipe grid, in seed order.
+ * @summary List the seeded merchants
+ */
+export const ListMerchantsResponseItem = zod.object({
+  id: zod.number().int(),
+  name: zod.string(),
+  mcc: zod.string(),
+  category: zod.string(),
+  onchainId: zod
+    .string()
+    .describe("The merchant's fixed 32-byte contract id, 0x-prefixed hex."),
+  chain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+  }),
+});
+export const ListMerchantsResponse = zod.array(ListMerchantsResponseItem);
+
+/**
+ * Every swipe for the demo family, newest first, with merchant and bucket names and the links of any approval chain.
+ * @summary The activity feed
+ */
+export const listAuthorizationsQueryLimitDefault = 50;
+export const listAuthorizationsQueryLimitMax = 200;
+
+export const ListAuthorizationsQueryParams = zod.object({
+  limit: zod.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(listAuthorizationsQueryLimitMax)
+    .default(listAuthorizationsQueryLimitDefault)
+    .describe("How many rows to return (newest first)."),
+});
+
+export const ListAuthorizationsResponseItem = zod.object({
+  id: zod.number().int(),
+  cardId: zod.number().int().nullable(),
+  dependentId: zod.number().int(),
+  merchantId: zod.number().int().nullable(),
+  merchantName: zod.string(),
+  mcc: zod.string(),
+  merchantCategory: zod.string(),
+  items: zod.array(zod.string()),
+  amountCents: zod.number().int(),
+  location: zod.string(),
+  swipedAt: zod.coerce.date(),
+  bucketId: zod.number().int().nullable(),
+  bucketName: zod.string().nullable(),
+  decision: zod.enum(["APPROVED", "REJECTED", "PENDING"]),
+  status: zod
+    .enum([
+      "approved",
+      "rejected",
+      "pending",
+      "parent_approved",
+      "parent_declined",
+    ])
+    .describe(
+      "Where the swipe stands now. A pending swipe stays `pending` until a parent resolves it; the retry after a parent's OK is a new, linked authorization.",
+    ),
+  reasonCode: zod
+    .enum([
+      "approved",
+      "blocked_category",
+      "insufficient_funds",
+      "over_limit",
+      "card_inactive",
+      "needs_approval",
+      "outside_hours",
+    ])
+    .describe("Matches the contract's reason codes."),
+  reason: zod.string(),
+  decidedBy: zod.enum(["Rule", "AI guard"]),
+  aiConfidence: zod.number().nullable(),
+  decisionMs: zod.number(),
+  previousAuthorizationId: zod
+    .number()
+    .int()
+    .nullable()
+    .describe(
+      "The earlier authorization in an approval chain that this one retries.",
+    ),
+  nextAuthorizationId: zod
+    .number()
+    .int()
+    .nullable()
+    .describe("The later authorization that retried this one, if any."),
+  resolvedAt: zod.coerce
+    .date()
+    .nullable()
+    .describe("When a parent approved or declined this pending swipe."),
+  settledAt: zod.coerce
+    .date()
+    .nullable()
+    .describe("When the money moved to spent."),
+  createdAt: zod.coerce.date(),
+  chain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+  }),
+  captureChain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+  }),
+});
+export const ListAuthorizationsResponse = zod.array(
+  ListAuthorizationsResponseItem,
+);
+
+/**
+ * @summary Pending authorizations waiting for a parent
+ */
+export const ListApprovalsResponseItem = zod.object({
+  id: zod.number().int(),
+  cardId: zod.number().int().nullable(),
+  dependentId: zod.number().int(),
+  merchantId: zod.number().int().nullable(),
+  merchantName: zod.string(),
+  mcc: zod.string(),
+  merchantCategory: zod.string(),
+  items: zod.array(zod.string()),
+  amountCents: zod.number().int(),
+  location: zod.string(),
+  swipedAt: zod.coerce.date(),
+  bucketId: zod.number().int().nullable(),
+  bucketName: zod.string().nullable(),
+  decision: zod.enum(["APPROVED", "REJECTED", "PENDING"]),
+  status: zod
+    .enum([
+      "approved",
+      "rejected",
+      "pending",
+      "parent_approved",
+      "parent_declined",
+    ])
+    .describe(
+      "Where the swipe stands now. A pending swipe stays `pending` until a parent resolves it; the retry after a parent's OK is a new, linked authorization.",
+    ),
+  reasonCode: zod
+    .enum([
+      "approved",
+      "blocked_category",
+      "insufficient_funds",
+      "over_limit",
+      "card_inactive",
+      "needs_approval",
+      "outside_hours",
+    ])
+    .describe("Matches the contract's reason codes."),
+  reason: zod.string(),
+  decidedBy: zod.enum(["Rule", "AI guard"]),
+  aiConfidence: zod.number().nullable(),
+  decisionMs: zod.number(),
+  previousAuthorizationId: zod
+    .number()
+    .int()
+    .nullable()
+    .describe(
+      "The earlier authorization in an approval chain that this one retries.",
+    ),
+  nextAuthorizationId: zod
+    .number()
+    .int()
+    .nullable()
+    .describe("The later authorization that retried this one, if any."),
+  resolvedAt: zod.coerce
+    .date()
+    .nullable()
+    .describe("When a parent approved or declined this pending swipe."),
+  settledAt: zod.coerce
+    .date()
+    .nullable()
+    .describe("When the money moved to spent."),
+  createdAt: zod.coerce.date(),
+  chain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+  }),
+  captureChain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+  }),
+});
+export const ListApprovalsResponse = zod.array(ListApprovalsResponseItem);
+
+/**
+ * @summary Get the dependent's card
+ */
+export const GetCardResponse = zod.object({
+  id: zod.number().int(),
+  dependentId: zod.number().int(),
+  dependentName: zod.string(),
+  last4: zod.string(),
+  expiryMonth: zod.number().int(),
+  expiryYear: zod.number().int(),
+  status: zod.enum(["issued", "active", "frozen"]),
+  onchainCardId: zod.number().int().nullable(),
+  chain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+  }),
+});
+
+/**
+ * Active → frozen; freezing a frozen card changes nothing. Every swipe on a frozen card is rejected with `card_inactive`. Database only for now.
+ * @summary Freeze the dependent's card
+ */
+export const FreezeCardResponse = zod.object({
+  id: zod.number().int(),
+  dependentId: zod.number().int(),
+  dependentName: zod.string(),
+  last4: zod.string(),
+  expiryMonth: zod.number().int(),
+  expiryYear: zod.number().int(),
+  status: zod.enum(["issued", "active", "frozen"]),
+  onchainCardId: zod.number().int().nullable(),
+  chain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+  }),
+});
+
+/**
+ * Frozen → active; unfreezing an active card changes nothing. Database only for now.
+ * @summary Unfreeze the dependent's card
+ */
+export const UnfreezeCardResponse = zod.object({
+  id: zod.number().int(),
+  dependentId: zod.number().int(),
+  dependentName: zod.string(),
+  last4: zod.string(),
+  expiryMonth: zod.number().int(),
+  expiryYear: zod.number().int(),
+  status: zod.enum(["issued", "active", "frozen"]),
+  onchainCardId: zod.number().int().nullable(),
+  chain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+  }),
+});
+
+/**
+ * The policy in FamilyPolicy shape (each bucket with its per-purchase limit and approval threshold), plus the preset it started from and the time zone its time windows are read in.
+ * @summary Get the family's spending policy
+ */
+export const GetPolicyResponse = zod.object({
+  familyId: zod.number().int(),
+  presetName: zod.string(),
+  timeZone: zod
+    .string()
+    .describe("IANA time zone the time windows are read in."),
+  policy: zod
+    .object({
+      buckets: zod.array(
+        zod.object({
+          name: zod.string(),
+          budgetCents: zod
+            .number()
+            .int()
+            .describe(
+              "Everything put into the bucket so far (available + held + spent).",
+            ),
+          period: zod
+            .union([
+              zod.literal("week"),
+              zod.literal("month"),
+              zod.literal(null),
+            ])
+            .nullable(),
+          perTxLimitCents: zod.number().int().nullable(),
+          approvalThresholdCents: zod.number().int().nullable(),
+        }),
+      ),
+      blockedCategories: zod.array(zod.string()),
+      approvalThresholdCents: zod
+        .number()
+        .int()
+        .nullable()
+        .describe('Family-wide "ask me before anything over" amount.'),
+      timeWindows: zod
+        .array(
+          zod.object({
+            start: zod
+              .string()
+              .describe(
+                "24-hour HH:MM. An end before the start wraps past midnight.",
+              ),
+            end: zod.string(),
+          }),
+        )
+        .describe("Purchases inside any window need a parent's approval."),
+      blockedMerchants: zod.array(zod.string()),
+      allowedMerchants: zod
+        .array(zod.string())
+        .describe("Allowed merchants are never sent to the AI guard."),
+    })
+    .describe("The API's FamilyPolicy shape (the AI policy builder's output)."),
+});

@@ -21,14 +21,14 @@ artifacts/
   api-server/src/
     app.ts                   Express setup and middleware registration
     index.ts                 Startup
-    routes/                  HTTP handlers (health, sign-in, family/banks/buckets)
+    routes/                  HTTP handlers (health, sign-in, family/banks/buckets, spending)
     middlewares/             Request middleware, incl. session loader and requireAuth guard
     lib/                     Server-only infrastructure (logger, sign-in sessions)
     services/
       ai/                    Policy builder and AI guard (Anthropic via AI Integrations)
       family/                Demo family, simulated banks, deposits, contributions; startup seed
-      policies/              Future policy management
-      decisions/             Future spending decision orchestration
+      policies/              Reads the family's stored policy in FamilyPolicy shape
+      decisions/             Rule engine, swipe handling, card, merchants, activity feed; spending seed
       blockchain/            Monad testnet connection from Secrets (configured flag, shared client, readiness check)
       attribution/           Future contribution/spend attribution
       events/                Chain-event indexing from transaction receipts (not called until Phase 3)
@@ -144,6 +144,9 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | `api-server` | `artifacts/api-server/tests/family.test.ts`            | every family route returns 401 JSON signed out; 400 for invalid ids/amounts (no database) |
 | `api-server` | `artifacts/api-server/src/services/blockchain/blockchain.test.ts` | chain Secrets: not configured without them (never throws), problems named without values, Monad testnet defaults, readiness accepts only chain 10143 (local stub RPC) |
 | `chain`      | `lib/chain/src/*.test.ts`                              | SHA-256 bytes32 IDs, explorer links, enum names, JSON-safe args, RPC error classification and retries, write queue ordering |
+| `api-server` | `artifacts/api-server/src/services/decisions/rules.test.ts` | the rule function decides the six preset swipes and a frozen-card swipe as the spec requires (no database) |
+| `api-server` | `artifacts/api-server/src/services/decisions/outcome.test.ts` | the AI guard can't pay from a bucket other than the category's, and its approvals stay within bucket limits; a card frozen or a bucket drained before the swipe is stored rejects it (no database) |
+| `api-server` | `artifacts/api-server/tests/spending.test.ts`          | every spending route returns 401 JSON signed out (no database) |
 | `trellis`    | `artifacts/trellis/vite-brand-plugin.test.ts`          | BRAND-filled `index.html`, base-path asset URLs, SVG output  |
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
 | `trellis`    | `artifacts/trellis/src/lib/route-map.test.ts`          | roles, tabs and URLs; BRAND.demo names; last-used role       |

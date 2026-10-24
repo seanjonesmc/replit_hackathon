@@ -158,6 +158,9 @@ The spec text is kept unchanged. These decisions refine it:
 | "Index all events into Postgres"                                 | Written from our own transaction receipts; no separate indexer     |
 | Seed data on first run                                           | Production starts empty and the app seeds itself when none exists  |
 | Hosting not specified                                            | Static front end; API on an always-on Reserved VM                  |
+| Category → bucket table has no electronics row                   | Electronics maps to School, so the $129 Apple Store swipe goes PENDING (`needs_approval`, over School's $100 threshold) |
+| Balanced preset has no time window                               | The seeded policy adds 11pm–6am, so the 2:10am Uber swipe is always PENDING (`outside_hours`) before any AI call; the family has no Transit bucket |
+| Food: $60 per-purchase limit, $75 approval threshold             | Kept as written: Food purchases over $60 are declined (`over_limit`) and never reach the threshold |
 
-Known conflicts in the spec's seed data and preset swipes are settled when
-Phase 2 is planned, not here.
+The last three were settled with the decision engine (Phase 2). Rule order and
+reason codes are in `artifacts/api-server/src/services/decisions/rules.ts`.

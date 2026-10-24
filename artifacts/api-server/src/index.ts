@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { seedSpendingDemo } from "./services/decisions";
 import { seedDemoFamily } from "./services/family";
 
 const rawPort = process.env["PORT"];
@@ -23,6 +24,9 @@ async function start() {
     seed,
     seed.created ? "Seeded demo family" : "Demo family present",
   );
+  // Then merchants, the policy, the card and its history; adds only what's missing.
+  const spending = await seedSpendingDemo();
+  logger.info(spending, "Spending demo data ready");
 
   app.listen(port, (err) => {
     if (err) {
