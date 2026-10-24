@@ -25,8 +25,8 @@ export default function ParentSettings() {
         <SectionTitle>
           <span id="account-title">Account</span>
         </SectionTitle>
-        <div className="flex items-center gap-3 rounded-card-sm bg-surface-alt p-4">
-          <InitialAvatar name={displayName} className="bg-surface" />
+        <div className="flex items-center gap-3 rounded-card-sm border bg-surface p-4">
+          <InitialAvatar name={displayName} className="bg-surface-alt" />
           <div className="min-w-0 flex-1">
             <p className="type-link-sm truncate" data-testid="text-user-name">{displayName}</p>
             {user?.email && displayName !== user.email && <p className="type-caption truncate text-ink-muted">{user.email}</p>}
@@ -41,7 +41,7 @@ export default function ParentSettings() {
         <SectionTitle>
           <span id="production-title">How this maps to production</span>
         </SectionTitle>
-        <div className="rounded-card-sm bg-surface-alt p-4">
+        <div className="rounded-card-sm border bg-surface p-4">
           <p className="type-caption text-ink-muted">This demo simulates the money rails. In a real launch, each piece becomes:</p>
           <ul className="mt-3 flex flex-col divide-y" data-testid="list-production-map">
             {productionMap.map((row) => (
@@ -61,7 +61,7 @@ export default function ParentSettings() {
         </SectionTitle>
         <ul className="flex flex-col gap-2 opacity-50" aria-label="Roadmap, not available yet" data-testid="list-roadmap">
           {roadmap.map((item) => (
-            <li key={item} className="flex items-center justify-between gap-3 rounded-card-sm bg-surface-alt p-4">
+            <li key={item} className="flex items-center justify-between gap-3 rounded-card-sm border bg-surface p-4">
               <span className="type-body-sm">{item}</span>
               <Tag tone="neutral">Soon</Tag>
             </li>

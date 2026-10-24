@@ -11,7 +11,7 @@ const canonicalPublic = path.join(workspaceRoot, 'public');
 const indexHtml = fs.readFileSync(path.join(import.meta.dirname, 'index.html'), 'utf8');
 
 // Every brand asset path the app references, read from the single BRAND source.
-const brandAssetPaths = [BRAND.logo.mark, BRAND.logo.wordmark, BRAND.favicon, BRAND.ogImage];
+const brandAssetPaths = [BRAND.logo.mark, BRAND.logo.wordmark, BRAND.favicon, BRAND.ogImage, BRAND.backgroundImage];
 
 /** Runs the plugin's index.html transform the way Vite would. */
 function transform(base: string, html = indexHtml): string {

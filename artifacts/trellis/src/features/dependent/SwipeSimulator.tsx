@@ -162,10 +162,10 @@ function CardStatus({ card }: { card: Card }) {
   const Icon = frozen ? Snowflake : CreditCard;
   return (
     <div
-      className={cn('flex items-center gap-3 rounded-card-sm p-4', frozen ? 'bg-tint' : 'bg-surface-alt')}
+      className={cn('flex items-center gap-3 rounded-card-sm p-4', frozen ? 'bg-tint' : 'border bg-surface')}
       data-testid="card-swipe-card-status"
     >
-      <span className={cn('grid size-10 shrink-0 place-items-center rounded-full bg-surface', frozen ? 'text-primary' : 'text-ink')}>
+      <span className={cn('grid size-10 shrink-0 place-items-center rounded-full', frozen ? 'bg-surface text-primary' : 'bg-surface-alt text-ink')}>
         <Icon className="size-5" aria-hidden="true" />
       </span>
       <div className="min-w-0 flex-1">

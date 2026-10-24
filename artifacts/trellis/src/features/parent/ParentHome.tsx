@@ -26,7 +26,7 @@ function ApprovalsLink({ count }: { count: number }) {
   return (
     <Link
       href="/parent/approvals"
-      className="flex items-center gap-3 rounded-card-sm bg-surface-alt p-4 transition-colors hover:bg-tint"
+      className="flex items-center gap-3 rounded-card-sm border bg-surface p-4 transition-colors hover:bg-tint"
       data-testid="link-pending-approvals"
     >
       <span className="grid size-10 shrink-0 place-items-center rounded-full bg-pending-bg text-pending">
@@ -42,7 +42,7 @@ function ApprovalsLink({ count }: { count: number }) {
         className={
           count > 0
             ? 'grid min-w-7 place-items-center rounded-pill bg-rejected px-2 text-[13px] font-bold leading-7 text-surface tnum'
-            : 'grid min-w-7 place-items-center rounded-pill bg-surface px-2 text-[13px] font-bold leading-7 text-ink-muted tnum'
+            : 'grid min-w-7 place-items-center rounded-pill bg-surface-alt px-2 text-[13px] font-bold leading-7 text-ink-muted tnum'
         }
         data-testid="badge-pending-approvals"
       >

@@ -30,7 +30,7 @@ export default function ParentActivity() {
           icon={ListChecks}
           title="No activity yet"
           body="Purchases and money added to buckets will show up here."
-          className="rounded-card bg-surface-alt"
+          className="rounded-card border bg-surface"
           data-testid="state-activity-empty"
         />
       ) : (

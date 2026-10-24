@@ -73,7 +73,7 @@ export function RoleSwitcher({ activeRole, className }: RoleSwitcherProps) {
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
         aria-label={`Viewing as ${active.name}, ${active.roleLabel}. Switch role`}
-        className="flex h-12 max-w-full items-center gap-2 rounded-pill bg-surface-alt py-1 pl-1 pr-3 text-left text-ink transition-colors duration-200 ease-out hover:bg-surface-ground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+        className="flex h-12 max-w-full items-center gap-2 rounded-pill border bg-surface py-1 pl-1 pr-3 text-left text-ink transition-colors duration-200 ease-out hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
         data-testid="button-role-switcher"
       >
         <Avatar name={active.name} size="sm" />

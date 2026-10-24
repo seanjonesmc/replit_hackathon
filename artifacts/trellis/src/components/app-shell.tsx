@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { useLocation } from 'wouter';
 import { RoleSwitcherSlot } from '@/components/trellis/role-switcher-slot';
+import { ScreenBackdrop } from '@/components/trellis/screen-backdrop';
 import { TabBar } from '@/components/trellis/tab-bar';
 import { Wordmark } from '@/components/trellis/primitives';
 import { matchScreen, saveLastRole, type ShellScreen, type TabPath } from '@/lib/route-map';
@@ -44,7 +45,8 @@ function ShellLayout({ screen, badges, children }: { screen: ShellScreen; badges
   return (
     <div className="min-h-[100dvh] bg-surface-ground">
       {/* Sticky bars stay in the column's flow, so at the end of a scroll nothing is hidden behind them. */}
-      <div className="mx-auto flex min-h-[100dvh] max-w-phone flex-col bg-surface" data-testid="app-shell">
+      <div className="relative isolate mx-auto flex min-h-[100dvh] max-w-phone flex-col" data-testid="app-shell">
+        <ScreenBackdrop />
         <header className="pt-safe px-4">
           <Wordmark className="mt-2" />
         </header>

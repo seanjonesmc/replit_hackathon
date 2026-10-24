@@ -57,7 +57,8 @@ Calm, friendly and trustworthy: a family tool, not a trading app.
 | Configuration | Usage |
 | --- | --- |
 | appName, tagline, copy | Product identity, metadata, reusable brand copy |
-| logo, favicon, ogImage | Canonical asset URLs, relative to the app base path |
+| logo, favicon, ogImage, backgroundImage | Canonical asset URLs, relative to the app base path |
+| backgroundImageOpacity | How strongly the screen background image shows over the plain surface (0 to 1) |
 | colors | Signature, on-colors, action, surface, text and semantic tokens (light) |
 | darkColors | Optional explicit dark palette; design-system tokens and docs only, the app has no dark mode |
 | fonts | Heading, body and mono families and the font stylesheet |
@@ -266,7 +267,7 @@ through props, and never import preview samples.
 | Empty states | Built | Tint icon circle, title, one sentence, optional action |
 | Loading skeletons | Built | Shapes match hero, bucket and activity row; announced once as “Loading” |
 | Role switcher | Built | Pill segmented control on the `color.signature` top bar; one link per role (BRAND.demo name + role) to that role's first tab |
-| Bottom tab bar per role | Built | Icon + label per tab; active tab gets a `color.tint` pill, bold label and `aria-current`; optional count badge (parent Approvals shows waiting swipes); never links to /brand |
+| Bottom tab bar per role | Built | Solid `color.primary` (near-black) bar with `onPrimary` icons and labels; active tab gets a `color.signature` pill with `onSignature` icon, bold label and `aria-current`; optional count badge (parent Approvals shows waiting swipes); never links to /brand |
 | Coming-soon screen | Built | Tab title on the header sky plus an empty state; placeholder for tabs not built yet, no sample data or actions |
 | Policy card | Built | Preset name and plain-English lines (block, ask, limit, time) |
 | Approval card | Built | Request sentence, reason, bucket, time; approve/decline shown disabled until decisions arrive |
@@ -366,13 +367,19 @@ alone. Do not duplicate assets into an artifact-local public directory.
 The Open Graph image is raster art: changing a name in configuration does not
 repaint text inside the PNG. Replace it deliberately when rebranding.
 
+The screen background (`backgroundImage`, a portrait WebP) sits behind the
+phone-width column on every role tab and the signed-out screen, faded over the
+plain surface by `backgroundImageOpacity`. It is fixed to the viewport and
+covers the column, so it never tiles or scrolls. Cards on it use the plain
+surface with a hairline border so they stand out from the cream.
+
 ## How to rebrand
 
 1. Edit `/src/brand/brand.config.ts` (names, tagline, logo alt text, colors and
    their on-colors, the optional `darkColors` palette, heading/body/mono fonts,
    radii, spacing, demo identities, reusable copy).
 2. Replace files in `/public/brand/`, keeping the same filenames. Generated SVGs
-   update themselves; replace `og.png` by hand.
+   update themselves; replace `og.png` and `background.webp` by hand.
 3. Add the new app name, demo names, bank names, fonts, font stylesheet URL and
    any non-hex colors to `/src/brand/brand-history.ts`, keeping the old ones.
    `pnpm test` lists any that are missing, and keeps flagging the old values if

@@ -35,7 +35,7 @@ export default function ParentApprovals() {
           icon={Inbox}
           title="You're all caught up"
           body={`When ${BRAND.demo.dependent} asks for an OK on a purchase, it shows up here.`}
-          className="rounded-card bg-surface-alt"
+          className="rounded-card border bg-surface"
           data-testid="state-approvals-empty"
         />
       ) : (

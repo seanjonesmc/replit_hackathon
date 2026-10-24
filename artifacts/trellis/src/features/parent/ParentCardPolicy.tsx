@@ -56,7 +56,7 @@ export default function ParentCardPolicy() {
         <SectionTitle>
           <span id="blocked-title">Always declined</span>
         </SectionTitle>
-        <div className="rounded-card-sm bg-surface-alt p-4">
+        <div className="rounded-card-sm border bg-surface p-4">
           <ul className="flex flex-wrap gap-2" data-testid="list-blocked-categories">
             {blockedCategories.map((c) => (
               <li key={c.category}>

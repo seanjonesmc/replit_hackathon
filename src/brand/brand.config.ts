@@ -42,6 +42,10 @@ export interface BrandConfig {
   logo: { mark: string; wordmark: string; alt: string };
   favicon: string;
   ogImage: string;
+  /** Backdrop of the app's phone-width screen (role tabs and signed-out). Portrait, compressed web format. */
+  backgroundImage: string;
+  /** How strongly the background image shows over the plain surface, 0 to 1. */
+  backgroundImageOpacity: number;
   colors: BrandColors;
   /**
    * Optional dark palette. Used by the design-system tokens and docs only; the
@@ -69,6 +73,8 @@ export const BRAND: BrandConfig = {
   logo: { mark: "/brand/logo-mark.svg", wordmark: "/brand/logo-wordmark.svg", alt: "Trellis logo" },
   favicon: "/brand/favicon.svg",
   ogImage: "/brand/og.png",
+  backgroundImage: "/brand/background.webp",
+  backgroundImageOpacity: 0.35,
   colors: {
     signature: "#dcf26e", onSignature: "#1c2008",
     primary: "#171815", primaryHover: "#31332d", onPrimary: "#f6f5f1",

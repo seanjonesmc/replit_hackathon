@@ -1,12 +1,16 @@
 import type { ReactNode } from 'react';
 import type { TabDef } from '@/lib/route-map';
 import { useInlineRoleSwitcher } from '@/components/trellis/role-switcher-slot';
+import { ScreenBackdrop } from '@/components/trellis/screen-backdrop';
 
 /** A centred phone-width column for the signed-out screens; on desktop it sits on the sand background. */
 export function PhoneColumn({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-[100dvh] bg-surface-ground">
-      <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-phone flex-col bg-surface md:border-x">{children}</div>
+      <div className="relative isolate mx-auto flex min-h-[100dvh] w-full max-w-phone flex-col md:border-x">
+        <ScreenBackdrop />
+        {children}
+      </div>
     </div>
   );
 }

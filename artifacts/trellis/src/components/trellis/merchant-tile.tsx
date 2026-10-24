@@ -40,7 +40,7 @@ export function MerchantTile({ name, category, mcc, amountCents, timeNote, icon:
       aria-busy={loading || undefined}
       aria-label={label}
       className={cn(
-        'flex min-h-[148px] flex-col items-start gap-3 rounded-card-sm bg-surface-alt p-4 text-left transition-[background-color,transform,opacity] duration-200 ease-out',
+        'flex min-h-[148px] flex-col items-start gap-3 rounded-card-sm border bg-surface p-4 text-left transition-[background-color,transform,opacity] duration-200 ease-out',
         'hover:bg-tint active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
         'disabled:pointer-events-none',
         (disabled || unavailable) && 'opacity-40',
@@ -48,7 +48,7 @@ export function MerchantTile({ name, category, mcc, amountCents, timeNote, icon:
       )}
       data-testid={testId}
     >
-      <span className="grid size-10 place-items-center rounded-full bg-surface text-ink">
+      <span className="grid size-10 place-items-center rounded-full bg-surface-alt text-ink">
         {loading ? <Loader2 className="size-5 animate-spin" aria-hidden="true" /> : <Icon className="size-5" aria-hidden="true" />}
       </span>
       <span className="flex w-full min-w-0 flex-1 flex-col">

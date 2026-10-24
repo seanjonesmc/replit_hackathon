@@ -37,12 +37,12 @@ export default function FunderMoney() {
           icon={HandCoins}
           title="Nothing added yet"
           body="You'll see every purchase your money covers, right here."
-          className="rounded-card bg-surface-alt"
+          className="rounded-card border bg-surface"
           data-testid="state-contributions-empty"
         />
       ) : (
         <>
-          <div className="rounded-card bg-surface-alt p-5" data-testid="card-total-contributed">
+          <div className="rounded-card border bg-surface p-5" data-testid="card-total-contributed">
             <p className="type-label text-ink-muted">You've added</p>
             <p className="type-display-md tnum mt-2">{formatCents(funder.totalCents)}</p>
             <p className="type-caption mt-1 text-ink-muted">Test dollars, across {bucketCount} {bucketCount === 1 ? 'bucket' : 'buckets'}</p>

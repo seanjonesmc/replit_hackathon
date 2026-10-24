@@ -58,7 +58,7 @@ const GENERATED_FILES: Record<string, string> = {
  * The asset files BRAND points at. They are written from BRAND by the Vite
  * brand plugin, or replaced by hand with the new logo when rebranding.
  */
-const BRAND_ASSET_FILES = [BRAND.logo.mark, BRAND.logo.wordmark, BRAND.favicon, BRAND.ogImage].map(
+const BRAND_ASSET_FILES = [BRAND.logo.mark, BRAND.logo.wordmark, BRAND.favicon, BRAND.ogImage, BRAND.backgroundImage].map(
   (p) => `public${p}`,
 );
 

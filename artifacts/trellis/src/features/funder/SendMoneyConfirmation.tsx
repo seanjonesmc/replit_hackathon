@@ -65,8 +65,8 @@ export function SendMoneyConfirmation({ result, funderId, onDone }: { result: Se
 
       <ol className="flex flex-col gap-2" aria-label="What happened">
         {steps.map((s, i) => (
-          <li key={i} className="flex gap-3 rounded-card-sm bg-surface-alt p-4" data-testid={`step-sent-${i + 1}`}>
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface text-ink">
+          <li key={i} className="flex gap-3 rounded-card-sm border bg-surface p-4" data-testid={`step-sent-${i + 1}`}>
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-alt text-ink">
               <s.icon className="size-5" aria-hidden="true" />
             </span>
             <div className="min-w-0 flex-1">

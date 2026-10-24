@@ -34,7 +34,7 @@ export function RecentSwipes({ holderName, className }: { holderName: string; cl
           icon={ReceiptText}
           title="No swipes yet"
           body="Tap a shop above to try your card."
-          className="rounded-card bg-surface-alt"
+          className="rounded-card border bg-surface"
           data-testid="state-recent-swipes-empty"
         />
       ) : (

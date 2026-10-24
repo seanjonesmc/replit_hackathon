@@ -20,7 +20,7 @@ const DEFAULT_AMOUNT = '50';
 const NOTE_MAX = 140;
 
 const fieldCls =
-  'w-full rounded-card-sm border-2 border-transparent bg-surface-alt px-4 text-ink outline-none transition-colors placeholder:text-ink-muted focus:border-primary';
+  'w-full rounded-card-sm border-2 border-hairline bg-surface px-4 text-ink outline-none transition-colors placeholder:text-ink-muted focus:border-primary';
 
 function errorMessage(error: unknown): string {
   const data = (error as { data?: unknown } | null)?.data;
@@ -142,7 +142,7 @@ export function AddMoneyFlow({ funding: funder, title, subtitle }: AddMoneyFlowP
             icon={Landmark}
             title="No bank linked"
             body="Linking a bank arrives with onboarding in a later step of the demo."
-            className="rounded-card bg-surface-alt"
+            className="rounded-card border bg-surface"
             data-testid="state-no-bank"
           />
         )}
@@ -157,7 +157,7 @@ export function AddMoneyFlow({ funding: funder, title, subtitle }: AddMoneyFlowP
             icon={PiggyBank}
             title="No buckets yet"
             body="Buckets appear here once the family sets them up."
-            className="rounded-card bg-surface-alt"
+            className="rounded-card border bg-surface"
             data-testid="state-no-buckets"
           />
         ) : (
@@ -172,8 +172,8 @@ export function AddMoneyFlow({ funding: funder, title, subtitle }: AddMoneyFlowP
                   aria-checked={isSelected}
                   onClick={() => setChosen(b.id)}
                   className={cn(
-                    'flex items-center gap-3 rounded-card-sm border-2 bg-surface-alt p-4 text-left transition-colors',
-                    isSelected ? 'border-primary' : 'border-transparent hover:border-hairline',
+                    'flex items-center gap-3 rounded-card-sm border-2 bg-surface p-4 text-left transition-colors',
+                    isSelected ? 'border-primary' : 'border-hairline hover:border-ink-muted',
                   )}
                   data-testid={`option-bucket-${b.id}`}
                 >

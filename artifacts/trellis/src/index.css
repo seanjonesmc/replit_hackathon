@@ -130,6 +130,10 @@
   .header-sky {
     background: linear-gradient(180deg, var(--color-signature) 0%, var(--color-signature) 62%, var(--color-surface) 100%);
   }
+  /* Same band, fading into whatever is behind it (the BRAND screen backdrop) instead of a solid surface. */
+  .header-sky-clear {
+    background: linear-gradient(180deg, var(--color-signature) 0%, var(--color-signature) 62%, transparent 100%);
+  }
 
   /* Brand lattice texture on signature cards: fine on-signature hatching, like the mockup's striped bars */
   .lattice {
