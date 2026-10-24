@@ -44,7 +44,7 @@ test locations, and phase gates.
 - `lib/` — API specification, generated client/validators, database, future shared logic
 - `src/brand/brand.config.ts` — the single brand source
 - `public/brand/` — canonical brand assets served by the frontend
-- `contracts/` — Solidity contracts on Hardhat 3 with its ethers toolbox (MockUSD so far)
+- `contracts/` — Solidity contracts on Hardhat 3 with its ethers toolbox (MockUSD and FamilyCardNetwork, simulated bank only so far)
 - `design/reference/venmo.DESIGN.md` — immutable reference, never a runtime import
 
 ## Architecture and scope
@@ -71,7 +71,7 @@ sign-in hook (`lib/replit-auth-web`) is not yet wired into any screen. Directory
 READMEs reserve responsibilities, not implemented functionality or authorization
 boundaries. Baseline Vitest checks cover API health and sign-in, BRAND asset URLs
 under the frontend base path, and the byte-for-byte reference checksum. Contracts
-use Hardhat 3; only MockUSD exists and nothing is deployed.
+use Hardhat 3; MockUSD and FamilyCardNetwork (simulated bank only) exist and nothing is deployed.
 The API's AI service layer (`services/ai/`: policy builder and AI guard) exists
 but is not yet wired to routes or a decision engine.
 
