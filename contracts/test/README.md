@@ -1,4 +1,4 @@
 # Contract tests
 
-Reserved for contract unit and integration tests once the toolchain is approved.
-No test runner is installed yet.
+Mocha + ethers tests run by Hardhat 3 on its in-process network (`pnpm run test`).
+`mocks/` holds test-only Solidity helpers.

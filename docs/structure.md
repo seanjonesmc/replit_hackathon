@@ -45,8 +45,9 @@ src/brand/
   assets.ts                 Existing derived SVG asset helpers
 public/brand/               Canonical brand assets
 contracts/
-  src/                      Future Solidity sources
-  test/                     Future contract tests
+  hardhat.config.ts         Hardhat 3 config (local and Monad testnet networks)
+  src/                      Solidity sources
+  test/                     Contract tests (Hardhat mocha + ethers)
   scripts/                  Future testnet deployment scripts
 scripts/src/                Workspace maintenance commands
 design/reference/           Immutable Venmo reference
@@ -110,7 +111,7 @@ docs/                       Contributor architecture documentation
 4. **Demo verification:** check the completed role flows and confirmed testnet
    evidence before describing them as working. Never imply real-money capability.
 
-Do not install Hardhat, deploy contracts, add authentication/AI, or implement any
+Do not deploy contracts, add authentication/AI, or implement any
 of these later features merely to populate the reserved folders.
 
 ## Test locations
@@ -121,7 +122,7 @@ of these later features merely to populate the reserved folders.
   `artifacts/api-server/tests/`.
 - Libraries: colocate tests with their source; database integration tests belong
   in `lib/db/tests/` and must use an explicit test database.
-- Solidity: `contracts/test/`, once Phase 3 installs the agreed toolchain (Hardhat 3).
+- Solidity: `contracts/test/`, run by Hardhat 3 with `pnpm run contracts:test`.
 
 Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 `pnpm test`; select one project with `pnpm test --project <name>`:
@@ -161,9 +162,8 @@ For startup, still use managed services and proxy health/frontend checks.
 
 Keep dependencies, `dist/`, TS build metadata, coverage, local environment files,
 keys, and contract artifacts/cache/typechain/deployment outputs out of Git.
-Future Hardhat configuration belongs at `contracts/hardhat.config.ts` and must
-read secrets from the environment, never include keys. There is intentionally no
-contract package manifest or workspace/toolchain configuration yet.
+The Hardhat configuration at `contracts/hardhat.config.ts` reads secrets from the
+environment and must never include keys.
 Do not ignore the entire top-level `artifacts/` directory: it contains application
 source. OpenAPI-generated TypeScript already tracked by the project is preserved;
 it is distinct from disposable compiler and contract output.

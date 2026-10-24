@@ -1,11 +1,16 @@
-# Smart contracts (reserved)
+# Smart contracts
 
-Solidity sources belong in `src/`, tests in `test/`, and testnet deployment scripts
-in `scripts/`. Eventual Hardhat configuration belongs here at `hardhat.config.ts`.
+Solidity contracts built and tested with Hardhat 3 and its ethers toolbox (mocha +
+ethers v6). Sources are in `src/`, tests in `test/`, testnet deployment scripts in
+`scripts/`, and configuration in `hardhat.config.ts`.
 
-No toolchain, dependencies, contract code, deployment, or wallet setup is included.
-Phase 3 introduces the agreed toolchain (Hardhat 3 with its ethers toolbox); see
-[docs/stack-decisions.md](../docs/stack-decisions.md) for it, the secret names, and
-the on-chain rules.
-Use Monad testnet only when implementation is authorized. Never commit private
-keys, local environment files, compiled artifacts, cache, or deployment outputs.
+- `pnpm run compile` / `pnpm run test` here, or `pnpm run contracts:compile` /
+  `pnpm run contracts:test` from the root. Tests use the in-process network and
+  need no secrets.
+- `monadTestnet` (chain 10143) reads `MONAD_RPC_URL` (default
+  `https://testnet-rpc.monad.xyz`) and `DEPLOYER_PRIVATE_KEY` from the environment,
+  only when that network is used.
+
+See [docs/stack-decisions.md](../docs/stack-decisions.md) for secret names and the
+on-chain rules. Monad testnet only. Never commit private keys, local environment
+files, compiled artifacts, cache, generated types, or deployment outputs.

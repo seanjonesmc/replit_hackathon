@@ -12,6 +12,7 @@ Use the existing managed workflows; they supply `PORT` and the frontend
 - `pnpm --filter @workspace/mockup-sandbox run dev` — existing design sandbox, `/__mockup`
 - `pnpm run typecheck` — build shared library declarations, then check all apps, scripts, and their tests
 - `pnpm test` — baseline regression checks (Vitest, root `vitest.config.ts`); add `--project api-server|trellis|workspace` to run one
+- `pnpm run contracts:compile` / `pnpm run contracts:test` — compile Solidity and run contract tests (Hardhat 3, in-process network, no secrets)
 - `pnpm run build` — typecheck and build workspace packages (frontend needs `PORT` and `BASE_PATH`)
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API client and validation schemas after OpenAPI changes
 - `curl --fail http://localhost:80/api/healthz` — API health through the shared proxy
@@ -43,7 +44,7 @@ test locations, and phase gates.
 - `lib/` — API specification, generated client/validators, database, future shared logic
 - `src/brand/brand.config.ts` — the single brand source
 - `public/brand/` — canonical brand assets served by the frontend
-- `contracts/` — reserved Solidity area; no toolchain or contracts yet
+- `contracts/` — Solidity contracts on Hardhat 3 with its ethers toolbox (MockUSD so far)
 - `design/reference/venmo.DESIGN.md` — immutable reference, never a runtime import
 
 ## Architecture and scope
@@ -69,8 +70,8 @@ tables. Family routes must mount behind the `requireAuth` guard. The browser
 sign-in hook (`lib/replit-auth-web`) is not yet wired into any screen. Directory
 READMEs reserve responsibilities, not implemented functionality or authorization
 boundaries. Baseline Vitest checks cover API health and sign-in, BRAND asset URLs
-under the frontend base path, and the byte-for-byte reference checksum. No
-blockchain tooling.
+under the frontend base path, and the byte-for-byte reference checksum. Contracts
+use Hardhat 3; only MockUSD exists and nothing is deployed.
 The API's AI service layer (`services/ai/`: policy builder and AI guard) exists
 but is not yet wired to routes or a decision engine.
 

@@ -17,3 +17,4 @@ contracts/cache
 contracts/typechain
 contracts/typechain-types
 contracts/deployments
+contracts/ignition/deployments

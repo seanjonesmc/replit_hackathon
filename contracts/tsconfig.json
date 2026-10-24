@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "noEmit": true,
+    "types": ["node", "mocha"]
+  },
+  "include": ["hardhat.config.ts", "test", "scripts", "typechain-types"]
+}

@@ -4,3 +4,4 @@
 - [AI integration provisioning](ai-integration-provisioning.md) — Anthropic setup isn't available in task envs; provision and run live AI checks from the main session.
 - [Sign-in decisions](auth-decisions.md) — web-only Replit Auth (mobile routes omitted on purpose); auth tests stub the session store, never the dev DB.
 - [/brand route vs asset folder](brand-route-asset-folder.md) — /brand route and public/brand/ share a path; published-site behavior unverified.
+- [pnpm installs here](pnpm-workspace-installs.md) — never `pnpm add` with catalog: (rewrites workspace yaml); peers must be listed explicitly.
