@@ -75,4 +75,5 @@ export interface Authorization {
   chain: ChainRecord;
   /** The capture that repaid the card issuer at settlement. */
   captureChain: ChainRecord;
+  resolveChain: ChainRecord;
 }

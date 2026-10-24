@@ -36,7 +36,13 @@ const SPENDING_ROUTES = [
   { method: "GET", path: "/api/settlements/1" },
   { method: "GET", path: "/api/merchants" },
   { method: "GET", path: "/api/authorizations" },
+  { method: "GET", path: "/api/authorizations/1" },
   { method: "GET", path: "/api/approvals" },
+  {
+    method: "POST",
+    path: "/api/approvals/1/resolve",
+    body: { parentId: 1, decision: "approve" },
+  },
   { method: "GET", path: "/api/card" },
   { method: "POST", path: "/api/card/freeze" },
   { method: "POST", path: "/api/card/unfreeze" },

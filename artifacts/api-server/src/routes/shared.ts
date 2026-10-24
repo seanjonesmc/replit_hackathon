@@ -27,6 +27,7 @@ export function parseOr400<S extends z.ZodTypeAny>(
 
 const STATUS_BY_KIND: Record<FamilyServiceError["kind"], number> = {
   invalid: 400,
+  forbidden: 403,
   not_found: 404,
   conflict: 409,
   rule: 422,

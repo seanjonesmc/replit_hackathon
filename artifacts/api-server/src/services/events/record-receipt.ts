@@ -10,6 +10,7 @@ import {
   db,
   type ChainStatus,
   type DbExecutor,
+  temporaryPassesTable,
 } from "@workspace/db";
 
 /**
@@ -17,6 +18,10 @@ import {
  * Later slices add their tables here (and to `updateOwnerChainStatus`).
  * `authorization_captures` is not a table of its own: it is an authorization
  * row's second set of chain columns (`capture_chain_*`), for its capture.
+ *
+ * `authorization_resolutions` is not a table of its own: it is a parent's
+ * decision on a pending authorization, tracked in that row's `resolve_chain_*`
+ * columns (the swipe's own `chain_*` columns belong to authorize()).
  */
 export const CHAIN_OWNER_TABLES = [
   "authorizations",
@@ -25,6 +30,8 @@ export const CHAIN_OWNER_TABLES = [
   "bank_deposits",
   "buckets",
   "contributions",
+  "temporary_passes",
+  "authorization_resolutions",
 ] as const;
 export type ChainOwnerTable = (typeof CHAIN_OWNER_TABLES)[number];
 
@@ -160,6 +167,31 @@ export async function updateOwnerChainStatus(
           .where(ownerWhere(contributionsTable, owner.id, keep))
           .returning({ id: contributionsTable.id })
       ).length;
+    case "temporary_passes":
+      return (
+        await executor
+          .update(temporaryPassesTable)
+          .set(set)
+          .where(ownerWhere(temporaryPassesTable, owner.id, keep))
+          .returning({ id: temporaryPassesTable.id })
+      ).length;
+    case "authorization_resolutions": {
+      const t = authorizationsTable;
+      const columns = { id: t.id, chainStatus: t.resolveChainStatus };
+      return (
+        await executor
+          .update(t)
+          .set({
+            resolveChainStatus: set.chainStatus,
+            ...(set.chainTxHash !== undefined && { resolveChainTxHash: set.chainTxHash }),
+            ...(set.chainConfirmedAt !== undefined && {
+              resolveChainConfirmedAt: set.chainConfirmedAt,
+            }),
+          })
+          .where(ownerWhere(columns, owner.id, keep))
+          .returning({ id: t.id })
+      ).length;
+    }
     default: {
       const unknownTable: never = owner.table;
       throw new Error(`Unknown chain owner table: ${String(unknownTable)}`);

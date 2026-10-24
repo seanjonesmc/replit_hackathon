@@ -8,6 +8,6 @@
 import type { ErrorEnvelope } from "./errorEnvelope";
 
 /**
- * The request duplicates something that already exists.
+ * The request duplicates something that already exists, or answers a request that was already answered.
  */
 export type ConflictResponse = ErrorEnvelope;

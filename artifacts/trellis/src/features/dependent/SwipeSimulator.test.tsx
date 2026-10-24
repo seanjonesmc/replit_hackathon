@@ -2,7 +2,19 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { BRAND } from '@brand/brand.config';
 import { useListApprovals, type Authorization, type Card, type Merchant, type SwipeResult } from '@workspace/api-client-react';
-import { byTestId, cleanupApi, countCalls, mockApi, renderWithApi, settle, type ApiRoutes } from '@/test/api-test-utils';
+import { act } from 'react';
+import {
+  byTestId,
+  changeValue,
+  cleanupApi,
+  countCalls,
+  mockApi,
+  renderWithApi,
+  settle,
+  wait,
+  type ApiRoutes,
+} from '@/test/api-test-utils';
+import { ANSWER_POLL_MS } from './SwipeResultDialog';
 import SwipeSimulator from './SwipeSimulator';
 
 const chain = { status: 'not_submitted', txHash: null, confirmedAt: null, explorerUrl: null } as const;
@@ -118,12 +130,14 @@ const storedRide = (body: { amount: number; timestamp: string }): Authorization 
   createdAt: new Date().toISOString(),
   chain,
   captureChain: chain,
+  resolveChain: chain,
 });
 
 /** The API as the dependent's screen sees it; a swipe adds to the feed. */
 function demoApi(overrides: ApiRoutes = {}) {
   const stored: Authorization[] = [];
   const calls = mockApi({
+    'GET /api/authorizations/41': () => ({ body: { authorization: stored.find((a) => a.id === 41), retry: stored.find((a) => a.previousAuthorizationId === 41) ?? null } }),
     'GET /api/merchants': { body: MERCHANTS },
     'GET /api/card': { body: card() },
     'GET /api/policy': { body: policy },
@@ -135,7 +149,31 @@ function demoApi(overrides: ApiRoutes = {}) {
     },
     ...overrides,
   });
-  return calls;
+  return Object.assign(calls, { stored });
+}
+
+/** What the server does when the parent answers request #41. */
+function parentAnswers(stored: Authorization[], answer: 'approve' | 'decline') {
+  const original = stored.find((a) => a.id === 41)!;
+  const resolvedAt = new Date().toISOString();
+  if (answer === 'decline') {
+    Object.assign(original, { status: 'parent_declined', resolvedAt });
+    return;
+  }
+  Object.assign(original, { status: 'parent_approved', resolvedAt, nextAuthorizationId: 42 });
+  stored.unshift({
+    ...original,
+    id: 42,
+    decision: 'APPROVED',
+    status: 'approved',
+    reasonCode: 'approved',
+    reason: 'Paid from Transit with a one-time OK.',
+    bucketId: 5,
+    bucketName: 'Transit',
+    previousAuthorizationId: 41,
+    nextAuthorizationId: null,
+    resolvedAt: null,
+  });
 }
 
 /** Stands in for the parent's Approvals badge, which also reads GET /api/approvals. */
@@ -158,7 +196,7 @@ describe('swipe simulator', () => {
     await settle();
 
     const grid = host.querySelector('[aria-labelledby="demo-swipes-title"]')!;
-    const names = [...grid.querySelectorAll('button')].map((b) => b.getAttribute('aria-label'));
+    const names = [...grid.querySelectorAll('[data-testid^="button-swipe-merchant-"]')].map((b) => b.getAttribute('aria-label'));
     expect(names).toEqual([
       "Swipe at Trader Joe's for $18.40",
       'Swipe at Campus Bookstore for $24.00',
@@ -167,6 +205,8 @@ describe('swipe simulator', () => {
       'Swipe at Uber for $22.00, at 2:10am',
       'Swipe at Apple Store for $129.00',
     ]);
+    // Custom purchase sits right after the six.
+    expect(grid.querySelector('button:last-child')?.getAttribute('data-testid')).toBe('button-custom-purchase');
     expect(host.querySelector('[aria-labelledby="more-shops-title"]')?.querySelectorAll('button')).toHaveLength(3);
     expect(byTestId('text-swipe-card-status')?.textContent).toBe('Your card is on');
     expect(byTestId('state-recent-swipes-empty')).not.toBeNull();
@@ -259,5 +299,104 @@ describe('swipe simulator', () => {
 
     expect(byTestId('text-swipe-error')?.textContent).toBe('That card belongs to someone else.');
     expect(byTestId('dialog-swipe-result')).toBeNull();
+  });
+
+  it('waits for the parent after a pending swipe, then flips to Approved from Transit on its own', async () => {
+    const api = demoApi();
+    renderWithApi(<SwipeSimulator />);
+    await settle();
+    tileFor('Uber').click();
+    await settle();
+
+    expect(byTestId('state-ask-sent')?.textContent).toContain(`request sent to ${BRAND.demo.parent}`);
+    expect(byTestId('button-ask-parent')).toBeNull();
+    const polls = countCalls(api, 'GET', '/api/authorizations/41');
+    expect(polls).toBeGreaterThan(0);
+
+    parentAnswers(api.stored, 'approve');
+    await wait(ANSWER_POLL_MS + 200);
+    await settle();
+
+    const dialog = byTestId('dialog-swipe-result')!;
+    expect(dialog.querySelector('[data-testid="text-decision-label"]')?.textContent).toBe('Approved');
+    expect(dialog.textContent).toContain('Transit');
+    expect(dialog.textContent).toContain(`after ${BRAND.demo.parent} said yes`);
+    expect(byTestId('state-ask-sent')).toBeNull();
+
+    // Polling stops once answered, and the recent swipes fold into one row.
+    const after = countCalls(api, 'GET', '/api/authorizations/41');
+    await wait(ANSWER_POLL_MS + 200);
+    expect(countCalls(api, 'GET', '/api/authorizations/41')).toBe(after);
+    expect(byTestId('row-swipe-41')).toBeNull();
+    expect(byTestId('row-swipe-42')?.textContent).toContain('Pending → Parent approved → Approved');
+  });
+
+  it('shows "Parent declined" when the parent says no', async () => {
+    const api = demoApi();
+    renderWithApi(<SwipeSimulator />);
+    await settle();
+    tileFor('Uber').click();
+    await settle();
+
+    parentAnswers(api.stored, 'decline');
+    await wait(ANSWER_POLL_MS + 200);
+    await settle();
+
+    const dialog = byTestId('dialog-swipe-result')!;
+    expect(dialog.querySelector('[data-testid="text-decision-label"]')?.textContent).toBe('Parent declined');
+    expect(dialog.querySelector('[data-testid="text-reason-code"]')?.textContent).toBe('parent_declined');
+    expect(byTestId('row-swipe-41')?.textContent).toContain('Pending → Parent declined');
+  });
+
+  it('sends a custom purchase at a typed store with its category, items, amount and time', async () => {
+    const api = demoApi({
+      'POST /api/swipes': { status: 201, body: { ...pendingRide, authorizationId: 50, decision: 'REJECTED', reasonCode: 'blocked_category', reason: 'No bars.' } },
+    });
+    renderWithApi(<SwipeSimulator />);
+    await settle();
+
+    byTestId('button-custom-purchase')!.click();
+    await settle(2);
+    changeValue(byTestId('select-custom-store')!, 'typed');
+    changeValue(byTestId('input-custom-store-name')!, 'Corner Pub');
+    changeValue(byTestId('select-custom-category')!, 'bar');
+    changeValue(byTestId('input-custom-items')!, 'nachos, soda');
+    changeValue(byTestId('input-custom-amount')!, '12.50');
+    changeValue(byTestId('input-custom-time')!, '21:30');
+    act(() => byTestId('button-custom-swipe')!.click());
+    await settle();
+
+    const body = api.find((c) => c.method === 'POST' && c.path === '/api/swipes')!.body as Record<string, unknown>;
+    expect(body).toMatchObject({ merchantId: null, merchantName: 'Corner Pub', merchantCategory: 'bar', mcc: '5813', items: ['nachos', 'soda'], amount: 12_50 });
+    expect(body.timestamp).toMatch(/T21:30:00$/);
+    expect(byTestId('sheet-custom-purchase')).toBeNull();
+    const dialog = byTestId('dialog-swipe-result')!;
+    expect(dialog.querySelector('[data-testid="text-decision-label"]')?.textContent).toBe('Declined');
+    expect(dialog.textContent).toContain('Corner Pub');
+    expect(dialog.textContent).toContain('swiped at 9:30pm');
+  });
+
+  it('swipes a typed name that matches a seeded store as that store, and needs an amount', async () => {
+    const api = demoApi();
+    renderWithApi(<SwipeSimulator />);
+    await settle();
+
+    byTestId('button-custom-purchase')!.click();
+    await settle(2);
+    changeValue(byTestId('select-custom-store')!, 'typed');
+    changeValue(byTestId('input-custom-store-name')!, "  trader joe's ");
+    expect(byTestId('text-custom-category')?.textContent).toContain('MCC 5411');
+
+    act(() => byTestId('button-custom-swipe')!.click());
+    await settle();
+    expect(countCalls(api, 'POST', '/api/swipes')).toBe(0);
+    expect(byTestId('sheet-custom-purchase')?.textContent).toContain('Enter an amount');
+
+    changeValue(byTestId('input-custom-amount')!, '65');
+    act(() => byTestId('button-custom-swipe')!.click());
+    await settle();
+    const body = api.find((c) => c.method === 'POST' && c.path === '/api/swipes')!.body as Record<string, unknown>;
+    expect(body).toMatchObject({ merchantId: 1, merchantName: "Trader Joe's", mcc: '5411', merchantCategory: 'grocery', amount: 65_00 });
+    expect(Date.parse(body.timestamp as string)).toBeGreaterThan(Date.now() - 60_000);
   });
 });

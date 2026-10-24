@@ -25,6 +25,7 @@ import type {
   ActivityItem,
   AuthUserEnvelope,
   Authorization,
+  AuthorizationThread,
   BadRequestResponse,
   BankAccount,
   BeginBrowserLoginParams,
@@ -38,6 +39,7 @@ import type {
   DepositRequest,
   DepositResult,
   Family,
+  ForbiddenResponse,
   HandleBrowserLoginCallbackParams,
   HealthStatus,
   LinkBankAccountRequest,
@@ -49,6 +51,7 @@ import type {
   Overview,
   ParentOverview,
   PolicyView,
+  ResolveApprovalRequest,
   SendMoneyResult,
   Settlement,
   SwipeRequest,
@@ -2936,6 +2939,340 @@ export function useListApprovals<
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+export const getGetAuthorizationUrl = (authorizationId: number) => {
+  return `/api/authorizations/${authorizationId}`;
+};
+
+/**
+ * For a screen waiting on a parent's answer: the swipe as it stands now and, once a parent approves it, the automatic retry and its decision.
+ * @summary One swipe and the retry after a parent's OK
+ */
+export const getAuthorization = async (
+  authorizationId: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<AuthorizationThread> => {
+  return customFetch<AuthorizationThread>(
+    getGetAuthorizationUrl(authorizationId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetAuthorizationQueryKey = (authorizationId: number) => {
+  return [`/api/authorizations/${authorizationId}`] as const;
+};
+
+export const getGetAuthorizationQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAuthorization>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  authorizationId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getAuthorization>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAuthorizationQueryKey(authorizationId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAuthorization>>
+  > = ({ signal }) =>
+    getAuthorization(authorizationId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: authorizationId !== null && authorizationId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAuthorization>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetAuthorizationQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAuthorization>>
+>;
+export type GetAuthorizationQueryError = ErrorType<
+  BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+>;
+
+export function useGetAuthorization<
+  TData = Awaited<ReturnType<typeof getAuthorization>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  authorizationId: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getAuthorization>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAuthorization>>,
+          TError,
+          Awaited<ReturnType<typeof getAuthorization>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAuthorization<
+  TData = Awaited<ReturnType<typeof getAuthorization>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  authorizationId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getAuthorization>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAuthorization>>,
+          TError,
+          Awaited<ReturnType<typeof getAuthorization>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAuthorization<
+  TData = Awaited<ReturnType<typeof getAuthorization>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  authorizationId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getAuthorization>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary One swipe and the retry after a parent's OK
+ */
+
+export function useGetAuthorization<
+  TData = Awaited<ReturnType<typeof getAuthorization>>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotFoundResponse
+  >,
+>(
+  authorizationId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getAuthorization>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetAuthorizationQueryOptions(
+    authorizationId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getResolveApprovalUrl = (authorizationId: number) => {
+  return `/api/approvals/${authorizationId}/resolve`;
+};
+
+/**
+ * Approve grants a one-time pass for that merchant and amount (10 minutes) and re-runs the same purchase through the decision engine at once, as a new authorization linked to this one. Decline marks the request declined and moves no money. Only a parent may answer, and only from the signed-in account linked to that parent; an unlinked demo parent can be answered for by the signed-in presenter unless that account is linked to another member (403 otherwise). A request that was already answered gets 409. The decision and the pass are mirrored on the testnet in the background; the response never waits for the chain.
+ * @summary A parent approves or declines a pending swipe
+ */
+export const resolveApproval = async (
+  authorizationId: number,
+  resolveApprovalRequest: ResolveApprovalRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<AuthorizationThread> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<AuthorizationThread>(
+    getResolveApprovalUrl(authorizationId),
+    {
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(resolveApprovalRequest),
+    },
+  );
+};
+
+export const getResolveApprovalMutationKey = () => ["resolveApproval"] as const;
+
+export const getResolveApprovalMutationOptions = <
+  TError = ErrorType<
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+    | ConflictResponse
+    | UnprocessableResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resolveApproval>>,
+    TError,
+    ResolveApprovalMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof resolveApproval>>,
+  TError,
+  ResolveApprovalMutationVariables,
+  TContext
+> => {
+  const mutationKey = getResolveApprovalMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof resolveApproval>>,
+    ResolveApprovalMutationVariables
+  > = (props) => {
+    const { authorizationId, data } = props ?? {};
+
+    return resolveApproval(authorizationId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ResolveApprovalMutationResult = NonNullable<
+  Awaited<ReturnType<typeof resolveApproval>>
+>;
+export type ResolveApprovalMutationBody = BodyType<ResolveApprovalRequest>;
+export type ResolveApprovalMutationError = ErrorType<
+  | BadRequestResponse
+  | UnauthorizedResponse
+  | ForbiddenResponse
+  | NotFoundResponse
+  | ConflictResponse
+  | UnprocessableResponse
+>;
+export type ResolveApprovalMutationVariables = {
+  authorizationId: number;
+  data: BodyType<ResolveApprovalRequest>;
+};
+
+/**
+ * @summary A parent approves or declines a pending swipe
+ */
+export const useResolveApproval = <
+  TError = ErrorType<
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+    | ConflictResponse
+    | UnprocessableResponse
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof resolveApproval>>,
+      TError,
+      ResolveApprovalMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof resolveApproval>>,
+  TError,
+  ResolveApprovalMutationVariables,
+  TContext
+> => {
+  return useMutation(getResolveApprovalMutationOptions(options), queryClient);
+};
 
 export const getGetCardUrl = () => {
   return `/api/card`;

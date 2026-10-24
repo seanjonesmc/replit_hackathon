@@ -148,6 +148,14 @@ export const authorizationsTable = pgTable(
     captureChainConfirmedAt: timestamp("capture_chain_confirmed_at", {
       withTimezone: true,
     }),
+    /** The parent's decision on a pending swipe: resolvePending() on chain. */
+    resolveChainStatus: chainStatusEnum("resolve_chain_status")
+      .notNull()
+      .default("not_submitted"),
+    resolveChainTxHash: varchar("resolve_chain_tx_hash", { length: 66 }),
+    resolveChainConfirmedAt: timestamp("resolve_chain_confirmed_at", {
+      withTimezone: true,
+    }),
 
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

@@ -117,3 +117,95 @@ export function buildSwipeRequest({
     timestamp: preset.clock ? lastFamilyClockTime(preset.clock, now, timeZone) : now.toISOString(),
   };
 }
+
+// ---- Custom purchases --------------------------------------------------------
+
+/** A category the presenter can pick for a custom purchase, with its MCC. */
+export interface PurchaseCategory {
+  category: string;
+  label: string;
+  mcc: string;
+}
+
+/**
+ * Categories for a custom purchase at a typed store. The server's rules decide
+ * what each one may buy; categories without a bucket go to the AI guard.
+ */
+export const PURCHASE_CATEGORIES: readonly PurchaseCategory[] = [
+  { category: 'grocery', label: 'Grocery', mcc: '5411' },
+  { category: 'restaurant', label: 'Restaurant', mcc: '5812' },
+  { category: 'bookstore', label: 'Bookstore', mcc: '5942' },
+  { category: 'school supplies', label: 'School supplies', mcc: '5943' },
+  { category: 'electronics', label: 'Electronics', mcc: '5732' },
+  { category: 'movies', label: 'Movies', mcc: '7832' },
+  { category: 'concerts', label: 'Concerts', mcc: '7922' },
+  { category: 'bowling', label: 'Bowling', mcc: '7933' },
+  { category: 'rideshare', label: 'Rideshare', mcc: '4121' },
+  { category: 'transit', label: 'Transit', mcc: '4111' },
+  { category: 'clothing', label: 'Clothing', mcc: '5651' },
+  { category: 'bar', label: 'Bar', mcc: '5813' },
+  { category: 'liquor', label: 'Liquor store', mcc: '5921' },
+  { category: 'gambling', label: 'Gambling', mcc: '7995' },
+  { category: 'gaming', label: 'Gaming', mcc: '5816' },
+  { category: 'other', label: 'Other', mcc: '5999' },
+];
+
+/** What the presenter filled in on the custom purchase sheet. */
+export interface CustomPurchase {
+  /** The store's name as typed or picked. */
+  storeName: string;
+  /** Used when the name isn't a seeded store. */
+  category: PurchaseCategory;
+  items: string[];
+  amountCents: number;
+  /** Family-clock time ("HH:MM"); without it the swipe happens now. */
+  clock?: string;
+}
+
+/** A seeded merchant whose name matches, ignoring case and outer spaces. */
+export function findMerchantByName(merchants: readonly Merchant[], name: string): Merchant | undefined {
+  const wanted = name.trim().toLowerCase();
+  return wanted ? merchants.find((m) => m.name.toLowerCase() === wanted) : undefined;
+}
+
+/** "bananas, oat milk ,, pasta" -> ["bananas", "oat milk", "pasta"], capped at the API's limits. */
+export function parseItems(text: string): string[] {
+  return text
+    .split(/[,\n]/)
+    .map((s) => s.trim().slice(0, 80))
+    .filter(Boolean)
+    .slice(0, 20);
+}
+
+/**
+ * The API payload for a custom purchase. A seeded store (picked, or typed
+ * with the same name) swipes as that merchant, so the server uses its stored
+ * category and MCC; any other name is a custom swipe with the chosen category.
+ */
+export function buildCustomSwipeRequest({
+  card,
+  merchants,
+  purchase,
+  now,
+  timeZone,
+}: {
+  card: Pick<Card, 'id' | 'dependentId'>;
+  merchants: readonly Merchant[];
+  purchase: CustomPurchase;
+  now: Date;
+  timeZone: string;
+}): SwipeRequest {
+  const seeded = findMerchantByName(merchants, purchase.storeName);
+  return {
+    cardId: card.id,
+    dependentId: card.dependentId,
+    merchantId: seeded?.id ?? null,
+    merchantName: seeded?.name ?? purchase.storeName.trim().slice(0, 120),
+    mcc: seeded?.mcc ?? purchase.category.mcc,
+    merchantCategory: seeded?.category ?? purchase.category.category,
+    items: purchase.items,
+    amount: purchase.amountCents,
+    location: 'Los Angeles',
+    timestamp: purchase.clock ? lastFamilyClockTime(purchase.clock, now, timeZone) : now.toISOString(),
+  };
+}

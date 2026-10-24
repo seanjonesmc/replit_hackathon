@@ -17,6 +17,11 @@ import {
   type DecidedBy as ApiDecidedBy,
   type Merchant as ApiMerchant,
   type Settlement as ApiSettlement,
+  GetAuthorizationParams,
+  GetAuthorizationResponse,
+  ResolveApprovalBody,
+  ResolveApprovalParams,
+  ResolveApprovalResponse,
 } from "@workspace/api-zod";
 import type { DecidedBy, Merchant } from "@workspace/db";
 import { Router, type IRouter } from "express";
@@ -36,6 +41,10 @@ import {
   type AuthorizationDetail,
   type CardDetail,
   type SettlementDetail,
+  getAuthorizationThread,
+  mirrorParentDecisionOnChain,
+  resolveApproval,
+  type AuthorizationThread,
 } from "../services/decisions";
 import { getFamilyPolicy } from "../services/policies";
 import { parseOr400, serviceErrorHandler, toChain } from "./shared";
@@ -96,6 +105,11 @@ function toAuthorization(d: AuthorizationDetail): ApiAuthorization {
     createdAt: a.createdAt,
     chain: toChain(a),
     captureChain: captureChainOf(a),
+    resolveChain: toChain({
+      chainStatus: a.resolveChainStatus,
+      chainTxHash: a.resolveChainTxHash,
+      chainConfirmedAt: a.resolveChainConfirmedAt,
+    }),
   };
 }
 
@@ -115,6 +129,13 @@ function toSettlement(d: SettlementDetail): ApiSettlement {
       swipedAt: a.swipedAt,
       steps: settlementSteps(a, captureChainOf(a)),
     })),
+  };
+}
+
+function toThread(t: AuthorizationThread) {
+  return {
+    authorization: toAuthorization(t.authorization),
+    retry: t.retry && toAuthorization(t.retry),
   };
 }
 
@@ -189,9 +210,37 @@ router.get("/authorizations", requireAuth, async (req, res) => {
   res.json(ListAuthorizationsResponse.parse(rows.map(toAuthorization)));
 });
 
+router.get("/authorizations/:authorizationId", requireAuth, async (req, res) => {
+  const params = parseOr400(GetAuthorizationParams, req.params, res);
+  if (!params) return;
+  const thread = await getAuthorizationThread(params.authorizationId);
+  res.json(GetAuthorizationResponse.parse(toThread(thread)));
+});
+
 router.get("/approvals", requireAuth, async (_req, res) => {
   const rows = await listPendingApprovals();
   res.json(ListApprovalsResponse.parse(rows.map(toAuthorization)));
+});
+
+/**
+ * A parent's answer to a pending swipe. Approving re-runs the purchase in
+ * the same transaction; the chain mirror runs after the commit and the
+ * response never waits on it.
+ */
+router.post("/approvals/:authorizationId/resolve", requireAuth, async (req, res) => {
+  const params = parseOr400(ResolveApprovalParams, req.params, res);
+  if (!params) return;
+  const body = parseOr400(ResolveApprovalBody, req.body, res);
+  if (!body) return;
+  const outcome = await resolveApproval({
+    authorizationId: params.authorizationId,
+    parentId: body.parentId,
+    decision: body.decision,
+    actingUserId: req.user!.id,
+  });
+  void mirrorParentDecisionOnChain(outcome);
+  const thread = await getAuthorizationThread(outcome.original.id);
+  res.json(ResolveApprovalResponse.parse(toThread(thread)));
 });
 
 router.get("/card", requireAuth, async (_req, res) => {

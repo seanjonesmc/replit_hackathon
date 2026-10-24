@@ -1,19 +1,31 @@
+import { useEffect } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { useQueryClient } from '@tanstack/react-query';
 import { BRAND } from '@brand/brand.config';
-import type { Merchant, SwipeResult } from '@workspace/api-client-react';
+import { useGetAuthorization, type AuthorizationThread, type SwipeResult } from '@workspace/api-client-react';
 import { DecisionResultCard } from '@/components/trellis/decision-result-card';
-import { ComingSoonNote } from '@/components/trellis/states';
-import { DECIDED_BY, DECISION } from '@/features/family/spending';
+import { DECIDED_BY, DECISION, refreshAfterSwipe } from '@/features/family/spending';
 import { chainStatusOf } from '@/lib/chain';
-import { formatClock, type SwipePreset } from '@/lib/swipe-presets';
+import { formatClock } from '@/lib/swipe-presets';
+
+/** How often a pending result checks for the parent's answer. */
+export const ANSWER_POLL_MS = 1000;
 
 /** A decision the API returned, with what was swiped. */
 export interface ShownSwipe {
   result: SwipeResult;
-  merchant: Merchant;
-  preset: SwipePreset;
+  merchantName: string;
+  amountCents: number;
+  /** Family-clock time ("HH:MM") the swipe was simulated at, if set. */
+  clock?: string;
   /** When the answer arrived. */
   decidedAt: Date;
+}
+
+/** True once a parent has answered and, after an approval, the retry is in. */
+export function isAnswered(thread: AuthorizationThread | undefined): thread is AuthorizationThread {
+  const status = thread?.authorization.status;
+  return status === 'parent_declined' || (status === 'parent_approved' && thread?.retry != null);
 }
 
 /**
@@ -32,7 +44,7 @@ export function SwipeResultDialog({ shown, onClose }: { shown: ShownSwipe | null
         >
           {shown && (
             <>
-              <DialogPrimitive.Title className="sr-only">Your swipe at {shown.merchant.name}</DialogPrimitive.Title>
+              <DialogPrimitive.Title className="sr-only">Your swipe at {shown.merchantName}</DialogPrimitive.Title>
               <ResultCard shown={shown} onDone={onClose} />
             </>
           )}
@@ -43,17 +55,74 @@ export function SwipeResultDialog({ shown, onClose }: { shown: ShownSwipe | null
 }
 
 function ResultCard({ shown, onDone }: { shown: ShownSwipe; onDone: () => void }) {
-  const { result, merchant, preset, decidedAt } = shown;
-  const decision = DECISION[result.decision];
+  const { result, merchantName, amountCents, clock, decidedAt } = shown;
+  const queryClient = useQueryClient();
   const parent = BRAND.demo.parent;
+  const swipedNote = clock ? `swiped at ${formatClock(clock)}` : undefined;
+  const asking = result.decision === 'PENDING';
+
+  // A pending swipe is already in the parent's approvals: check for the
+  // answer every second until it arrives, then stop.
+  const thread = useGetAuthorization(result.authorizationId, {
+    query: {
+      enabled: asking,
+      refetchInterval: (query) => (isAnswered(query.state.data) ? false : ANSWER_POLL_MS),
+    },
+  });
+  const answered = asking && isAnswered(thread.data);
+
+  // Once answered, the feed and balances on screen catch up too.
+  useEffect(() => {
+    if (answered) void refreshAfterSwipe(queryClient);
+  }, [answered, queryClient]);
+
+  const common = { merchant: merchantName, amountCents, titleAs: 'h2' as const, onDone };
+
+  if (answered && thread.data) {
+    const { authorization: original, retry } = thread.data;
+    if (original.status === 'parent_declined' || !retry) {
+      return (
+        <DecisionResultCard
+          key={`${result.authorizationId}-declined`}
+          {...common}
+          decision="rejected"
+          label="Parent declined"
+          swipeNote={swipedNote}
+          reason={`${parent} said no to this one, so nothing was charged.`}
+          reasonCode="parent_declined"
+          decidedAt={original.resolvedAt ? new Date(original.resolvedAt) : new Date()}
+          chain={chainStatusOf(original.resolveChain)}
+          ask="hidden"
+        />
+      );
+    }
+    return (
+      <DecisionResultCard
+        key={`${result.authorizationId}-retry-${retry.id}`}
+        {...common}
+        decision={DECISION[retry.decision]}
+        bucket={retry.bucketName ?? undefined}
+        swipeNote={`tried again after ${parent} said yes`}
+        reason={retry.reason}
+        reasonCode={retry.reasonCode}
+        decidedBy={DECIDED_BY[retry.decidedBy]}
+        aiConfidence={retry.aiConfidence}
+        decisionMs={retry.decisionMs}
+        decidedAt={new Date(retry.createdAt)}
+        chain={chainStatusOf(retry.chain)}
+        ask="hidden"
+        footer={retry.decision === 'APPROVED' ? <HeldNote /> : undefined}
+      />
+    );
+  }
+
   return (
     <DecisionResultCard
       key={result.authorizationId}
-      decision={decision}
-      merchant={merchant.name}
-      amountCents={preset.amountCents}
+      {...common}
+      decision={DECISION[result.decision]}
       bucket={result.bucketName ?? undefined}
-      swipeNote={preset.clock ? `swiped at ${formatClock(preset.clock)}` : undefined}
+      swipeNote={swipedNote}
       reason={result.reason}
       reasonCode={result.reasonCode}
       decidedBy={DECIDED_BY[result.decidedBy]}
@@ -62,24 +131,33 @@ function ResultCard({ shown, onDone }: { shown: ShownSwipe; onDone: () => void }
       trace={result.trace}
       decidedAt={decidedAt}
       chain={chainStatusOf(result.chain)}
-      titleAs="h2"
-      onDone={onDone}
+      ask={asking ? 'sent' : 'hidden'}
+      askedName={parent}
       footer={
-        decision === 'approved' ? (
-          <p className="type-caption text-center text-ink-muted" data-testid="text-held-note">
-            Approved and held. Nothing is paid until settlement.
-          </p>
-        ) : (
-          <div className="flex flex-col items-center gap-1 text-center">
-            {decision === 'pending' && (
-              <p className="type-caption text-ink-muted" data-testid="text-waiting-approval">
-                It's waiting in {parent}'s approvals.
+        asking ? (
+          <div className="flex flex-col items-center gap-1 text-center" aria-live="polite">
+            <p className="type-caption text-ink-muted" data-testid="text-waiting-approval">
+              It's waiting in {parent}'s approvals. This screen updates as soon as {parent} answers.
+            </p>
+            {thread.isError && (
+              <p className="type-caption text-rejected" data-testid="text-answer-check-error">
+                Can't check for an answer right now. Still trying.
               </p>
             )}
-            <ComingSoonNote className="justify-center">Asking {parent} from here arrives in a later step of the demo.</ComingSoonNote>
           </div>
-        )
+        ) : result.decision === 'APPROVED' ? (
+          <HeldNote />
+        ) : undefined
       }
     />
+  );
+}
+
+/** Approvals only hold the money; it's paid at settlement. */
+function HeldNote() {
+  return (
+    <p className="type-caption text-center text-ink-muted" data-testid="text-held-note">
+      Approved and held. Nothing is paid until settlement.
+    </p>
   );
 }

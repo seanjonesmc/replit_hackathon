@@ -7,7 +7,7 @@ import {
   type AuthorizationStatus,
   type DbExecutor,
 } from "@workspace/db";
-import { getDemoFamily } from "../family";
+import { FamilyServiceError, getDemoFamily } from "../family";
 
 export interface AuthorizationDetail {
   authorization: Authorization;
@@ -27,7 +27,7 @@ const nextAuthorizationId = sql<number | null>`(
  * approval-chain links. Pass a status to filter, e.g. `pending` for approvals.
  */
 export async function listAuthorizations(
-  options: { limit?: number; status?: AuthorizationStatus } = {},
+  options: { limit?: number; status?: AuthorizationStatus; id?: number } = {},
   executor: DbExecutor = db,
 ): Promise<AuthorizationDetail[]> {
   const family = await getDemoFamily(executor);
@@ -43,6 +43,7 @@ export async function listAuthorizations(
       and(
         eq(authorizationsTable.familyId, family.id),
         options.status ? eq(authorizationsTable.status, options.status) : undefined,
+        options.id !== undefined ? eq(authorizationsTable.id, options.id) : undefined,
       ),
     )
     .orderBy(desc(authorizationsTable.createdAt), desc(authorizationsTable.id));
@@ -54,4 +55,27 @@ export function listPendingApprovals(
   executor: DbExecutor = db,
 ): Promise<AuthorizationDetail[]> {
   return listAuthorizations({ status: "pending" }, executor);
+}
+
+/** One authorization and the latest retry of it, if a parent approved it. */
+export interface AuthorizationThread {
+  authorization: AuthorizationDetail;
+  retry: AuthorizationDetail | null;
+}
+
+/**
+ * One of the demo family's authorizations with its retry, for a screen
+ * waiting on a parent's answer. Throws `not_found` for an unknown id.
+ */
+export async function getAuthorizationThread(
+  id: number,
+  executor: DbExecutor = db,
+): Promise<AuthorizationThread> {
+  const [authorization] = await listAuthorizations({ id }, executor);
+  if (!authorization) {
+    throw new FamilyServiceError("not_found", `There is no purchase with id ${id}.`);
+  }
+  const nextId = authorization.nextAuthorizationId;
+  const [retry] = nextId === null ? [] : await listAuthorizations({ id: nextId }, executor);
+  return { authorization, retry: retry ?? null };
 }

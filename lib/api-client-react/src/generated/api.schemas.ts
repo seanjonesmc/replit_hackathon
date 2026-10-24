@@ -465,6 +465,31 @@ export interface Authorization {
   chain: ChainRecord;
   /** The capture that repaid the card issuer at settlement. */
   captureChain: ChainRecord;
+  resolveChain: ChainRecord;
+}
+
+export interface AuthorizationThread {
+  authorization: Authorization;
+  /** The automatic retry after a parent's OK; null until then, or after a decline. */
+  retry: Authorization | null;
+}
+
+export type ResolveApprovalRequestDecision =
+  (typeof ResolveApprovalRequestDecision)[keyof typeof ResolveApprovalRequestDecision];
+
+export const ResolveApprovalRequestDecision = {
+  approve: "approve",
+  decline: "decline",
+} as const;
+
+export interface ResolveApprovalRequest {
+  /**
+   * The parent answering; must be a parent in the family.
+   * @minimum 1
+   * @maximum 2147483647
+   */
+  parentId: number;
+  decision: ResolveApprovalRequestDecision;
 }
 
 export interface Merchant {
@@ -742,7 +767,7 @@ export type BadRequestResponse = ErrorEnvelope;
 export type NotFoundResponse = ErrorEnvelope;
 
 /**
- * The request duplicates something that already exists.
+ * The request duplicates something that already exists, or answers a request that was already answered.
  */
 export type ConflictResponse = ErrorEnvelope;
 
@@ -750,6 +775,11 @@ export type ConflictResponse = ErrorEnvelope;
  * The request is well-formed but breaks a rule, e.g. the bank balance is too low.
  */
 export type UnprocessableResponse = ErrorEnvelope;
+
+/**
+ * Signed in, but this account may not act as the named family member.
+ */
+export type ForbiddenResponse = ErrorEnvelope;
 
 /**
  * Not signed in. Returned by every route behind the require-sign-in guard.

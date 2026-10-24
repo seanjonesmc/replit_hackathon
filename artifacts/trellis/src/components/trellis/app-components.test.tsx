@@ -85,6 +85,19 @@ describe('DecisionResultCard', () => {
     expect(byTestId('text-decision-ms')).toBeNull();
   });
 
+  it('shows a sent request instead of Ask Parent while a parent decides', () => {
+    render(<DecisionResultCard {...props} decision="pending" ask="sent" askedName="Sample Parent" />);
+    expect(byTestId('button-ask-parent')).toBeNull();
+    expect(byTestId('state-ask-sent')?.textContent).toBe(`${BRAND.copy.askParentLabel} · request sent to Sample Parent`);
+  });
+
+  it('can rename the decision and hide the ask step after a parent answered', () => {
+    render(<DecisionResultCard {...props} decision="rejected" label="Parent declined" ask="hidden" />);
+    expect(byTestId('text-decision-label')?.textContent).toBe('Parent declined');
+    expect(byTestId('button-ask-parent')).toBeNull();
+    expect(byTestId('state-ask-sent')).toBeNull();
+  });
+
   it('keeps Ask Parent visible but disabled without a handler', () => {
     render(<DecisionResultCard {...props} decision="rejected" />);
     expect((byTestId('button-ask-parent') as HTMLButtonElement).disabled).toBe(true);

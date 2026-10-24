@@ -8,7 +8,12 @@
  * - `invalid`: a value passed schema checks but can't be read, e.g. a
  *   timestamp that isn't a real date.
  */
-export type FamilyErrorKind = "not_found" | "conflict" | "rule" | "invalid";
+export type FamilyErrorKind =
+  | "not_found"
+  | "conflict"
+  | "rule"
+  | "invalid"
+  | "forbidden";
 
 export class FamilyServiceError extends Error {
   constructor(

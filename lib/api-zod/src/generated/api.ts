@@ -1058,6 +1058,21 @@ export const ListAuthorizationsResponseItem = zod.object({
         ),
     })
     .describe("The capture that repaid the card issuer at settlement."),
+  resolveChain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
+  }),
 });
 export const ListAuthorizationsResponse = zod.array(
   ListAuthorizationsResponseItem,
@@ -1191,8 +1206,669 @@ export const ListApprovalsResponseItem = zod.object({
         ),
     })
     .describe("The capture that repaid the card issuer at settlement."),
+  resolveChain: zod.object({
+    status: zod
+      .enum(["not_submitted", "submitted", "confirmed", "failed"])
+      .describe(
+        "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+      ),
+    txHash: zod.string().nullable(),
+    confirmedAt: zod.coerce.date().nullable(),
+    explorerUrl: zod
+      .string()
+      .nullable()
+      .describe(
+        "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+      ),
+  }),
 });
 export const ListApprovalsResponse = zod.array(ListApprovalsResponseItem);
+
+/**
+ * For a screen waiting on a parent's answer: the swipe as it stands now and, once a parent approves it, the automatic retry and its decision.
+ * @summary One swipe and the retry after a parent's OK
+ */
+export const getAuthorizationPathAuthorizationIdMax = 2147483647;
+
+export const GetAuthorizationParams = zod.object({
+  authorizationId: zod.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(getAuthorizationPathAuthorizationIdMax),
+});
+
+export const GetAuthorizationResponse = zod.object({
+  authorization: zod.object({
+    id: zod.number().int(),
+    cardId: zod.number().int().nullable(),
+    dependentId: zod.number().int(),
+    merchantId: zod.number().int().nullable(),
+    merchantName: zod.string(),
+    mcc: zod.string(),
+    merchantCategory: zod.string(),
+    items: zod.array(zod.string()),
+    amountCents: zod.number().int(),
+    location: zod.string(),
+    swipedAt: zod.coerce.date(),
+    bucketId: zod.number().int().nullable(),
+    bucketName: zod.string().nullable(),
+    decision: zod.enum(["APPROVED", "REJECTED", "PENDING"]),
+    status: zod
+      .enum([
+        "approved",
+        "rejected",
+        "pending",
+        "parent_approved",
+        "parent_declined",
+      ])
+      .describe(
+        "Where the swipe stands now. A pending swipe stays `pending` until a parent resolves it; the retry after a parent's OK is a new, linked authorization.",
+      ),
+    reasonCode: zod
+      .enum([
+        "approved",
+        "blocked_category",
+        "insufficient_funds",
+        "over_limit",
+        "card_inactive",
+        "needs_approval",
+        "outside_hours",
+      ])
+      .describe("Matches the contract's reason codes."),
+    reason: zod.string(),
+    decidedBy: zod.enum(["Rule", "AI guard"]),
+    aiConfidence: zod.number().nullable(),
+    decisionMs: zod.number(),
+    previousAuthorizationId: zod
+      .number()
+      .int()
+      .nullable()
+      .describe(
+        "The earlier authorization in an approval chain that this one retries.",
+      ),
+    nextAuthorizationId: zod
+      .number()
+      .int()
+      .nullable()
+      .describe("The later authorization that retried this one, if any."),
+    resolvedAt: zod.coerce
+      .date()
+      .nullable()
+      .describe("When a parent approved or declined this pending swipe."),
+    settledAt: zod.coerce
+      .date()
+      .nullable()
+      .describe(
+        "When the held money moved to spent and the card issuer was repaid.",
+      ),
+    settlement: zod.union([
+      zod
+        .enum(["held", "settled"])
+        .describe(
+          "Where an approved purchase's money stands: `held` (approved, not paid yet) or `settled` (held → spent, the card issuer repaid). Null for a swipe that moved no money.",
+        ),
+      zod.null(),
+    ]),
+    settlementId: zod
+      .number()
+      .int()
+      .nullable()
+      .describe(
+        "The settlement run that settled it (null for seeded history).",
+      ),
+    issuerRedeemedAt: zod.coerce
+      .date()
+      .nullable()
+      .describe(
+        "When the card issuer redeemed the tokens with the partner bank (simulated).",
+      ),
+    trace: zod.array(
+      zod.object({
+        label: zod.string(),
+        state: zod
+          .enum(["done", "held", "skipped", "approved", "rejected", "pending"])
+          .describe(
+            "`done` for a hand-off step, `held` when money was held, `skipped` when nothing was held, and the decision for the last step.",
+          ),
+      }),
+    ),
+    createdAt: zod.coerce.date(),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
+    }),
+    captureChain: zod
+      .object({
+        status: zod
+          .enum(["not_submitted", "submitted", "confirmed", "failed"])
+          .describe(
+            "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+          ),
+        txHash: zod.string().nullable(),
+        confirmedAt: zod.coerce.date().nullable(),
+        explorerUrl: zod
+          .string()
+          .nullable()
+          .describe(
+            "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+          ),
+      })
+      .describe("The capture that repaid the card issuer at settlement."),
+    resolveChain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
+    }),
+  }),
+  retry: zod
+    .union([
+      zod.object({
+        id: zod.number().int(),
+        cardId: zod.number().int().nullable(),
+        dependentId: zod.number().int(),
+        merchantId: zod.number().int().nullable(),
+        merchantName: zod.string(),
+        mcc: zod.string(),
+        merchantCategory: zod.string(),
+        items: zod.array(zod.string()),
+        amountCents: zod.number().int(),
+        location: zod.string(),
+        swipedAt: zod.coerce.date(),
+        bucketId: zod.number().int().nullable(),
+        bucketName: zod.string().nullable(),
+        decision: zod.enum(["APPROVED", "REJECTED", "PENDING"]),
+        status: zod
+          .enum([
+            "approved",
+            "rejected",
+            "pending",
+            "parent_approved",
+            "parent_declined",
+          ])
+          .describe(
+            "Where the swipe stands now. A pending swipe stays `pending` until a parent resolves it; the retry after a parent's OK is a new, linked authorization.",
+          ),
+        reasonCode: zod
+          .enum([
+            "approved",
+            "blocked_category",
+            "insufficient_funds",
+            "over_limit",
+            "card_inactive",
+            "needs_approval",
+            "outside_hours",
+          ])
+          .describe("Matches the contract's reason codes."),
+        reason: zod.string(),
+        decidedBy: zod.enum(["Rule", "AI guard"]),
+        aiConfidence: zod.number().nullable(),
+        decisionMs: zod.number(),
+        previousAuthorizationId: zod
+          .number()
+          .int()
+          .nullable()
+          .describe(
+            "The earlier authorization in an approval chain that this one retries.",
+          ),
+        nextAuthorizationId: zod
+          .number()
+          .int()
+          .nullable()
+          .describe("The later authorization that retried this one, if any."),
+        resolvedAt: zod.coerce
+          .date()
+          .nullable()
+          .describe("When a parent approved or declined this pending swipe."),
+        settledAt: zod.coerce
+          .date()
+          .nullable()
+          .describe(
+            "When the held money moved to spent and the card issuer was repaid.",
+          ),
+        settlement: zod.union([
+          zod
+            .enum(["held", "settled"])
+            .describe(
+              "Where an approved purchase's money stands: `held` (approved, not paid yet) or `settled` (held → spent, the card issuer repaid). Null for a swipe that moved no money.",
+            ),
+          zod.null(),
+        ]),
+        settlementId: zod
+          .number()
+          .int()
+          .nullable()
+          .describe(
+            "The settlement run that settled it (null for seeded history).",
+          ),
+        issuerRedeemedAt: zod.coerce
+          .date()
+          .nullable()
+          .describe(
+            "When the card issuer redeemed the tokens with the partner bank (simulated).",
+          ),
+        trace: zod.array(
+          zod.object({
+            label: zod.string(),
+            state: zod
+              .enum([
+                "done",
+                "held",
+                "skipped",
+                "approved",
+                "rejected",
+                "pending",
+              ])
+              .describe(
+                "`done` for a hand-off step, `held` when money was held, `skipped` when nothing was held, and the decision for the last step.",
+              ),
+          }),
+        ),
+        createdAt: zod.coerce.date(),
+        chain: zod.object({
+          status: zod
+            .enum(["not_submitted", "submitted", "confirmed", "failed"])
+            .describe(
+              "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+            ),
+          txHash: zod.string().nullable(),
+          confirmedAt: zod.coerce.date().nullable(),
+          explorerUrl: zod
+            .string()
+            .nullable()
+            .describe(
+              "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+            ),
+        }),
+        captureChain: zod
+          .object({
+            status: zod
+              .enum(["not_submitted", "submitted", "confirmed", "failed"])
+              .describe(
+                "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+              ),
+            txHash: zod.string().nullable(),
+            confirmedAt: zod.coerce.date().nullable(),
+            explorerUrl: zod
+              .string()
+              .nullable()
+              .describe(
+                "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+              ),
+          })
+          .describe("The capture that repaid the card issuer at settlement."),
+        resolveChain: zod.object({
+          status: zod
+            .enum(["not_submitted", "submitted", "confirmed", "failed"])
+            .describe(
+              "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+            ),
+          txHash: zod.string().nullable(),
+          confirmedAt: zod.coerce.date().nullable(),
+          explorerUrl: zod
+            .string()
+            .nullable()
+            .describe(
+              "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+            ),
+        }),
+      }),
+      zod.null(),
+    ])
+    .describe(
+      "The automatic retry after a parent's OK; null until then, or after a decline.",
+    ),
+});
+
+/**
+ * Approve grants a one-time pass for that merchant and amount (10 minutes) and re-runs the same purchase through the decision engine at once, as a new authorization linked to this one. Decline marks the request declined and moves no money. Only a parent may answer, and only from the signed-in account linked to that parent; an unlinked demo parent can be answered for by the signed-in presenter unless that account is linked to another member (403 otherwise). A request that was already answered gets 409. The decision and the pass are mirrored on the testnet in the background; the response never waits for the chain.
+ * @summary A parent approves or declines a pending swipe
+ */
+export const resolveApprovalPathAuthorizationIdMax = 2147483647;
+
+export const ResolveApprovalParams = zod.object({
+  authorizationId: zod.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(resolveApprovalPathAuthorizationIdMax),
+});
+
+export const resolveApprovalBodyParentIdMax = 2147483647;
+
+export const ResolveApprovalBody = zod.object({
+  parentId: zod
+    .number()
+    .int()
+    .min(1)
+    .max(resolveApprovalBodyParentIdMax)
+    .describe("The parent answering; must be a parent in the family."),
+  decision: zod.enum(["approve", "decline"]),
+});
+
+export const ResolveApprovalResponse = zod.object({
+  authorization: zod.object({
+    id: zod.number().int(),
+    cardId: zod.number().int().nullable(),
+    dependentId: zod.number().int(),
+    merchantId: zod.number().int().nullable(),
+    merchantName: zod.string(),
+    mcc: zod.string(),
+    merchantCategory: zod.string(),
+    items: zod.array(zod.string()),
+    amountCents: zod.number().int(),
+    location: zod.string(),
+    swipedAt: zod.coerce.date(),
+    bucketId: zod.number().int().nullable(),
+    bucketName: zod.string().nullable(),
+    decision: zod.enum(["APPROVED", "REJECTED", "PENDING"]),
+    status: zod
+      .enum([
+        "approved",
+        "rejected",
+        "pending",
+        "parent_approved",
+        "parent_declined",
+      ])
+      .describe(
+        "Where the swipe stands now. A pending swipe stays `pending` until a parent resolves it; the retry after a parent's OK is a new, linked authorization.",
+      ),
+    reasonCode: zod
+      .enum([
+        "approved",
+        "blocked_category",
+        "insufficient_funds",
+        "over_limit",
+        "card_inactive",
+        "needs_approval",
+        "outside_hours",
+      ])
+      .describe("Matches the contract's reason codes."),
+    reason: zod.string(),
+    decidedBy: zod.enum(["Rule", "AI guard"]),
+    aiConfidence: zod.number().nullable(),
+    decisionMs: zod.number(),
+    previousAuthorizationId: zod
+      .number()
+      .int()
+      .nullable()
+      .describe(
+        "The earlier authorization in an approval chain that this one retries.",
+      ),
+    nextAuthorizationId: zod
+      .number()
+      .int()
+      .nullable()
+      .describe("The later authorization that retried this one, if any."),
+    resolvedAt: zod.coerce
+      .date()
+      .nullable()
+      .describe("When a parent approved or declined this pending swipe."),
+    settledAt: zod.coerce
+      .date()
+      .nullable()
+      .describe(
+        "When the held money moved to spent and the card issuer was repaid.",
+      ),
+    settlement: zod.union([
+      zod
+        .enum(["held", "settled"])
+        .describe(
+          "Where an approved purchase's money stands: `held` (approved, not paid yet) or `settled` (held → spent, the card issuer repaid). Null for a swipe that moved no money.",
+        ),
+      zod.null(),
+    ]),
+    settlementId: zod
+      .number()
+      .int()
+      .nullable()
+      .describe(
+        "The settlement run that settled it (null for seeded history).",
+      ),
+    issuerRedeemedAt: zod.coerce
+      .date()
+      .nullable()
+      .describe(
+        "When the card issuer redeemed the tokens with the partner bank (simulated).",
+      ),
+    trace: zod.array(
+      zod.object({
+        label: zod.string(),
+        state: zod
+          .enum(["done", "held", "skipped", "approved", "rejected", "pending"])
+          .describe(
+            "`done` for a hand-off step, `held` when money was held, `skipped` when nothing was held, and the decision for the last step.",
+          ),
+      }),
+    ),
+    createdAt: zod.coerce.date(),
+    chain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
+    }),
+    captureChain: zod
+      .object({
+        status: zod
+          .enum(["not_submitted", "submitted", "confirmed", "failed"])
+          .describe(
+            "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+          ),
+        txHash: zod.string().nullable(),
+        confirmedAt: zod.coerce.date().nullable(),
+        explorerUrl: zod
+          .string()
+          .nullable()
+          .describe(
+            "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+          ),
+      })
+      .describe("The capture that repaid the card issuer at settlement."),
+    resolveChain: zod.object({
+      status: zod
+        .enum(["not_submitted", "submitted", "confirmed", "failed"])
+        .describe(
+          "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+        ),
+      txHash: zod.string().nullable(),
+      confirmedAt: zod.coerce.date().nullable(),
+      explorerUrl: zod
+        .string()
+        .nullable()
+        .describe(
+          "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+        ),
+    }),
+  }),
+  retry: zod
+    .union([
+      zod.object({
+        id: zod.number().int(),
+        cardId: zod.number().int().nullable(),
+        dependentId: zod.number().int(),
+        merchantId: zod.number().int().nullable(),
+        merchantName: zod.string(),
+        mcc: zod.string(),
+        merchantCategory: zod.string(),
+        items: zod.array(zod.string()),
+        amountCents: zod.number().int(),
+        location: zod.string(),
+        swipedAt: zod.coerce.date(),
+        bucketId: zod.number().int().nullable(),
+        bucketName: zod.string().nullable(),
+        decision: zod.enum(["APPROVED", "REJECTED", "PENDING"]),
+        status: zod
+          .enum([
+            "approved",
+            "rejected",
+            "pending",
+            "parent_approved",
+            "parent_declined",
+          ])
+          .describe(
+            "Where the swipe stands now. A pending swipe stays `pending` until a parent resolves it; the retry after a parent's OK is a new, linked authorization.",
+          ),
+        reasonCode: zod
+          .enum([
+            "approved",
+            "blocked_category",
+            "insufficient_funds",
+            "over_limit",
+            "card_inactive",
+            "needs_approval",
+            "outside_hours",
+          ])
+          .describe("Matches the contract's reason codes."),
+        reason: zod.string(),
+        decidedBy: zod.enum(["Rule", "AI guard"]),
+        aiConfidence: zod.number().nullable(),
+        decisionMs: zod.number(),
+        previousAuthorizationId: zod
+          .number()
+          .int()
+          .nullable()
+          .describe(
+            "The earlier authorization in an approval chain that this one retries.",
+          ),
+        nextAuthorizationId: zod
+          .number()
+          .int()
+          .nullable()
+          .describe("The later authorization that retried this one, if any."),
+        resolvedAt: zod.coerce
+          .date()
+          .nullable()
+          .describe("When a parent approved or declined this pending swipe."),
+        settledAt: zod.coerce
+          .date()
+          .nullable()
+          .describe(
+            "When the held money moved to spent and the card issuer was repaid.",
+          ),
+        settlement: zod.union([
+          zod
+            .enum(["held", "settled"])
+            .describe(
+              "Where an approved purchase's money stands: `held` (approved, not paid yet) or `settled` (held → spent, the card issuer repaid). Null for a swipe that moved no money.",
+            ),
+          zod.null(),
+        ]),
+        settlementId: zod
+          .number()
+          .int()
+          .nullable()
+          .describe(
+            "The settlement run that settled it (null for seeded history).",
+          ),
+        issuerRedeemedAt: zod.coerce
+          .date()
+          .nullable()
+          .describe(
+            "When the card issuer redeemed the tokens with the partner bank (simulated).",
+          ),
+        trace: zod.array(
+          zod.object({
+            label: zod.string(),
+            state: zod
+              .enum([
+                "done",
+                "held",
+                "skipped",
+                "approved",
+                "rejected",
+                "pending",
+              ])
+              .describe(
+                "`done` for a hand-off step, `held` when money was held, `skipped` when nothing was held, and the decision for the last step.",
+              ),
+          }),
+        ),
+        createdAt: zod.coerce.date(),
+        chain: zod.object({
+          status: zod
+            .enum(["not_submitted", "submitted", "confirmed", "failed"])
+            .describe(
+              "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+            ),
+          txHash: zod.string().nullable(),
+          confirmedAt: zod.coerce.date().nullable(),
+          explorerUrl: zod
+            .string()
+            .nullable()
+            .describe(
+              "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+            ),
+        }),
+        captureChain: zod
+          .object({
+            status: zod
+              .enum(["not_submitted", "submitted", "confirmed", "failed"])
+              .describe(
+                "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+              ),
+            txHash: zod.string().nullable(),
+            confirmedAt: zod.coerce.date().nullable(),
+            explorerUrl: zod
+              .string()
+              .nullable()
+              .describe(
+                "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+              ),
+          })
+          .describe("The capture that repaid the card issuer at settlement."),
+        resolveChain: zod.object({
+          status: zod
+            .enum(["not_submitted", "submitted", "confirmed", "failed"])
+            .describe(
+              "Where the record stands on the testnet. Only `confirmed` (set from a transaction receipt) may be shown as verified.",
+            ),
+          txHash: zod.string().nullable(),
+          confirmedAt: zod.coerce.date().nullable(),
+          explorerUrl: zod
+            .string()
+            .nullable()
+            .describe(
+              "The transaction on the testnet block explorer. Set only once the transaction is confirmed; null otherwise.",
+            ),
+        }),
+      }),
+      zod.null(),
+    ])
+    .describe(
+      "The automatic retry after a parent's OK; null until then, or after a decline.",
+    ),
+});
 
 /**
  * @summary Get the dependent's card

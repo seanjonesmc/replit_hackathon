@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react';
 import { CheckCircle2, Clock, Lock, MinusCircle, XCircle, type LucideIcon } from 'lucide-react';
+import { Loader2, Send } from 'lucide-react';
 import { BRAND } from '@brand/brand.config';
 import { cn } from '@/lib/utils';
 import { formatCents, formatDecisionTime, formatDurationMs } from '@/lib/format';
@@ -48,6 +49,16 @@ interface DecisionResultCardProps {
    * button stays visible but disabled (explain why in `footer`).
    */
   onAskParent?: () => void;
+  /**
+   * How the ask step shows for declined and pending decisions: the Ask
+   * Parent button (default), a "request sent" status in its place while a
+   * parent decides, or nothing (e.g. after a parent has answered).
+   */
+  ask?: 'button' | 'sent' | 'hidden';
+  /** Who was asked, for the "sent" status. */
+  askedName?: string;
+  /** Replaces the decision's usual label, e.g. "Parent declined". */
+  label?: string;
   onDone?: () => void;
   /** Extra content under the actions, e.g. a live status message. */
   footer?: ReactNode;
@@ -79,6 +90,9 @@ export function DecisionResultCard({
   decisionMs,
   trace,
   onAskParent,
+  ask = 'button',
+  askedName,
+  label,
   onDone,
   footer,
   titleAs: Title = 'h1',
@@ -86,7 +100,7 @@ export function DecisionResultCard({
 }: DecisionResultCardProps) {
   const meta = decisionMeta[decision];
   const titleId = useId();
-  const canAsk = decision !== 'approved';
+  const canAsk = decision !== 'approved' && ask !== 'hidden';
 
   return (
     <section
@@ -99,7 +113,7 @@ export function DecisionResultCard({
           <meta.Icon className="size-9" strokeWidth={2.2} aria-hidden="true" />
         </span>
         <Title id={titleId} className={cn('type-display-md mt-4', meta.fg)} data-testid="text-decision-label">
-          {meta.label}
+          {label ?? meta.label}
         </Title>
         <p className={cn('type-display-xl tnum mt-3 text-ink', decision === 'rejected' && 'line-through decoration-2')}>
           {formatCents(amountCents)}
@@ -171,7 +185,20 @@ export function DecisionResultCard({
         </dl>
 
         <div className="mt-auto flex flex-col gap-3">
-          {canAsk && (
+          {canAsk && ask === 'sent' && (
+            <div
+              role="status"
+              className="flex items-center justify-center gap-2 rounded-pill bg-pending-bg px-4 py-3 text-pending"
+              data-testid="state-ask-sent"
+            >
+              <Send className="size-4 shrink-0" aria-hidden="true" />
+              <span className="type-link-sm">
+                {BRAND.copy.askParentLabel} · request sent{askedName ? ` to ${askedName}` : ''}
+              </span>
+              <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
+            </div>
+          )}
+          {canAsk && ask === 'button' && (
             <PillButton block onClick={onAskParent} disabled={!onAskParent} data-testid="button-ask-parent">
               {BRAND.copy.askParentLabel}
             </PillButton>

@@ -21,10 +21,23 @@ export {
 export { getDependentCard, setCardFrozen, type CardDetail } from "./cards";
 export { listMerchants } from "./merchants";
 export {
+  getAuthorizationThread,
   listAuthorizations,
   listPendingApprovals,
   type AuthorizationDetail,
+  type AuthorizationThread,
 } from "./authorizations";
+export {
+  PASS_MINUTES,
+  resolveApproval,
+  type ParentDecision,
+  type ResolveApprovalInput,
+  type ResolveApprovalOutcome,
+} from "./approvals";
+export {
+  mirrorParentDecisionOnChain,
+  type ParentDecisionChainOutcome,
+} from "./approval-chain";
 export {
   DEMO_TIME_ZONE,
   merchantOnchainId,

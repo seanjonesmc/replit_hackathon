@@ -83,3 +83,20 @@ export async function settle(rounds = 6) {
 
 /** Finds by test id anywhere in the document (dialogs render in a portal). */
 export const byTestId = (id: string) => document.querySelector<HTMLElement>(`[data-testid="${id}"]`);
+
+/** Types into a React-controlled input or select (sets the value the way a user would, then fires the event). */
+export function changeValue(el: HTMLElement, value: string) {
+  const proto = el instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
+  const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+  act(() => {
+    setter?.call(el, value);
+    el.dispatchEvent(new Event(el instanceof HTMLSelectElement ? 'change' : 'input', { bubbles: true }));
+  });
+}
+
+/** Waits real time (e.g. for a polling interval), letting React commit. */
+export async function wait(ms: number) {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  });
+}

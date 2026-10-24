@@ -456,6 +456,72 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+  /authorizations/{authorizationId}:
+    parameters:
+      - $ref: "#/components/parameters/AuthorizationId"
+    get:
+      tags: [Spending]
+      operationId: getAuthorization
+      summary: One swipe and the retry after a parent's OK
+      description: >-
+        For a screen waiting on a parent's answer: the swipe as it stands now
+        and, once a parent approves it, the automatic retry and its decision.
+      responses:
+        "200":
+          description: The swipe and its retry, if any.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationThread"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /approvals/{authorizationId}/resolve:
+    parameters:
+      - $ref: "#/components/parameters/AuthorizationId"
+    post:
+      tags: [Spending]
+      operationId: resolveApproval
+      summary: A parent approves or declines a pending swipe
+      description: >-
+        Approve grants a one-time pass for that merchant and amount (10
+        minutes) and re-runs the same purchase through the decision engine at
+        once, as a new authorization linked to this one. Decline marks the
+        request declined and moves no money. Only a parent may answer, and
+        only from the signed-in account linked to that parent; an unlinked
+        demo parent can be answered for by the signed-in presenter unless that
+        account is linked to another member (403 otherwise). A request that
+        was already answered gets 409. The
+        decision and the pass are mirrored on the testnet in the background;
+        the response never waits for the chain.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResolveApprovalRequest"
+      responses:
+        "200":
+          description: The answered request and, after an approval, its retry.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationThread"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
   /card:
     get:
       tags: [Spending]
@@ -653,6 +719,14 @@ components:
         type: integer
         minimum: 1
         maximum: 2147483647
+    AuthorizationId:
+      name: authorizationId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 2147483647
     AuthorizationSessionHeader:
       name: Authorization
       in: header
@@ -681,13 +755,19 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorEnvelope"
     Conflict:
-      description: The request duplicates something that already exists.
+      description: The request duplicates something that already exists, or answers a request that was already answered.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorEnvelope"
     Unprocessable:
       description: The request is well-formed but breaks a rule, e.g. the bank balance is too low.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Forbidden:
+      description: Signed in, but this account may not act as the named family member.
       content:
         application/json:
           schema:
@@ -1243,6 +1323,7 @@ components:
         - createdAt
         - chain
         - captureChain
+        - resolveChain
       properties:
         id:
           type: integer
@@ -1324,6 +1405,31 @@ components:
         captureChain:
           description: The capture that repaid the card issuer at settlement.
           $ref: "#/components/schemas/ChainRecord"
+        resolveChain:
+          $ref: "#/components/schemas/ChainRecord"
+    AuthorizationThread:
+      type: object
+      required: [authorization, retry]
+      properties:
+        authorization:
+          $ref: "#/components/schemas/Authorization"
+        retry:
+          description: The automatic retry after a parent's OK; null until then, or after a decline.
+          oneOf:
+            - $ref: "#/components/schemas/Authorization"
+            - type: "null"
+    ResolveApprovalRequest:
+      type: object
+      required: [parentId, decision]
+      properties:
+        parentId:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+          description: The parent answering; must be a parent in the family.
+        decision:
+          type: string
+          enum: [approve, decline]
     Merchant:
       type: object
       required: [id, name, mcc, category, onchainId, chain]

@@ -29,6 +29,11 @@ run pays it out. Import from `./index.ts` only.
   failure only marks the row's chain columns `failed`.
 - `cards.ts`, `merchants.ts`, `authorizations.ts`: the card and its freeze
   switch (database only), the seeded merchants, the activity feed and approvals.
+- `approvals.ts`: `resolveApproval`, a parent's answer to a pending swipe.
+  Approve grants a 10-minute pass for that merchant and amount and re-runs the
+  purchase as a linked retry in the same transaction; decline moves nothing.
+- `approval-chain.ts`: mirrors the answer after commit (resolvePending, then
+  grantTemporaryPass, then the retry's own hand-off) through background submit.
 - `seed.ts`: merchants, the family policy, the dependent's card and a short
   purchase history, each added only when missing.
 
@@ -41,5 +46,16 @@ Guarantees:
 - Storing a swipe locks the card, then the bucket, and re-checks both: a card
   frozen while the AI guard was deciding rejects the swipe, and two quick
   swipes can't overspend a bucket. Rejected and pending swipes move no money.
-- Parent approve/decline, granting temporary passes and auto-retry are Phase 6;
-  the engine already honours an unused, unexpired pass.
+- A request can be answered once: the original row is locked, and a second
+  answer is a `conflict` (409). A pass is used by one swipe only; the same
+  purchase again follows the normal rules.
+- Only a parent may answer, checked against the signed-in account (403
+  otherwise): a parent linked to an account answers only from it, and an
+  account linked to another member can't answer as a parent. Seeded members
+  are unlinked, so the one signed-in presenter can act for them (presenter
+  mode).
+- Only a purchase at a seeded merchant whose category maps to a bucket can be
+  approved (a pass needs both); anything else can still be declined.
+- The retry keeps the original's place on the simulated clock (plus the real
+  time that passed), so a late-night ride approved a minute later is decided
+  by the pass, not the daytime clock. It runs without the AI guard.

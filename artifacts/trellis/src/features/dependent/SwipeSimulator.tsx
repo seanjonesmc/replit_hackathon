@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
@@ -9,6 +9,7 @@ import {
   CreditCard,
   Dices,
   Gamepad2,
+  PencilLine,
   ShoppingBasket,
   Smartphone,
   Snowflake,
@@ -24,8 +25,18 @@ import { LoadingRegion, Skeleton } from '@/components/trellis/skeletons';
 import { ErrorState } from '@/components/trellis/states';
 import { apiErrorMessage, refreshAfterSwipe } from '@/features/family/spending';
 import { ScreenHeader } from '@/features/shell/layout';
-import { arrangeMerchants, buildSwipeRequest, formatClock, type MerchantSwipe, type SwipePreset } from '@/lib/swipe-presets';
+import {
+  arrangeMerchants,
+  buildCustomSwipeRequest,
+  buildSwipeRequest,
+  findMerchantByName,
+  formatClock,
+  type CustomPurchase,
+  type MerchantSwipe,
+  type SwipePreset,
+} from '@/lib/swipe-presets';
 import { cn } from '@/lib/utils';
+import { CustomPurchaseSheet } from './CustomPurchaseSheet';
 import { RecentSwipes } from './RecentSwipes';
 import { SwipeResultDialog, type ShownSwipe } from './SwipeResultDialog';
 
@@ -51,6 +62,8 @@ export default function SwipeSimulator() {
   const [swipingId, setSwipingId] = useState<number | null>(null);
   const [shown, setShown] = useState<ShownSwipe | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  const [customOpen, setCustomOpen] = useState(false);
+  const [customFailure, setCustomFailure] = useState<string | null>(null);
 
   if (merchants.isLoading || card.isLoading || policy.isLoading) {
     return (
@@ -79,8 +92,9 @@ export default function SwipeSimulator() {
   }
 
   const cardData = card.data;
+  const merchantList = merchants.data;
   const timeZone = policy.data.timeZone;
-  const arranged = arrangeMerchants(merchants.data);
+  const arranged = arrangeMerchants(merchantList);
   const demoSwipes = arranged.filter((m) => m.preset?.spec);
   const moreShops = arranged.filter((m) => !m.preset?.spec);
 
@@ -91,7 +105,8 @@ export default function SwipeSimulator() {
     swipe.mutate(
       { data: buildSwipeRequest({ card: cardData, merchant, preset, now: new Date(), timeZone }) },
       {
-        onSuccess: (result) => setShown({ result, merchant, preset, decidedAt: new Date() }),
+        onSuccess: (result) =>
+          setShown({ result, merchantName: merchant.name, amountCents: preset.amountCents, clock: preset.clock, decidedAt: new Date() }),
         onError: (error) => setFailure(apiErrorMessage(error, `The swipe at ${merchant.name} didn't go through. Try again.`)),
         onSettled: () => {
           setSwipingId(null);
@@ -101,7 +116,24 @@ export default function SwipeSimulator() {
     );
   };
 
-  const tiles = (list: MerchantSwipe[]) => (
+  const onCustomSwipe = (purchase: CustomPurchase) => {
+    if (swipe.isPending) return;
+    setCustomFailure(null);
+    const merchantName = findMerchantByName(merchantList, purchase.storeName)?.name ?? purchase.storeName;
+    swipe.mutate(
+      { data: buildCustomSwipeRequest({ card: cardData, merchants: merchantList, purchase, now: new Date(), timeZone }) },
+      {
+        onSuccess: (result) => {
+          setCustomOpen(false);
+          setShown({ result, merchantName, amountCents: purchase.amountCents, clock: purchase.clock, decidedAt: new Date() });
+        },
+        onError: (error) => setCustomFailure(apiErrorMessage(error, `The swipe at ${merchantName} didn't go through. Try again.`)),
+        onSettled: () => void refreshAfterSwipe(queryClient),
+      },
+    );
+  };
+
+  const tiles = (list: MerchantSwipe[], extra?: ReactNode) => (
     <div className="grid grid-cols-2 gap-3">
       {list.map(({ merchant, preset }) => (
         <MerchantTile
@@ -117,7 +149,31 @@ export default function SwipeSimulator() {
           data-testid={`button-swipe-merchant-${merchant.id}`}
         />
       ))}
+      {extra}
     </div>
+  );
+
+  const customTile = (
+    <button
+      type="button"
+      onClick={() => {
+        setCustomFailure(null);
+        setCustomOpen(true);
+      }}
+      className={cn(
+        'flex min-h-[148px] flex-col items-start gap-3 rounded-card-sm border-2 border-dashed border-ink/25 bg-surface p-4 text-left transition-[background-color,transform] duration-200 ease-out',
+        'hover:bg-tint active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+      )}
+      data-testid="button-custom-purchase"
+    >
+      <span className="grid size-10 place-items-center rounded-full bg-surface-alt text-ink">
+        <PencilLine className="size-5" aria-hidden="true" />
+      </span>
+      <span className="flex flex-1 flex-col">
+        <span className="type-link-sm">Custom purchase</span>
+        <span className="type-caption mt-0.5 text-ink-muted">Any store, items, amount and time</span>
+      </span>
+    </button>
   );
 
   return (
@@ -136,7 +192,7 @@ export default function SwipeSimulator() {
         <SectionTitle>
           <span id="demo-swipes-title">Demo swipes</span>
         </SectionTitle>
-        {tiles(demoSwipes)}
+        {tiles(demoSwipes, customTile)}
       </section>
 
       {moreShops.length > 0 && (
@@ -150,6 +206,14 @@ export default function SwipeSimulator() {
 
       <RecentSwipes holderName={cardData.dependentName} className="mt-8" />
 
+      <CustomPurchaseSheet
+        open={customOpen}
+        onOpenChange={setCustomOpen}
+        merchants={merchantList}
+        onSubmit={onCustomSwipe}
+        submitting={swipe.isPending}
+        error={customFailure}
+      />
       <SwipeResultDialog shown={shown} onClose={() => setShown(null)} />
     </>
   );
