@@ -1,34 +1,21 @@
-import { useState, type ReactNode } from 'react';
-import { BookOpen, Bus, FlaskConical, Plus, Sparkles, UtensilsCrossed } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Plus } from 'lucide-react';
 import { BRAND } from '@brand/brand.config';
 import {
   InitialAvatar,
   LogoMark,
   PillButton,
-  SectionTitle,
   StatusPill,
   Tag,
   VerifiedBadge,
   Wordmark,
   brandAsset,
 } from '@/components/trellis/primitives';
-import {
-  activity,
-  buckets,
-  demo,
-  formatCents,
-  potTotal,
-  type BucketIcon,
-} from '@/lib/preview-data';
-
-const SAMPLE_LABEL = 'Preview data · testnet only';
-
-const bucketIcons: Record<BucketIcon, typeof BookOpen> = {
-  food: UtensilsCrossed,
-  school: BookOpen,
-  social: Sparkles,
-  transit: Bus,
-};
+import { demo } from '@/lib/preview-data';
+import { CardsSection } from './CardsSection';
+import { FlowsSection } from './FlowsSection';
+import { Panel, Specimen } from './preview-kit';
+import { StatesSection } from './StatesSection';
 
 const swatches: { name: string; token: string; cls: string; key: keyof typeof BRAND.colors }[] = [
   { name: 'Signature', token: 'signature', cls: 'bg-signature', key: 'signature' },
@@ -83,36 +70,22 @@ const nav = [
   ['layout', 'Spacing & radii'],
   ['buttons', 'Buttons'],
   ['status', 'Status & tags'],
-  ['compositions', 'Compositions'],
+  ['cards', 'App cards'],
+  ['flows', 'Onboarding & decisions'],
+  ['states', 'Empty & loading'],
 ] as const;
 
-function Panel({ id, title, children, note }: { id: string; title: string; children: ReactNode; note?: ReactNode }) {
-  return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-24">
-      <SectionTitle action={note}>
-        <span id={`${id}-title`}>{title}</span>
-      </SectionTitle>
-      <div className="rounded-card bg-surface p-6 md:p-8">{children}</div>
-    </section>
-  );
-}
-
-function SampleLabel() {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-tag border border-dashed border-pending bg-pending-bg px-2 py-1 type-label text-pending" data-testid="label-preview-data">
-      <FlaskConical className="size-3.5" aria-hidden="true" />
-      {SAMPLE_LABEL}
-    </span>
-  );
-}
-
-function Specimen({ children }: { children: ReactNode }) {
-  return <span className="type-caption text-ink-muted">{children}</span>;
-}
-
+/** Development-only brand and component preview, served at the hidden /brand route. */
 export default function BrandPreview() {
   const [pressCount, setPressCount] = useState(0);
   const [demoLoading, setDemoLoading] = useState(false);
+
+  // The preview is lazy-loaded, so the browser's own jump to #section runs
+  // before the section exists. Repeat it once the preview has rendered.
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (id) document.getElementById(id)?.scrollIntoView();
+  }, []);
 
   const toggleLoading = () => {
     setDemoLoading(true);
@@ -128,7 +101,7 @@ export default function BrandPreview() {
       <header className="header-sky px-4 pb-16 pt-10 md:px-8">
         <div className="mx-auto max-w-6xl">
           <Wordmark onDark />
-          <h1 className="type-display-md mt-8 text-surface md:type-display-xl">Phase 0 brand preview</h1>
+          <h1 className="type-display-md mt-8 text-surface md:type-display-xl">Brand preview</h1>
           <p className="type-body-md mt-3 max-w-2xl text-surface">{BRAND.tagline}</p>
           <nav aria-label="Preview sections" className="no-scrollbar mt-6 flex gap-2 overflow-x-auto">
             {nav.map(([id, label]) => (
@@ -312,95 +285,9 @@ export default function BrandPreview() {
           </div>
         </Panel>
 
-        <section id="compositions" aria-labelledby="compositions-title" className="scroll-mt-24">
-          <SectionTitle action={<SampleLabel />}>
-            <span id="compositions-title">Illustrative compositions</span>
-          </SectionTitle>
-          <div className="grid gap-6 lg:grid-cols-2">
-            <article className="lattice relative overflow-hidden rounded-card bg-primary p-6 text-surface md:p-8" data-testid="card-family-preview">
-              <div className="flex items-start justify-between gap-3">
-                <p className="type-label">{demo.familyName}</p>
-                <span className="rounded-tag bg-surface px-2 py-1 type-label text-pending">Sample</span>
-              </div>
-              <p className="type-display-md tnum mt-6" data-testid="text-pot-total">{formatCents(potTotal)}</p>
-              <p className="type-caption mt-1">Illustrative family pot · not a real balance</p>
-              <div className="mt-6 flex items-center gap-2">
-                {[demo.parent, ...demo.funders, demo.dependent].map((n) => (
-                  <InitialAvatar key={n} name={n} className="ring-2 ring-primary" />
-                ))}
-              </div>
-              <p className="type-caption mt-2">
-                {demo.dependent}, {demo.dependentAge} · card ending {demo.cardLast4} (sample)
-              </p>
-            </article>
-
-            <article className="rounded-card bg-surface p-6 md:p-8" aria-label="Sample buckets">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="type-title">Buckets</h3>
-                <SampleLabel />
-              </div>
-              <ul className="mt-4 flex flex-col gap-4">
-                {buckets.map((b) => {
-                  const Icon = bucketIcons[b.icon];
-                  const pct = Math.round((b.available / b.total) * 100);
-                  return (
-                    <li key={b.id} className="flex items-center gap-3" data-testid={`card-bucket-${b.id}`}>
-                      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-tint text-primary">
-                        <Icon className="size-5" aria-hidden="true" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <p className="type-link-sm">{b.name}</p>
-                          <p className="type-caption tnum">{formatCents(b.available)} left</p>
-                        </div>
-                        <div className="mt-1 h-2 overflow-hidden rounded-pill bg-surface-alt" role="img" aria-label={`${pct}% of sample ${b.name} bucket available`}>
-                          <div className="h-full rounded-pill bg-primary" style={{ width: `${pct}%` }} />
-                        </div>
-                        <p className="type-caption mt-1 text-ink-muted">{b.purpose} · funded by {b.fundedBy}</p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </article>
-
-            <article className="rounded-card bg-surface p-6 md:p-8 lg:col-span-2" aria-label="Sample activity">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="type-title">Activity</h3>
-                <SampleLabel />
-              </div>
-              <ul className="mt-4 flex flex-col divide-y">
-                {activity.map((a) => (
-                  <li key={a.id} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:gap-4" data-testid={`row-activity-${a.id}`}>
-                    <InitialAvatar name={a.who} />
-                    <div className="min-w-0 flex-1">
-                      <p className="type-body-sm">{a.sentence}</p>
-                      <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <span className="type-caption text-ink-muted">{a.when}</span>
-                        <Tag tone="neutral">{a.bucket}</Tag>
-                        <VerifiedBadge state="preview" />
-                      </div>
-                      {a.chainSteps && (
-                        <ol className="mt-2 flex flex-wrap items-center gap-2 type-caption text-ink-muted" aria-label="Sample decision steps">
-                          {a.chainSteps.map((s, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                              {i > 0 && <span aria-hidden="true">→</span>}
-                              {s.label}
-                            </li>
-                          ))}
-                        </ol>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 sm:flex-col sm:items-end">
-                      <span className="type-link-sm tnum">{formatCents(a.amount)}</span>
-                      <StatusPill status={a.status} />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </article>
-          </div>
-        </section>
+        <CardsSection />
+        <FlowsSection />
+        <StatesSection />
       </main>
     </div>
   );

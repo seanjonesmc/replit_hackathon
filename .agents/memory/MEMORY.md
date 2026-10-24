@@ -3,3 +3,4 @@
 - [Pitch deck, video and claims](pitch-deck.md) — judges see only the 90s video, not the deck; BRAND-sourced text; stats follow the weak-spots list.
 - [AI integration provisioning](ai-integration-provisioning.md) — Anthropic setup isn't available in task envs; provision and run live AI checks from the main session.
 - [Sign-in decisions](auth-decisions.md) — web-only Replit Auth (mobile routes omitted on purpose); auth tests stub the session store, never the dev DB.
+- [/brand route vs asset folder](brand-route-asset-folder.md) — /brand route and public/brand/ share a path; published-site behavior unverified.

@@ -37,6 +37,9 @@
 
   --font-heading: ui-sans-serif, system-ui, sans-serif;
   --font-body: ui-sans-serif, system-ui, sans-serif;
+
+  /* Layout, not brand: the phone-width app column (DESIGN.md -> App layer). */
+  --container-phone: 430px;
 }
 
 /* shadcn/ui aliases, pointed at the brand tokens */

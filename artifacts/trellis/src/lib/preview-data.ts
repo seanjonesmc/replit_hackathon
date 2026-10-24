@@ -1,4 +1,7 @@
 import { BRAND } from '@brand/brand.config';
+import type { BucketIcon, Decision } from './domain';
+
+export type { BucketIcon, Decision } from './domain';
 
 /**
  * Illustrative sample data for the Phase 0 design preview.
@@ -10,16 +13,8 @@ export const demo = BRAND.demo;
 export const grandparent = demo.funders[0] ?? 'Funder';
 export const coParent = demo.funders[1] ?? demo.funders[0] ?? 'Funder';
 
-export const formatCents = (cents: number) =>
-  (cents < 0 ? '-' : '') +
-  '$' +
-  (Math.abs(cents) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
 export const initials = (name: string) =>
   name.split(/\s+/).filter(Boolean).map((p) => p[0]).slice(-2).join('').toUpperCase();
-
-export type Decision = 'approved' | 'rejected' | 'pending';
-export type BucketIcon = 'food' | 'school' | 'social' | 'transit';
 
 export interface PreviewBucket {
   id: string;
@@ -84,13 +79,33 @@ export interface PreviewMerchant {
 }
 
 export const merchants: PreviewMerchant[] = [
-  { id: 'tj', name: "Trader Joe's", category: 'Grocery', mcc: '5411', amount: 1840, outcome: 'approved', code: 'approved', reason: 'Groceries come out of Food, and you have plenty left.', bucket: 'Food' },
-  { id: 'book', name: 'Campus Bookstore', category: 'Bookstore', mcc: '5942', amount: 2400, outcome: 'approved', code: 'approved', reason: 'Books are covered by your School bucket.', bucket: 'School' },
+  { id: 'tj', name: "Trader Joe's", category: 'Grocery', mcc: '5411', amount: 1840, outcome: 'approved', code: 'within_bucket_limit', reason: 'Groceries come out of Food, and you have plenty left.', bucket: 'Food' },
+  { id: 'book', name: 'Campus Bookstore', category: 'Bookstore', mcc: '5942', amount: 2400, outcome: 'approved', code: 'within_bucket_limit', reason: 'Books are covered by your School bucket.', bucket: 'School' },
   { id: 'tavern', name: 'The Tipsy Tavern', category: 'Bar', mcc: '5813', amount: 3200, outcome: 'rejected', code: 'blocked_category', reason: 'Bars are off-limits on this card.', bucket: 'Social' },
   { id: 'steam', name: 'Steam', category: 'Gaming', mcc: '5816', amount: 1499, outcome: 'rejected', code: 'blocked_category', reason: 'Gaming purchases are turned off for now.', bucket: 'Social' },
   { id: 'uber', name: 'Uber', category: 'Rideshare', mcc: '4121', amount: 2200, note: 'at 2:10am', outcome: 'pending', code: 'outside_hours', reason: `Late-night purchases need a quick OK from ${demo.parent}.`, bucket: 'Transit' },
   { id: 'apple', name: 'Apple Store', category: 'Electronics', mcc: '5732', amount: 12900, outcome: 'pending', code: 'needs_approval', reason: `Anything over $75 needs a quick OK from ${demo.parent}.`, bucket: 'School' },
 ];
+
+/** Sample decisions for the decision result card, one per outcome. */
+export interface PreviewDecision {
+  merchant: PreviewMerchant;
+  decidedAt: Date;
+}
+
+const minutesAgo = (n: number) => new Date(Date.now() - n * 60_000);
+
+const sampleFor = (id: string) => {
+  const m = merchants.find((x) => x.id === id);
+  if (!m) throw new Error(`Unknown preview merchant: ${id}`);
+  return m;
+};
+
+export const decisionSamples: Record<Decision, PreviewDecision> = {
+  approved: { merchant: sampleFor('tj'), decidedAt: minutesAgo(2) },
+  rejected: { merchant: sampleFor('tavern'), decidedAt: minutesAgo(38) },
+  pending: { merchant: sampleFor('apple'), decidedAt: minutesAgo(5) },
+};
 
 export const policyLines = [
   { kind: 'block' as const, text: 'Bars, liquor stores and casinos are off-limits' },

@@ -1,23 +1,24 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
+import { SearchX } from 'lucide-react';
+import { Link } from 'wouter';
+import { EmptyState } from '@/components/trellis/empty-state';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md mx-4">
-        <CardContent className="pt-6">
-          <div className="flex mb-4 gap-2">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              404 Page Not Found
-            </h1>
-          </div>
-
-          <p className="mt-4 text-sm text-gray-600">
-            Did you forget to add the page to the router?
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+    <main className="flex min-h-[100dvh] w-full items-center justify-center bg-surface-alt px-6">
+      <div className="w-full max-w-md rounded-card bg-surface">
+        <EmptyState
+          icon={SearchX}
+          title="Page not found"
+          titleAs="h1"
+          body="There's nothing at this address."
+          action={
+            <Link href="/" className="type-link-sm text-primary hover:text-primary-hover hover:underline" data-testid="link-home">
+              Go to the home screen
+            </Link>
+          }
+          data-testid="page-not-found"
+        />
+      </div>
+    </main>
   );
 }

@@ -1,10 +1,11 @@
-import { lazy, Suspense, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
-import PreviewUnavailable from '@/features/branding/PreviewUnavailable';
+import Home from '@/pages/home';
+import BrandPage from '@/pages/brand';
 import {
   Route,
   Switch,
@@ -14,25 +15,6 @@ import {
 
 const queryClient = new QueryClient();
 
-const BrandPreview = import.meta.env.DEV
-  ? lazy(() => import('@/features/branding/BrandPreview'))
-  : null;
-
-function Home() {
-  if (!BrandPreview) return <PreviewUnavailable />;
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-[100dvh] bg-surface-alt p-6" aria-busy="true" aria-label="Loading preview">
-          <div className="mx-auto h-48 max-w-6xl animate-pulse rounded-card bg-surface" />
-        </div>
-      }
-    >
-      <BrandPreview />
-    </Suspense>
-  );
-}
-
 function Router() {
   return (
     // Keep a shared shell (sidebar, navbar) outside the boundary so it
@@ -40,6 +22,8 @@ function Router() {
     <RoutedErrorBoundary>
       <Switch>
         <Route path="/" component={Home} />
+        {/* Hidden brand preview: development only, never in a tab bar. */}
+        <Route path="/brand" component={BrandPage} />
         <Route component={NotFound} />
       </Switch>
     </RoutedErrorBoundary>

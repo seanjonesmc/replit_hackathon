@@ -2,7 +2,7 @@ import { type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { CheckCircle2, Clock, Loader2, ShieldCheck, XCircle, ArrowUpRight } from 'lucide-react';
 import { BRAND } from '@brand/brand.config';
 import { cn } from '@/lib/utils';
-import type { Decision } from '@/lib/preview-data';
+import type { ChainStatus, Decision } from '@/lib/domain';
 
 export const brandAsset = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 
@@ -69,15 +69,16 @@ export function PillButton({ variant = 'primary', size = 'md', loading, forceSta
   );
 }
 
-/* ---------- Status pill (always icon + label) ---------- */
-const statusMeta: Record<Decision, { label: string; cls: string; Icon: typeof CheckCircle2 }> = {
-  approved: { label: 'Approved', cls: 'bg-approved-bg text-approved', Icon: CheckCircle2 },
-  rejected: { label: 'Declined', cls: 'bg-rejected-bg text-rejected', Icon: XCircle },
-  pending: { label: 'Pending', cls: 'bg-pending-bg text-pending', Icon: Clock },
+/* ---------- Decision meta (always icon + label, never color alone) ---------- */
+export const decisionMeta: Record<Decision, { label: string; cls: string; fg: string; bg: string; Icon: typeof CheckCircle2 }> = {
+  approved: { label: 'Approved', cls: 'bg-approved-bg text-approved', fg: 'text-approved', bg: 'bg-approved-bg', Icon: CheckCircle2 },
+  rejected: { label: 'Declined', cls: 'bg-rejected-bg text-rejected', fg: 'text-rejected', bg: 'bg-rejected-bg', Icon: XCircle },
+  pending: { label: 'Pending', cls: 'bg-pending-bg text-pending', fg: 'text-pending', bg: 'bg-pending-bg', Icon: Clock },
 };
 
+/* ---------- Status pill ---------- */
 export function StatusPill({ status, className }: { status: Decision; className?: string }) {
-  const m = statusMeta[status];
+  const m = decisionMeta[status];
   return (
     <span className={cn('inline-flex h-7 items-center gap-1.5 rounded-pill px-3 text-[13px] font-semibold', m.cls, className)} data-testid={`status-${status}`}>
       <m.Icon className="size-4" strokeWidth={2.4} aria-hidden="true" />
@@ -96,19 +97,19 @@ export function VerifiedBadge({ state, href }: { state: 'verified' | 'confirming
   if (state === 'confirming')
     return (
       <span className={cn(base, 'bg-surface-alt text-ink-muted')} data-testid="badge-confirming">
-        <Loader2 className="size-3.5 animate-spin" /> Confirming
+        <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> Confirming
       </span>
     );
   if (state === 'preview')
     return (
       <span className={cn(base, 'border border-dashed border-chain/50 bg-surface text-chain')} data-testid="badge-preview">
-        <ShieldCheck className="size-3.5" /> Preview, not on chain
+        <ShieldCheck className="size-3.5" aria-hidden="true" /> Preview, not on chain
       </span>
     );
   const inner = (
     <>
-      <ShieldCheck className="size-3.5" /> {BRAND.copy.verifiedLabel}
-      <ArrowUpRight className="size-3.5" />
+      <ShieldCheck className="size-3.5" aria-hidden="true" /> {BRAND.copy.verifiedLabel}
+      <ArrowUpRight className="size-3.5" aria-hidden="true" />
     </>
   );
   return href ? (
@@ -118,6 +119,11 @@ export function VerifiedBadge({ state, href }: { state: 'verified' | 'confirming
   ) : (
     <span className={cn(base, 'bg-chain-bg text-chain')} data-testid="badge-verified-specimen">{inner}</span>
   );
+}
+
+/** Renders a typed ChainStatus. A verified status always carries its explorer link. */
+export function ChainBadge({ status }: { status: ChainStatus }) {
+  return status.state === 'verified' ? <VerifiedBadge state="verified" href={status.href} /> : <VerifiedBadge state={status.state} />;
 }
 
 /* ---------- Tag ---------- */

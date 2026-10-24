@@ -101,7 +101,8 @@ docs/                       Contributor architecture documentation
 1. **Structure baseline:** preserve existing files, document boundaries, check
    types and startup. No product functionality is implied by placeholders.
 2. **Phase 0:** central-brand-driven design specification in root `DESIGN.md`
-   and development component preview in `features/branding`. Preserve the
+   and development component preview (hidden `/brand` route) in
+   `features/branding`. Preserve the
    reference byte-for-byte; maintain editable design guidance separately.
 3. **Later product phases:** implement onboarding/access, models/contracts,
    policies/decisions, simulated funding and testnet integration only under their

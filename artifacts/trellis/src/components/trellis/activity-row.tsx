@@ -1,0 +1,68 @@
+import { cn } from '@/lib/utils';
+import { formatSignedCents } from '@/lib/format';
+import type { ChainStatus, Decision } from '@/lib/domain';
+import { ChainBadge, InitialAvatar, StatusPill, Tag } from './primitives';
+
+interface ActivityRowProps {
+  /** Person the row is about; shown as an initial avatar. */
+  who: string;
+  /** One plain-English sentence describing what happened. */
+  sentence: string;
+  /** Signed cents: negative for spending, positive for money added. */
+  amountCents: number;
+  status: Decision;
+  when: string;
+  bucket?: string;
+  /** Optional step trail, e.g. Pending -> Approved -> Settled. */
+  steps?: { label: string }[];
+  /** Chain status. Never pass verified without a real explorer link. */
+  chain?: ChainStatus;
+  className?: string;
+  'data-testid'?: string;
+}
+
+/**
+ * One row in an activity feed. Renders an <li>; place it inside a <ul>.
+ * Declined amounts are struck through because no money moved.
+ */
+export function ActivityRow({ who, sentence, amountCents, status, when, bucket, steps, chain, className, 'data-testid': testId }: ActivityRowProps) {
+  return (
+    <li className={cn('flex gap-3 py-4', className)} data-testid={testId}>
+      <InitialAvatar name={who} />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-3">
+          <p className="type-body-sm min-w-0">{sentence}</p>
+          <span
+            className={cn(
+              'type-link-sm tnum shrink-0',
+              status === 'rejected' && 'text-ink-muted line-through',
+              status === 'pending' && 'text-ink-muted',
+            )}
+          >
+            {formatSignedCents(amountCents)}
+          </span>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <StatusPill status={status} />
+          {bucket && <Tag tone="neutral">{bucket}</Tag>}
+          <span className="type-caption text-ink-muted">{when}</span>
+        </div>
+        {steps && steps.length > 0 && (
+          <ol className="type-caption mt-2 flex flex-wrap items-center gap-2 text-ink-muted" aria-label="Decision steps">
+            {steps.map((s, i) => (
+              <li key={i} className="flex items-center gap-2">
+                {i > 0 && <span aria-hidden="true">→</span>}
+                {s.label}
+              </li>
+            ))}
+          </ol>
+        )}
+        {chain && (
+          <div className="mt-2">
+            <ChainBadge status={chain} />
+          </div>
+        )}
+      </div>
+    </li>
+  );
+}

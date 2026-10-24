@@ -31,6 +31,8 @@ export default defineConfig({
             "@brand": path.join(root, "src/brand"),
           },
         },
+        // Component tests (.tsx) use the same automatic JSX runtime as the app.
+        esbuild: { jsx: "automatic" },
         test: {
           name: "trellis",
           environment: "node",

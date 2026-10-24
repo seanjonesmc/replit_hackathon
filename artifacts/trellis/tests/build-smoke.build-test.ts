@@ -25,6 +25,7 @@ const prefix = BASE_PATH.replace(/\/$/, '');
 const brandAssetPaths = [BRAND.logo.mark, BRAND.logo.wordmark, BRAND.favicon, BRAND.ogImage];
 
 let html = '';
+let bundledJs = '';
 
 function attr(selector: RegExp): string {
   const match = html.match(selector);
@@ -40,6 +41,12 @@ beforeAll(() => {
     stdio: 'pipe',
   });
   html = fs.readFileSync(path.join(outDir, 'index.html'), 'utf8');
+  const assetsDir = path.join(outDir, 'assets');
+  bundledJs = fs
+    .readdirSync(assetsDir)
+    .filter((f) => f.endsWith('.js'))
+    .map((f) => fs.readFileSync(path.join(assetsDir, f), 'utf8'))
+    .join('\n');
 }, 180_000);
 
 describe(`trellis production build under BASE_PATH=${BASE_PATH}`, () => {
@@ -58,6 +65,14 @@ describe(`trellis production build under BASE_PATH=${BASE_PATH}`, () => {
 
   it('prefixes the bundled entry script with the base path', () => {
     expect(attr(/<script type="module"[^>]*src="([^"]*)"/).startsWith(`${BASE_PATH}assets/`)).toBe(true);
+  });
+
+  it('ships the /brand fallback but not the development-only preview or its samples', () => {
+    // Test ids are kept as string literals, so they mark which code was bundled.
+    expect(bundledJs).toContain('text-unavailable-title');
+    for (const marker of ['banner-dev-preview', 'label-preview-data', 'card-hero-balance', 'card-virtual']) {
+      expect(bundledJs, `${marker} leaked into the production bundle`).not.toContain(marker);
+    }
   });
 
   it.each(brandAssetPaths)('ships %s from the canonical root public/ folder', (p) => {
