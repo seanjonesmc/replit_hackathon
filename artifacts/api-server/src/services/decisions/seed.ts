@@ -51,8 +51,8 @@ type MerchantSlug = (typeof SEED_MERCHANTS)[number]["slug"];
 
 /**
  * The spec's Balanced preset plus a late-night window (11pm–6am), so the
- * 2:10am Uber swipe waits for a parent before any AI call. See the
- * differences table in docs/stack-decisions.md.
+ * 2:10am Uber swipe waits for a parent before any AI call; once approved it is
+ * paid from Transit. See docs/plans/demo-preset-swipes.md.
  */
 const SEED_POLICY = {
   presetName: "Balanced",
@@ -81,8 +81,8 @@ interface HistoryEntry {
 /**
  * About eight daytime purchases from the past few days. Each one goes
  * through the real rule engine, so balances and reasons match the rules.
- * Food keeps $118.75 and School all $200, enough to run the presets several
- * times.
+ * Food keeps $118.75, School all $200 and Transit all $50, enough to run the
+ * presets several times.
  */
 const SEED_HISTORY: readonly HistoryEntry[] = [
   { daysAgo: 4, time: "12:15", merchant: "trader-joes", amountCents: 18_40, items: ["bananas", "oat milk", "pasta"], location: "Westwood, Los Angeles", expect: "approved" },

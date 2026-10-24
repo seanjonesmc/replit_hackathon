@@ -66,7 +66,7 @@ This plan authorizes pushing the new schema to the development database.
 - Live updates, temporary pass with auto-retry, and the contribution-attribution math behind "Where my money went" (Phase 6).
 - Restricting the demo to specific accounts.
 - Moving the app onto the shared design-system package.
-- Resolving spec conflicts that affect Phase 2's preset swipes. Seed the values as written. The conflicts:
+- Resolving spec conflicts that affect Phase 2's preset swipes. Seed the values as written. The conflicts (since settled in [demo-preset-swipes.md](demo-preset-swipes.md)):
   - Food's per-purchase limit is below its approval threshold.
   - There is no Transit bucket or late-night window for the 2:10am Uber preset.
   - Electronics is missing from the category-to-bucket map.

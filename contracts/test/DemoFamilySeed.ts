@@ -62,7 +62,7 @@ describe("Demo family seed (deploy script)", function () {
 
   it("leaves the grandparent $100 for the demo's add-$50 step", function () {
     expect(expectedBankBalances(plan)).to.deep.equal({
-      parent: 440_00n,
+      parent: 390_00n,
       grandparent: 100_00n,
       coParent: 50_00n,
       dependent: 0n,
@@ -70,9 +70,9 @@ describe("Demo family seed (deploy script)", function () {
   });
 
   it("creates the buckets, an active card and no authorizations", async function () {
-    expect(seeded.bucketIds).to.deep.equal({ Food: 1n, School: 2n, Social: 3n });
+    expect(seeded.bucketIds).to.deep.equal({ Food: 1n, School: 2n, Social: 3n, Transit: 4n });
     expect(seeded.cardId).to.equal(1n);
-    expect(seeded.steps).to.have.length(29);
+    expect(seeded.steps).to.have.length(31);
     for (const step of seeded.steps) expect(step.gasUsed > 0n).to.equal(true);
     expect((await client.getCounts()).authorizations).to.equal(0n);
   });

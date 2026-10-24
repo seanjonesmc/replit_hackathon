@@ -72,11 +72,16 @@ const DEPOSITS: Record<FundingRole, bigint> = {
   coParent: 250_00n,
 };
 
-/** Each bucket is funded by a different person; the grandparent keeps $100. */
+/**
+ * The spec's three buckets, each funded by a different person, then Transit
+ * (docs/plans/demo-preset-swipes.md), also funded by the parent. The
+ * grandparent keeps $100.
+ */
 const BUCKETS: readonly DemoBucket[] = [
   { name: "Food", amount: 150_00n, perTxLimit: 60_00n, approvalThreshold: 75_00n, fundedBy: "grandparent" },
   { name: "School", amount: 200_00n, perTxLimit: 150_00n, approvalThreshold: 100_00n, fundedBy: "coParent" },
   { name: "Social", amount: 60_00n, perTxLimit: 40_00n, approvalThreshold: 30_00n, fundedBy: "parent" },
+  { name: "Transit", amount: 50_00n, perTxLimit: 40_00n, approvalThreshold: 30_00n, fundedBy: "parent" },
 ];
 
 /** The card expires this many years after the deploy month. */

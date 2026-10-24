@@ -141,14 +141,22 @@ describe("demo family seeding", () => {
   it("seeds the agreed bucket limits, merchants and blocked categories", async () => {
     const buckets = await db.select().from(bucketsTable);
     const byName = Object.fromEntries(buckets.map((b) => [b.name, b]));
+    expect(Object.keys(byName).sort()).toEqual(["Food", "School", "Social", "Transit"]);
+    // The spec's values as written: Food's $60 limit stays below its $75
+    // threshold (docs/plans/demo-preset-swipes.md).
     expect(byName.Food).toMatchObject({ perPurchaseLimitCents: 6000, approvalThresholdCents: 7500 });
     expect(byName.School).toMatchObject({ perPurchaseLimitCents: 15000, approvalThresholdCents: 10000 });
     expect(byName.Social).toMatchObject({ perPurchaseLimitCents: 4000, approvalThresholdCents: 3000 });
+    // Added so a parent-approved 2:10am Uber ride has a bucket to pay from.
+    expect(byName.Transit).toMatchObject({ perPurchaseLimitCents: 4000, approvalThresholdCents: 3000 });
 
     expect(byName.Food).toMatchObject({ purpose: "Groceries and meals out", icon: "food" });
+    expect(byName.Transit).toMatchObject({ icon: "transit" });
 
     const [policy] = await db.select().from(policiesTable);
     expect([...policy!.blockedCategories].sort()).toEqual(["bar", "gambling", "gaming", "liquor", "nightclub"]);
+    // The late-night window that sends the 2:10am Uber preset to a parent.
+    expect(policy!.timeWindows).toEqual([{ start: "23:00", end: "06:00" }]);
 
     const merchants = await db.select().from(merchantsTable);
     expect(Object.fromEntries(merchants.map((m) => [m.name, [m.mcc, m.category]]))).toEqual({
@@ -166,7 +174,7 @@ describe("demo family seeding", () => {
 
   it("keeps every bucket balance in agreement with its contributions and approved swipes", async () => {
     const buckets = await db.select().from(bucketsTable);
-    const funded = { Food: 15000, School: 20000, Social: 6000 } as Record<string, number>;
+    const funded = { Food: 15000, School: 20000, Social: 6000, Transit: 5000 } as Record<string, number>;
     for (const b of buckets) {
       const [contrib] = await db
         .select({ total: sql<number>`coalesce(sum(${contributionsTable.amountCents}), 0)::int` })
@@ -209,11 +217,11 @@ describe("demo family seeding", () => {
 
     const overview = GetParentOverviewResponse.parse(await getParentOverview(id, new Date(), db));
     expect(overview.parentName).toBe(BRAND.demo.parent);
-    expect(overview.buckets.map((b) => b.name)).toEqual(["Food", "School", "Social"]);
+    expect(overview.buckets.map((b) => b.name)).toEqual(["Food", "School", "Social", "Transit"]);
     expect(overview.potTotalCents).toBe(overview.buckets.reduce((sum, b) => sum + b.availableCents + b.heldCents, 0));
 
     const activity = ListActivityResponse.parse(await getActivity(id, db));
-    expect(activity.filter((a) => a.kind === "contribution")).toHaveLength(3);
+    expect(activity.filter((a) => a.kind === "contribution")).toHaveLength(4);
     // The parent-approved original is folded into its retry's row.
     const chained = activity.filter((a) => a.timeline.length > 0);
     expect(chained).toHaveLength(1);

@@ -1,9 +1,12 @@
 import type { BucketIcon } from "@workspace/db";
 
 /**
- * Seed values for the demo family's buckets (docs/plans/phase-1-signin-screens.md).
- * People and bank names come from BRAND.demo at seed time (see `seed.ts`);
- * bucket limits are the product spec's seed values, kept exactly as written.
+ * Seed values for the demo family's buckets (docs/plans/phase-1-signin-screens.md,
+ * plus Transit from docs/plans/demo-preset-swipes.md). People and bank names
+ * come from BRAND.demo at seed time (see `seed.ts`). Food, School and Social
+ * are the product spec's seed values, kept exactly as written (so Food
+ * purchases over $60 are declined before its $75 threshold applies). Transit
+ * gives the 2:10am Uber preset a bucket to pay from once a parent approves it.
  * Merchants, the policy, the card and the purchase history are seeded by the
  * decision engine (services/decisions/seed.ts) through the real rules.
  *
@@ -15,7 +18,7 @@ const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 
 export type SeedFunderKey = "parent" | "grandparent" | "coParent";
-export type SeedBucketName = "Food" | "School" | "Social";
+export type SeedBucketName = "Food" | "School" | "Social" | "Transit";
 
 export interface SeedBucket {
   name: SeedBucketName;
@@ -27,7 +30,10 @@ export interface SeedBucket {
   fundedBy: SeedFunderKey;
 }
 
-/** Three buckets, each funded by a different person. */
+/**
+ * The spec's three buckets, each funded by a different person, then Transit,
+ * also funded by the parent.
+ */
 export const SEED_BUCKETS: readonly SeedBucket[] = [
   {
     name: "Food",
@@ -52,6 +58,15 @@ export const SEED_BUCKETS: readonly SeedBucket[] = [
     purpose: "Movies, bowling, concerts",
     icon: "social",
     amountCents: 60_00,
+    perPurchaseLimitCents: 40_00,
+    approvalThresholdCents: 30_00,
+    fundedBy: "parent",
+  },
+  {
+    name: "Transit",
+    purpose: "Rides and bus fare",
+    icon: "transit",
+    amountCents: 50_00,
     perPurchaseLimitCents: 40_00,
     approvalThresholdCents: 30_00,
     fundedBy: "parent",

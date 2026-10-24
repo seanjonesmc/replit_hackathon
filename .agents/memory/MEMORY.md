@@ -11,4 +11,5 @@
 - [Brand scan covers tests](brand-values-scan.md) — `pnpm test` fails on BRAND names even in contract/lib tests; use neutral placeholders.
 - [Chain client invariants](chain-client.md) — SHA-256 IDs must never change; queue holds until mined because gas is unpadded.
 - [API codegen quirks](api-codegen-quirks.md) — generated client date-times are ISO strings while server Zod schemas use Date.
+- [Changing the demo seed](demo-seed-changes.md) — app and deploy seeds change together; old DBs/contract need reseed; Food's $60<$75 kept on purpose.
 - [Monad testnet deploy](monad-testnet-deploy.md) — ~1 MON per deploy+seed, Sourcify verify works, addresses are env vars, typechecking contracts scripts.

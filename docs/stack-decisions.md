@@ -160,9 +160,12 @@ The spec text is kept unchanged. These decisions refine it:
 | "Index all events into Postgres"                                 | Written from our own transaction receipts; no separate indexer     |
 | Seed data on first run                                           | Production starts empty and the app seeds itself when none exists  |
 | Hosting not specified                                            | Static front end; API on an always-on Reserved VM                  |
-| Category → bucket table has no electronics row                   | Electronics maps to School, so the $129 Apple Store swipe goes PENDING (`needs_approval`, over School's $100 threshold) |
-| Balanced preset has no time window                               | The seeded policy adds 11pm–6am, so the 2:10am Uber swipe is always PENDING (`outside_hours`) before any AI call; the family has no Transit bucket |
+| Category → bucket table has no electronics row                   | Electronics maps to School, so the $129 Apple Store swipe goes PENDING (`needs_approval`, over School's $100 threshold) and is paid from School once a parent approves |
+| Balanced preset has no time window                               | The seeded policy adds 11pm–6am, so the 2:10am Uber swipe is always PENDING (`outside_hours`) before any AI call |
+| Seed data has three buckets, none for rideshare                  | The seed adds a fourth bucket, Transit ($50, up to $40 per purchase, approval over $30, funded by the parent), so a parent-approved 2:10am Uber ride is paid from Transit |
 | Food: $60 per-purchase limit, $75 approval threshold             | Kept as written: Food purchases over $60 are declined (`over_limit`) and never reach the threshold |
 
-The last three were settled with the decision engine (Phase 2). Rule order and
-reason codes are in `artifacts/api-server/src/services/decisions/rules.ts`.
+The last four were confirmed with the user in
+[plans/demo-preset-swipes.md](plans/demo-preset-swipes.md), which also lists the
+expected result of every preset swipe. Rule order and reason codes are in
+`artifacts/api-server/src/services/decisions/rules.ts`.
