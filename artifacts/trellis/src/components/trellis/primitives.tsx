@@ -1,6 +1,7 @@
 import { type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { CheckCircle2, Clock, Loader2, ShieldCheck, ShieldOff, XCircle, ArrowUpRight } from 'lucide-react';
 import { BRAND } from '@brand/brand.config';
+import { SPROUT_PATHS } from '@brand/assets';
 import { cn } from '@/lib/utils';
 import type { ChainStatus, Decision } from '@/lib/domain';
 import { initials } from '@/lib/format';
@@ -12,11 +13,28 @@ export function LogoMark({ className }: { className?: string }) {
   return <img src={brandAsset(BRAND.logo.mark)} alt={BRAND.logo.alt} className={cn('size-9 rounded-[28%]', className)} data-testid="img-logo-mark" />;
 }
 
+/** The sprout glyph on its own (no tile), drawn inline from the shared brand paths. */
+export function SproutGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="8 9 48 48" aria-hidden="true" className={cn('size-9 shrink-0', className)} data-testid="img-sprout-glyph">
+      <path d={SPROUT_PATHS.topLeaf} fill="var(--color-signature)" />
+      {SPROUT_PATHS.sides.map((d) => (
+        <path key={d} d={d} fill="var(--color-ink)" />
+      ))}
+    </svg>
+  );
+}
+
+/**
+ * The app name lockup. On white it is the primary lockup (sprout glyph +
+ * name); on a signature fill it uses the tiled app icon so the top leaf stays
+ * visible.
+ */
 export function Wordmark({ onDark, className }: { onDark?: boolean; className?: string }) {
   return (
-    <span className={cn('inline-flex items-center gap-2.5', className)} data-testid="text-app-name">
-      <LogoMark className={onDark ? 'ring-2 ring-surface/70' : undefined} />
-      <span className={cn('font-heading text-[24px] font-semibold tracking-[-0.6px]', onDark ? 'text-on-signature' : 'text-ink')}>
+    <span className={cn('inline-flex items-center gap-2', className)} data-testid="text-app-name">
+      {onDark ? <LogoMark className="ring-2 ring-surface/70" /> : <SproutGlyph />}
+      <span className={cn('font-heading text-[26px] font-bold tracking-[-0.6px]', onDark ? 'text-on-signature' : 'text-ink')}>
         {BRAND.appName}
       </span>
     </span>

@@ -1,11 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 259 64" width="259" height="64"><!-- generated-from-brand-config -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 251 64" width="251" height="64"><!-- generated-from-brand-config -->
   <title>Trellis logo</title>
-  <rect width="64" height="64" rx="18" fill="#dcf26e"/>
-  <g fill="none" stroke="#1c2008" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M32 52V22"/>
-    <path d="M18 42l14-12 14 12"/>
-    <path d="M22 30l10-8 10 8"/>
+  
+  <g transform="translate(0 -4) scale(1.06)">
+    <path d="M32 10C37.5 12.5 41.5 16.5 41.5 21.5C41.5 26.5 37 30.5 32 33C27 30.5 22.5 26.5 22.5 21.5C22.5 16.5 26.5 12.5 32 10Z" fill="#dcf26e"/>
+    <path d="M30.5 47.5L30.5 40C30.5 33 25 27.5 17 26.5C14 26.1 11.5 26.2 10 26.6C8.8 27 8.3 28 8.4 29.5C8.9 38.5 13.5 46.5 22 47.8C25.5 48.3 28.5 48 30.5 47.5Z" fill="#171815"/><path d="M33.5 47.5L33.5 40C33.5 33 39 27.5 47 26.5C50 26.1 52.5 26.2 54 26.6C55.2 27 55.7 28 55.6 29.5C55.1 38.5 50.5 46.5 42 47.8C38.5 48.3 35.5 48 33.5 47.5Z" fill="#171815"/><path d="M27.5 44H30.5V54.5A1.5 1.5 0 0 1 27.5 54.5Z" fill="#171815"/><path d="M33.5 44H36.5V54.5A1.5 1.5 0 0 1 33.5 54.5Z" fill="#171815"/>
   </g>
-  <path d="M32 21c0-6 4-9.5 9.5-9.5 0 5.5-3.5 9.5-9.5 9.5z" fill="#1c2008"/>
-  <text x="78" y="44" font-family="Urbanist, ui-sans-serif, system-ui, sans-serif" font-size="38" font-weight="600" letter-spacing="-1.2" fill="#171815">Trellis</text>
+  <text x="70" y="47" font-family="Urbanist, ui-sans-serif, system-ui, sans-serif" font-size="42" font-weight="700" letter-spacing="-1" fill="#171815">Trellis</text>
 </svg>

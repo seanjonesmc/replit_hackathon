@@ -14,3 +14,4 @@
 - [Changing the demo seed](demo-seed-changes.md) — app and deploy seeds change together; old DBs/contract need reseed; Food's $60<$75 kept on purpose.
 - [Monad testnet deploy](monad-testnet-deploy.md) — ~1 MON per deploy+seed, Sourcify verify works, addresses are env vars, typechecking contracts scripts.
 - [Design token decisions](design-tokens.md) — chain uses sky ink for contrast; decision pairs are mockup-exact; darkColors is top-level, design-system only.
+- [Brand logo](brand-logo.md) — sprout paths hand-traced from a PNG; in-app lockup drawn inline because SVG-in-img text loses the web font.

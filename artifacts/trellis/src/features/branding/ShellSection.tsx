@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Router, useLocation } from 'wouter';
 import { memoryLocation } from 'wouter/memory-location';
 import { ComingSoonScreen } from '@/components/trellis/coming-soon-screen';
+import { Wordmark } from '@/components/trellis/primitives';
 import { RoleSwitcher } from '@/components/trellis/role-switcher';
 import { RoleSwitcherSlot } from '@/components/trellis/role-switcher-slot';
 import { TabBar } from '@/components/trellis/tab-bar';
@@ -18,6 +19,9 @@ function ShellSample() {
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-1 flex-col overflow-y-auto">
+        <div className="px-4">
+          <Wordmark className="mt-2" />
+        </div>
         <RoleSwitcherSlot activeRole={tab.role} fallback={() => null}>
           <ComingSoonScreen tab={tab} body={`Preview only. In the app this tab lives at ${tab.path}.`} />
         </RoleSwitcherSlot>

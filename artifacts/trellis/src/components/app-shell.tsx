@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react';
 import { useLocation } from 'wouter';
 import { RoleSwitcherSlot } from '@/components/trellis/role-switcher-slot';
 import { TabBar } from '@/components/trellis/tab-bar';
+import { Wordmark } from '@/components/trellis/primitives';
 import { matchTab, saveLastRole, type TabDef, type TabPath } from '@/lib/route-map';
 
 /**
@@ -42,7 +43,10 @@ function ShellLayout({ tab, badges, children }: { tab: TabDef; badges?: AppShell
     <div className="min-h-[100dvh] bg-surface-ground">
       {/* Sticky bars stay in the column's flow, so at the end of a scroll nothing is hidden behind them. */}
       <div className="mx-auto flex min-h-[100dvh] max-w-phone flex-col bg-surface" data-testid="app-shell">
-        <main className="pt-safe flex flex-1 flex-col">
+        <header className="pt-safe px-4">
+          <Wordmark className="mt-2" />
+        </header>
+        <main className="flex flex-1 flex-col">
           <RoleSwitcherSlot
             activeRole={tab.role}
             fallback={(switcher) => <div className="flex justify-end px-4 pt-5">{switcher}</div>}

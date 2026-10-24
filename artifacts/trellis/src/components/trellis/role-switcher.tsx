@@ -1,22 +1,13 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { Check, ChevronDown } from 'lucide-react';
+import { initials } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { ROLES, firstTabPath, getRole, type RoleId } from '@/lib/route-map';
 
 interface RoleSwitcherProps {
   activeRole: RoleId;
   className?: string;
-}
-
-/** "Grandma Rose" → "GR", "Maya" → "M". */
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0]!.toUpperCase())
-    .join('');
 }
 
 function Avatar({ name, size }: { name: string; size: 'sm' | 'md' }) {
