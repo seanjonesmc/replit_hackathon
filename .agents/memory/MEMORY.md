@@ -23,3 +23,4 @@
 - [Demo-screen motion](demo-motion.md) — motion scoped to demo screens; same key for in-place result changes; happy-dom ends framer exits instantly.
 - [Demo reset design](demo-reset.md) — reset = delete family + reseed in one tx; new tables must cascade; seeds deterministic, never contain the live script steps.
 - [No JSX generic args](jsx-generic-args.md) — `<Comp<T>>` passes tsc but breaks the Vite dev server's Babel parse; infer instead.
+- [Demo narration audio](narration-audio.md) — use the built-in textToSpeech (user choice), Sarah voice + settings to reuse; no speech-to-text check.

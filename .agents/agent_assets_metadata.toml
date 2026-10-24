@@ -7,3 +7,31 @@ uri = "file://.local/outputs/Trellis-Pitch-Deck.pdf"
 type = "pdf"
 title = "Trellis Pitch Deck.pdf"
 logical_id = "18a0fb26-f5b3-4d67-81fc-467d6e6176c9"
+
+[[outputs]]
+id = "uLEYspNkFpslOupoLP1yL"
+uri = "file://docs/pitch/narration/trellis-signin-clip-narrated.mp4"
+type = "video"
+title = "Sign-in clip with narration"
+description = "Sign-in screen looped under the full draft voiceover, made with the built-in voice tool (84 s, 480×864, 30 fps)."
+logical_id = "f3ec3fd7-574d-4554-9c6a-60463086ee75"
+content_hash = "sha256:ea8da4d4f75fea81213dbecb460ec1b211e7759b4a3c9c49cb0d2b034a5ef02f"
+size = 4124459
+mtime_ms = 1792870842416
+storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:45c41f89-559c-438d-bc5e-00c6b676b1ab/f3ec3fd7-574d-4554-9c6a-60463086ee75/84daa072-8d1e-45a3-b255-6c72f122f0db"
+storage_version_token = "1792870856115673"
+content_type = "video/mp4"
+
+[[outputs]]
+id = "yDFBNb-WLW4KdZKwYNL2H"
+uri = "file://docs/pitch/narration/trellis-demo-narration-draft.mp3"
+type = "audio"
+title = "Demo narration (audio only)"
+description = "The full draft voiceover on its own (83 s), for reuse in the full demo video."
+logical_id = "1b763ac8-0482-4916-9440-b385c4cb6cfb"
+content_hash = "sha256:25c78c91ff9030b92406fa21a1cbec3fa60f44e2a04742d47b6ad06056184598"
+size = 1983112
+mtime_ms = 1792870842427
+storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:45c41f89-559c-438d-bc5e-00c6b676b1ab/1b763ac8-0482-4916-9440-b385c4cb6cfb/d89d03f2-3793-439e-a73a-b414c2b65e8f"
+storage_version_token = "1792870856668025"
+content_type = "audio/mpeg"
