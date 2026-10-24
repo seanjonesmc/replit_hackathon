@@ -269,7 +269,7 @@ through props, and never import preview samples.
 | Role switcher | Built | Pill segmented control on the `color.signature` top bar; one link per role (BRAND.demo name + role) to that role's first tab |
 | Bottom tab bar per role | Built | Solid `color.primary` (near-black) bar with `onPrimary` icons and labels; active tab gets a `color.signature` pill with `onSignature` icon, bold label and `aria-current`; optional count badge (parent Approvals shows waiting swipes); never links to /brand |
 | Coming-soon screen | Built | Tab title on the header sky plus an empty state; placeholder for tabs not built yet, no sample data or actions |
-| Policy card | Built | Preset name and plain-English lines (block, ask, limit, time) |
+| Policy card | Built | Preset name and plain-English lines (block, ask, limit, time); lines added by the simulated rules builder rise in with a brief tint highlight |
 | Approval card | Built | Request sentence, reason, bucket, time; approve/decline shown disabled until decisions arrive |
 | Swipe-simulator merchant tile | Built | Two-column grid of `color.surfaceAlt` tiles: category icon, merchant name, “Category · MCC”, price, and the simulated time when it isn't now; spinner while its swipe is in flight. The server decides; tiles never predict an outcome |
 

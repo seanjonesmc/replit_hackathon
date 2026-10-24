@@ -11,4 +11,8 @@ export const motion = {
   decisionIn: 'animate-in fade-in slide-in-from-bottom-1.5 duration-600 ease-settle motion-reduce:animate-none',
   /** Virtual card: rises and settles from 97% after "Accept card" (base, 600ms). */
   cardIn: 'animate-in fade-in zoom-in-97 slide-in-from-bottom-1.5 duration-600 ease-settle motion-reduce:animate-none',
+  /** A rule line arriving on the policy card after the builder confirms (base, 600ms). */
+  ruleIn: 'animate-in fade-in slide-in-from-bottom-1.5 duration-600 ease-settle motion-reduce:animate-none',
+  /** Small items (chips, builder steps, review lines) arriving one by one (quick, 350ms). */
+  itemIn: 'animate-in fade-in zoom-in-97 slide-in-from-bottom-1 duration-350 ease-settle motion-reduce:animate-none',
 } as const;
