@@ -1,4 +1,5 @@
 import type { BucketSummary } from '@workspace/api-client-react';
+import { AnimatedCents } from '@/components/trellis/animated-cents';
 import { BucketCard } from '@/components/trellis/bucket-card';
 import { formatCents } from '@/lib/format';
 
@@ -23,7 +24,7 @@ export function FamilyBucketCard({ bucket: b, variant = 'parent' }: FamilyBucket
     >
       {variant === 'parent' ? (
         <p className="type-caption tnum mt-2 text-ink-muted" data-testid={`text-bucket-week-${b.id}`}>
-          {formatCents(b.spentThisWeekCents)} spent this week
+          <AnimatedCents cents={b.spentThisWeekCents} /> spent this week
         </p>
       ) : (
         <p className="type-caption mt-2 text-ink-muted">

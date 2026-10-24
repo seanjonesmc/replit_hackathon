@@ -1,10 +1,11 @@
-import { type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { useRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { CheckCircle2, Clock, Loader2, ShieldCheck, ShieldOff, XCircle, ArrowUpRight } from 'lucide-react';
 import { BRAND } from '@brand/brand.config';
 import { SPROUT_PATHS } from '@brand/assets';
 import { cn } from '@/lib/utils';
 import type { ChainStatus, Decision } from '@/lib/domain';
 import { initials } from '@/lib/format';
+import { motion } from './motion';
 
 export const brandAsset = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 
@@ -165,12 +166,28 @@ export function VerifiedBadge({ state, href }: { state: 'verified' | 'confirming
   );
 }
 
-/** Renders a typed ChainStatus. A verified status always carries its explorer link. */
-export function ChainBadge({ status }: { status: ChainStatus }) {
-  if (status.state === 'verified') return <VerifiedBadge state="verified" href={status.href} />;
-  // Confirmed without an explorer link yet: say it was sent, never "verified".
-  if (status.state === 'sent') return <Tag>Sent to chain</Tag>;
-  return <VerifiedBadge state={status.state} />;
+/**
+ * Renders a typed ChainStatus. A verified status always carries its explorer link.
+ * With `animateChange` (demo screens that watch a write land), a badge whose
+ * state changes after mount fades to its new state; the first state shows at once.
+ */
+export function ChainBadge({ status, animateChange }: { status: ChainStatus; animateChange?: boolean }) {
+  const first = useRef(status.state);
+  const badge =
+    status.state === 'verified' ? (
+      <VerifiedBadge state="verified" href={status.href} />
+    ) : status.state === 'sent' ? (
+      // Confirmed without an explorer link yet: say it was sent, never "verified".
+      <Tag>Sent to chain</Tag>
+    ) : (
+      <VerifiedBadge state={status.state} />
+    );
+  if (!animateChange || status.state === first.current) return badge;
+  return (
+    <span key={status.state} className={cn('inline-flex', motion.chainIn)} data-testid="badge-chain-changed">
+      {badge}
+    </span>
+  );
 }
 
 /* ---------- Tag ---------- */

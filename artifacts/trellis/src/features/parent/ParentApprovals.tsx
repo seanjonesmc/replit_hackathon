@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence, motion as animated, useIsPresent } from 'framer-motion';
 import { Inbox } from 'lucide-react';
 import { BRAND } from '@brand/brand.config';
 import {
@@ -13,12 +14,44 @@ import {
 } from '@workspace/api-client-react';
 import { ApprovalCard, type ApprovalAnswer } from '@/components/trellis/approval-card';
 import { EmptyState } from '@/components/trellis/empty-state';
+import { DURATION, EASE_SETTLE, motion } from '@/components/trellis/motion';
 import { LoadingRegion, Skeleton } from '@/components/trellis/skeletons';
 import { ErrorState } from '@/components/trellis/states';
 import { apiErrorMessage, refreshAfterSwipe } from '@/features/family/spending';
 import { ScreenHeader } from '@/features/shell/layout';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { cn } from '@/lib/utils';
 
 const APPROVALS_POLL_MS = 3000;
+
+/** How long an answered request takes to fade and collapse out of the list (quick). */
+export const APPROVAL_EXIT_MS = DURATION.quick;
+
+/** The request list. With reduced motion, answered requests leave at once. */
+function LeavingRows({ children }: { children: ReactNode }) {
+  const reduced = useReducedMotion();
+  return reduced ? <>{children}</> : <AnimatePresence initial={false}>{children}</AnimatePresence>;
+}
+
+/**
+ * One request in the list. Once answered it fades and collapses away; while
+ * it leaves it is hidden from assistive tech and can't be tapped.
+ */
+function LeavingRow({ children }: { children: ReactNode }) {
+  const present = useIsPresent();
+  return (
+    <animated.div
+      className="overflow-hidden pb-3"
+      exit={{ opacity: 0, height: 0, paddingBottom: 0 }}
+      transition={{ duration: APPROVAL_EXIT_MS / 1000, ease: EASE_SETTLE }}
+      aria-hidden={present ? undefined : true}
+      inert={!present}
+      data-leaving={present ? undefined : 'true'}
+    >
+      {children}
+    </animated.div>
+  );
+}
 
 export default function ParentApprovals() {
   const queryClient = useQueryClient();
@@ -82,26 +115,30 @@ export default function ParentApprovals() {
         </LoadingRegion>
       ) : isError || !data || !dependentName ? (
         <ErrorState onRetry={() => refetch()} retrying={isFetching} />
-      ) : data.length === 0 ? (
-        <EmptyState
-          icon={Inbox}
-          title="You're all caught up"
-          body={`When ${BRAND.demo.dependent} asks for an OK on a purchase, it shows up here.`}
-          className="rounded-card border bg-surface"
-          data-testid="state-approvals-empty"
-        />
       ) : (
-        <div className="flex flex-col gap-3">
-          {data.map((r) => (
-            <ApprovalCard
-              key={r.id}
-              request={r}
-              dependentName={dependentName}
-              onAnswer={parentId === undefined ? undefined : (choice) => answer(r, choice)}
-              sending={sending?.id === r.id ? sending.answer : null}
-              error={errors[r.id] ?? null}
+        <div className="flex flex-col">
+          <LeavingRows>
+            {data.map((r) => (
+              <LeavingRow key={r.id}>
+                <ApprovalCard
+                  request={r}
+                  dependentName={dependentName}
+                  onAnswer={parentId === undefined ? undefined : (choice) => answer(r, choice)}
+                  sending={sending?.id === r.id ? sending.answer : null}
+                  error={errors[r.id] ?? null}
+                />
+              </LeavingRow>
+            ))}
+          </LeavingRows>
+          {data.length === 0 && (
+            <EmptyState
+              icon={Inbox}
+              title="You're all caught up"
+              body={`When ${BRAND.demo.dependent} asks for an OK on a purchase, it shows up here.`}
+              className={cn('rounded-card border bg-surface', motion.fadeIn)}
+              data-testid="state-approvals-empty"
             />
-          ))}
+          )}
         </div>
       )}
     </>

@@ -1,6 +1,8 @@
 import { Bell, Gift, ShieldCheck } from 'lucide-react';
 import { BRAND } from '@brand/brand.config';
+import { motion, stagger } from '@/components/trellis/motion';
 import { LogoMark, PillButton, Wordmark, brandAsset } from '@/components/trellis/primitives';
+import { cn } from '@/lib/utils';
 import { PhoneColumn } from './layout';
 import { useSession } from './session';
 
@@ -17,12 +19,17 @@ export function SignedOut() {
     <PhoneColumn>
       <div className="header-sky-clear px-6 pb-20 pt-12">
         <Wordmark onDark />
-        <h1 className="type-display-md mt-14 text-on-signature" data-testid="text-tagline">{BRAND.tagline}</h1>
+        <h1 className={cn('type-display-md mt-14 text-on-signature', motion.riseIn)} style={stagger(0)} data-testid="text-tagline">{BRAND.tagline}</h1>
       </div>
       {/* Solid surface, firm border and soft shadow so each card reads over the lime band and backdrop. */}
       <ul className="-mt-10 flex flex-col gap-3 px-6" data-testid="list-signed-out-points">
-        {points.map(({ Icon, title, body }) => (
-          <li key={title} data-testid="card-signed-out-point" className="flex items-start gap-3 rounded-card-sm border border-ink/15 bg-surface p-4 shadow-lg shadow-ink/10">
+        {points.map(({ Icon, title, body }, i) => (
+          <li
+            key={title}
+            data-testid="card-signed-out-point"
+            className={cn('flex items-start gap-3 rounded-card-sm border border-ink/15 bg-surface p-4 shadow-lg shadow-ink/10', motion.riseIn)}
+            style={stagger(i + 1)}
+          >
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-tint text-primary">
               <Icon className="size-5" aria-hidden="true" />
             </span>

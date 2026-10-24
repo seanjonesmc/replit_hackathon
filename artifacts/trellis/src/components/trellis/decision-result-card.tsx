@@ -1,11 +1,11 @@
-import { useId, type ReactNode } from 'react';
+import { useId, useRef, type ReactNode } from 'react';
 import { CheckCircle2, Clock, Lock, MinusCircle, XCircle, type LucideIcon } from 'lucide-react';
 import { Loader2, Send } from 'lucide-react';
 import { BRAND } from '@brand/brand.config';
 import { cn } from '@/lib/utils';
 import { formatCents, formatDecisionTime, formatDurationMs } from '@/lib/format';
 import type { ChainStatus, DecidedBy, Decision } from '@/lib/domain';
-import { motion } from './motion';
+import { motion, stagger } from './motion';
 import { ChainBadge, PillButton, decisionMeta } from './primitives';
 
 /** One step of what happened during the swipe, in plain words. */
@@ -71,9 +71,16 @@ const decidedByLabel: Record<DecidedBy, string> = {
   ai_guard: 'AI guard',
 };
 
+/** When the result's badge and step-trace lines start appearing, after the card begins to rise. */
+const BADGE_DELAY_MS = 100;
+const TRACE_DELAY_MS = 200;
+
 /**
- * Full-screen result of a spending decision. Fills its container; scales in
- * from 0.95 on mount (remount with a new `key` to replay).
+ * Full-screen result of a spending decision. Fills its container; fades in
+ * and rises on mount (remount with a new `key` to replay), then its badge and
+ * step-trace lines appear one after another. When the decision changes in
+ * place (a pending swipe answered), the header color shifts and the new badge
+ * and details fade in instead of the card jumping.
  */
 export function DecisionResultCard({
   decision,
@@ -101,6 +108,10 @@ export function DecisionResultCard({
   const meta = decisionMeta[decision];
   const titleId = useId();
   const canAsk = decision !== 'approved' && ask !== 'hidden';
+  // Keyed by what the badge says: a new decision on the same card fades in.
+  const outcomeKey = `${decision}:${label ?? ''}`;
+  const firstOutcome = useRef(outcomeKey);
+  const changed = outcomeKey !== firstOutcome.current;
 
   return (
     <section
@@ -108,11 +119,22 @@ export function DecisionResultCard({
       aria-labelledby={titleId}
       data-testid={`card-decision-${decision}`}
     >
-      <div className={cn('flex flex-col items-center px-6 pb-8 pt-10 text-center', meta.bg)}>
-        <span className={cn('grid size-16 place-items-center rounded-full bg-surface', meta.fg)}>
+      <div className={cn('flex flex-col items-center px-6 pb-8 pt-10 text-center', motion.colorShift, meta.bg)}>
+        <span
+          key={`icon-${outcomeKey}`}
+          className={cn('grid size-16 place-items-center rounded-full bg-surface', meta.fg, motion.lineIn)}
+          style={stagger(0, changed ? 0 : BADGE_DELAY_MS)}
+          data-testid="badge-decision"
+        >
           <meta.Icon className="size-9" strokeWidth={2.2} aria-hidden="true" />
         </span>
-        <Title id={titleId} className={cn('type-display-md mt-4', meta.fg)} data-testid="text-decision-label">
+        <Title
+          key={`label-${outcomeKey}`}
+          id={titleId}
+          className={cn('type-display-md mt-4', meta.fg, motion.lineIn)}
+          style={stagger(1, changed ? 0 : BADGE_DELAY_MS)}
+          data-testid="text-decision-label"
+        >
           {label ?? meta.label}
         </Title>
         <p className={cn('type-display-xl tnum mt-3 text-ink', decision === 'rejected' && 'line-through decoration-2')}>
@@ -125,7 +147,7 @@ export function DecisionResultCard({
         </p>
       </div>
 
-      <div className="flex flex-1 flex-col gap-6 p-6">
+      <div key={`body-${outcomeKey}`} className={cn('flex flex-1 flex-col gap-6 p-6', changed && motion.fadeIn)}>
         <div>
           <p className="type-body-md" data-testid="text-decision-reason">{reason}</p>
           <p className="type-caption mt-1 text-ink-muted">
@@ -140,7 +162,12 @@ export function DecisionResultCard({
               {trace.map((step, i) => {
                 const { Icon, cls } = traceIcon[step.state];
                 return (
-                  <li key={i} className="flex items-start gap-2" data-testid={`trace-step-${i + 1}`}>
+                  <li
+                    key={i}
+                    className={cn('flex items-start gap-2', motion.lineIn)}
+                    style={stagger(i, TRACE_DELAY_MS)}
+                    data-testid={`trace-step-${i + 1}`}
+                  >
                     <Icon className={cn('mt-0.5 size-4 shrink-0', cls)} strokeWidth={2.4} aria-hidden="true" />
                     <span className={cn('type-body-sm', step.state === 'held' && 'font-semibold')}>{step.label}</span>
                   </li>
@@ -179,7 +206,7 @@ export function DecisionResultCard({
           <div className="flex items-center justify-between gap-3 py-3">
             <dt className="type-caption text-ink-muted">Chain</dt>
             <dd>
-              <ChainBadge status={chain} />
+              <ChainBadge status={chain} animateChange />
             </dd>
           </div>
         </dl>

@@ -20,6 +20,7 @@ import {
 import { BRAND } from '@brand/brand.config';
 import { useCreateSwipe, useGetCard, useGetPolicy, useListMerchants, type Card, type Merchant } from '@workspace/api-client-react';
 import { MerchantTile } from '@/components/trellis/merchant-tile';
+import { motion } from '@/components/trellis/motion';
 import { SectionTitle } from '@/components/trellis/primitives';
 import { LoadingRegion, Skeleton } from '@/components/trellis/skeletons';
 import { ErrorState } from '@/components/trellis/states';
@@ -161,8 +162,9 @@ export default function SwipeSimulator() {
         setCustomOpen(true);
       }}
       className={cn(
-        'flex min-h-[148px] flex-col items-start gap-3 rounded-card-sm border-2 border-dashed border-ink/25 bg-surface p-4 text-left transition-[background-color,transform] duration-200 ease-out',
-        'hover:bg-tint active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+        'flex min-h-[148px] flex-col items-start gap-3 rounded-card-sm border-2 border-dashed border-ink/25 bg-surface p-4 text-left',
+        motion.press,
+        'hover:bg-tint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
       )}
       data-testid="button-custom-purchase"
     >

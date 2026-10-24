@@ -10,10 +10,12 @@ import {
   type Settlement,
   type SettlementStep,
 } from '@workspace/api-client-react';
+import { motion, stagger } from '@/components/trellis/motion';
 import { ChainBadge, PillButton, Tag } from '@/components/trellis/primitives';
 import { apiErrorMessage, refreshAfterSwipe } from '@/features/family/spending';
 import { chainStatusOf } from '@/lib/chain';
 import { formatCents } from '@/lib/format';
+import { cn } from '@/lib/utils';
 
 /** Stop waiting for the chain after this long; badges then show the last known state. */
 const CHAIN_WAIT_MS = 120_000;
@@ -28,6 +30,9 @@ const STEP_ICON: Record<SettlementStep['key'], LucideIcon> = {
 // A capture starts as not_submitted until the background write picks it up,
 // so only a mined or failed write ends the wait (capped by CHAIN_WAIT_MS).
 const chainDone = (chain: ChainRecord | null) => chain === null || chain.status === 'confirmed' || chain.status === 'failed';
+
+/** Settlement steps come in a little slower than other sequences so each one can be read on the demo video. */
+const SETTLE_STAGGER_MS = 140;
 
 const shortAddress = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`;
 
@@ -114,17 +119,28 @@ function SettlementSummary({ id, startedAt }: { id: number; startedAt: number })
   return <SettlementSteps settlement={data} />;
 }
 
+/**
+ * The run's result: each purchase, then its three steps appearing one after
+ * another, purchase by purchase.
+ */
 export function SettlementSteps({ settlement }: { settlement: Settlement }) {
+  // Each purchase takes its turn: its card, then its steps.
+  const startOf = (index: number) => settlement.purchases.slice(0, index).reduce((n, p) => n + p.steps.length + 1, 1);
   return (
     <div className="mt-4" data-testid={`summary-settlement-${settlement.id}`}>
-      <p className="type-body-sm flex items-center gap-2" role="status">
+      <p className={cn('type-body-sm flex items-center gap-2', motion.riseIn)} role="status">
         <CheckCircle2 className="size-5 text-approved" aria-hidden="true" />
         Settled {settlement.purchaseCount} {settlement.purchaseCount === 1 ? 'purchase' : 'purchases'} ·{' '}
         <span className="tnum font-semibold">{formatCents(settlement.totalCents)}</span>
       </p>
       <ul className="mt-3 flex flex-col gap-3">
-        {settlement.purchases.map((p) => (
-          <li key={p.authorizationId} className="rounded-card-sm bg-surface-alt p-4" data-testid={`settled-purchase-${p.authorizationId}`}>
+        {settlement.purchases.map((p, pi) => (
+          <li
+            key={p.authorizationId}
+            className={cn('rounded-card-sm bg-surface-alt p-4', motion.riseIn)}
+            style={stagger(startOf(pi), 0, SETTLE_STAGGER_MS)}
+            data-testid={`settled-purchase-${p.authorizationId}`}
+          >
             <p className="flex items-baseline justify-between gap-2">
               <span className="type-link-sm">
                 {p.merchantName}
@@ -136,7 +152,12 @@ export function SettlementSteps({ settlement }: { settlement: Settlement }) {
               {p.steps.map((s, i) => {
                 const Icon = STEP_ICON[s.key];
                 return (
-                  <li key={s.key} className="flex gap-3" data-testid={`settlement-step-${p.authorizationId}-${i + 1}`}>
+                  <li
+                    key={s.key}
+                    className={cn('flex gap-3', motion.riseIn)}
+                    style={stagger(startOf(pi) + i + 1, 0, SETTLE_STAGGER_MS)}
+                    data-testid={`settlement-step-${p.authorizationId}-${i + 1}`}
+                  >
                     <span className="grid size-9 shrink-0 place-items-center rounded-full bg-surface text-ink">
                       <Icon className="size-4" aria-hidden="true" />
                     </span>
@@ -147,7 +168,7 @@ export function SettlementSteps({ settlement }: { settlement: Settlement }) {
                       <p className="type-caption mt-0.5 text-ink-muted">{s.detail}</p>
                       <div className="mt-1.5 flex flex-wrap items-center gap-2">
                         {s.simulated && <Tag tone="neutral">Simulated</Tag>}
-                        {s.chain && <ChainBadge status={chainStatusOf(s.chain)} />}
+                        {s.chain && <ChainBadge status={chainStatusOf(s.chain)} animateChange />}
                       </div>
                     </div>
                   </li>

@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import { formatCents } from '@/lib/format';
+import { AnimatedCents } from './animated-cents';
 
 interface HeroBalanceCardProps {
   /** Small uppercase label above the amount, e.g. the family name. */
@@ -19,7 +19,8 @@ interface HeroBalanceCardProps {
 /**
  * The hero balance card. One of the surfaces allowed to use the signature
  * color (with the header band and the top bar). The virtual card has its own
- * dark card face so the two never look alike.
+ * dark card face so the two never look alike. The amount counts to its new
+ * value when it changes.
  */
 export function HeroBalanceCard({ eyebrow, amountCents, caption, badge, children, className, 'data-testid': testId }: HeroBalanceCardProps) {
   return (
@@ -29,7 +30,7 @@ export function HeroBalanceCard({ eyebrow, amountCents, caption, badge, children
         {badge}
       </div>
       <p className="type-display-xl tnum mt-6 break-words" data-testid="text-hero-balance">
-        {formatCents(amountCents)}
+        <AnimatedCents cents={amountCents} />
       </p>
       {caption && <p className="type-caption mt-1">{caption}</p>}
       {children && <div className="mt-6">{children}</div>}

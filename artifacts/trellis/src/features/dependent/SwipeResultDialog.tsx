@@ -76,6 +76,8 @@ function ResultCard({ shown, onDone }: { shown: ShownSwipe; onDone: () => void }
     if (answered) void refreshAfterSwipe(queryClient);
   }, [answered, queryClient]);
 
+  // Every answer reuses the pending card (same key): it changes in place,
+  // fading to the new decision instead of jumping to a fresh screen.
   const common = { merchant: merchantName, amountCents, titleAs: 'h2' as const, onDone };
 
   if (answered && thread.data) {
@@ -83,7 +85,7 @@ function ResultCard({ shown, onDone }: { shown: ShownSwipe; onDone: () => void }
     if (original.status === 'parent_declined' || !retry) {
       return (
         <DecisionResultCard
-          key={`${result.authorizationId}-declined`}
+          key={result.authorizationId}
           {...common}
           decision="rejected"
           label="Parent declined"
@@ -98,7 +100,7 @@ function ResultCard({ shown, onDone }: { shown: ShownSwipe; onDone: () => void }
     }
     return (
       <DecisionResultCard
-        key={`${result.authorizationId}-retry-${retry.id}`}
+        key={result.authorizationId}
         {...common}
         decision={DECISION[retry.decision]}
         bucket={retry.bucketName ?? undefined}

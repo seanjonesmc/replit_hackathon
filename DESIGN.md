@@ -310,21 +310,44 @@ partial styling; build them as real components when their screens are rebuilt.
 
 ### Motion
 
-Motion only happens when **money moves, a decision lands, or Monad confirms**.
-Nothing moves for decoration.
+Motion explains what just happened: **money moves, a decision lands, Monad
+confirms, or a request or state changes** on a screen the demo shows. Nothing
+moves for decoration.
 
 - One easing curve: `ease-settle` = cubic-bezier(0.2, 0.8, 0.2, 1). No bounce
   or overshoot.
-- Three durations: **350ms** (quick: taps, small state changes), **600ms**
-  (base: a decision card or the virtual card arriving), **900ms** (slow: a
-  chain confirmation or balance settling).
-- Short distances: rise a few pixels, scale from 0.97 at most.
+- Three durations: **350ms** (quick: taps, small state changes, items leaving),
+  **600ms** (base: a decision card, the virtual card or a block arriving),
+  **900ms** (slow: a chain confirmation, a balance counting, a bar settling).
+- Short distances: rise a few pixels (8px at most), scale from 0.97 at most.
 - Nothing loops: no spinners left running for effect, no pulsing badges.
-- Presets live in `components/trellis/motion.ts`: the decision result card
-  fades in and rises (600ms); the virtual card rises and settles from 97% on
-  “Accept card” (600ms).
-- Respect reduced-motion settings (`motion-reduce:animate-none`): show the
-  final state without animating.
+- Sequences stagger by a short gap (90ms; settlement steps 140ms so each can
+  be read on video). Motion never delays a decision or a button: entries only
+  fade content in and never block a tap.
+- Presets live in `components/trellis/motion.ts`:
+  - `decisionIn` / `cardIn` / `ruleIn` / `itemIn`: the decision result card,
+    the virtual card on “Accept card”, policy rule lines and small items.
+  - `riseIn` + `stagger(i)`: blocks arriving one after another (sign-in
+    tagline and feature cards, money-sent steps, settlement steps).
+  - `lineIn` + `stagger(i)`: the decision badge and step-trace lines.
+  - `fadeIn`: content that changed in place (a pending result answered, the
+    “all caught up” state).
+  - `chainIn`: a chain badge fading to its new state (`ChainBadge
+    animateChange`, only on screens that watch a write land).
+  - `press`: tappable tiles press down slightly.
+  - `colorShift`, `overlay`, `barWidth`, `collapse`: a result header changing
+    color, the frozen-card overlay fading, bucket bars easing to a new width,
+    a settled held line collapsing.
+  - `AnimatedCents` / `useCountUp`: balances count up or down to a new value
+    (900ms) when they change; they show the value at once on first load.
+  - Answered approvals fade and collapse out of the list (350ms, the only
+    place that uses the animation library, because it needs an exit).
+- Scope: the demo screens only (sign-in, Add money, Swipe and its result,
+  Approvals, parent home with settlement, wallet balances, card freeze).
+  Activity history, settings, insights, /brand and route changes stay still.
+- Respect reduced-motion settings (`motion-reduce:animate-none`,
+  `motion-reduce:transition-none`, `useReducedMotion`): show the final state
+  at once, with no count-ups or exits.
 - Hover and press color changes are feedback, not motion, and stay short.
 
 ### Copy

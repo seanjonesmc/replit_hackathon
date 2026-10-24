@@ -111,14 +111,17 @@ export function VirtualCard({
         </div>
       </figcaption>
 
-      {frozen && (
-        <div className="absolute inset-0 grid place-items-center bg-ink/45" data-testid="state-card-frozen">
-          <span className="type-link-sm inline-flex h-9 items-center gap-2 rounded-pill bg-surface px-4 text-ink">
-            <Snowflake className="size-4" aria-hidden="true" />
-            Frozen
-          </span>
-        </div>
-      )}
+      {/* Always rendered so freezing and unfreezing fade it in and out; hidden (and untestable) while unfrozen. */}
+      <div
+        className={cn('absolute inset-0 grid place-items-center bg-ink/45', motion.overlay, frozen ? 'visible opacity-100' : 'invisible opacity-0')}
+        aria-hidden={frozen ? undefined : true}
+        data-testid={frozen ? 'state-card-frozen' : undefined}
+      >
+        <span className="type-link-sm inline-flex h-9 items-center gap-2 rounded-pill bg-surface px-4 text-ink">
+          <Snowflake className="size-4" aria-hidden="true" />
+          Frozen
+        </span>
+      </div>
     </figure>
   );
 }

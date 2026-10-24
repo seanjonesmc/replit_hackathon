@@ -1,6 +1,7 @@
 import { Clock, Loader2, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCents } from '@/lib/format';
+import { motion } from './motion';
 
 interface MerchantTileProps {
   name: string;
@@ -40,8 +41,9 @@ export function MerchantTile({ name, category, mcc, amountCents, timeNote, icon:
       aria-busy={loading || undefined}
       aria-label={label}
       className={cn(
-        'flex min-h-[148px] flex-col items-start gap-3 rounded-card-sm border bg-surface p-4 text-left transition-[background-color,transform,opacity] duration-200 ease-out',
-        'hover:bg-tint active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+        'flex min-h-[148px] flex-col items-start gap-3 rounded-card-sm border bg-surface p-4 text-left',
+        motion.press,
+        'hover:bg-tint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
         'disabled:pointer-events-none',
         (disabled || unavailable) && 'opacity-40',
         className,

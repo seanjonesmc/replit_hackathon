@@ -2,7 +2,7 @@
 version: alpha
 name: Trellis
 description: >-
-  Trellis is a testnet-only family spending app: a parent sets guardrails, family funders add money to spending buckets, and a dependent spends on a simulated card while every decision is explained in plain English and can be recorded on Monad. The visual language comes from the Trellis app mockup (design/reference/trellis-app-mockup.html at the workspace root). Lime `#dcf26e` marks money and actions (hero balance, header band, top bar) and always carries dark lime-ink `#1c2008` text; the virtual debit card has its own dark charcoal card face (`#3a3c36` to `#121310`) with off-white `#f6f5f1` text. Sky `#d3e7ee` with sky-ink `#12313b` marks anything recorded on Monad. Primary buttons are near-black `#171815` pills with off-white `#f6f5f1` text on a warm stone ground `#eceae4`. Headings are Urbanist at weight 600 with tight tracking, body text is Geist, and codes are Geist Mono. Corners are soft (999px pills, 28px cards, 22px secondary cards, 14px items), surfaces layer stone, screen and white card without shadows (only the virtual card and the signed-out feature cards carry a soft ink shadow), and motion only happens when money moves, a decision lands, or Monad confirms.
+  Trellis is a testnet-only family spending app: a parent sets guardrails, family funders add money to spending buckets, and a dependent spends on a simulated card while every decision is explained in plain English and can be recorded on Monad. The visual language comes from the Trellis app mockup (design/reference/trellis-app-mockup.html at the workspace root). Lime `#dcf26e` marks money and actions (hero balance, header band, top bar) and always carries dark lime-ink `#1c2008` text; the virtual debit card has its own dark charcoal card face (`#3a3c36` to `#121310`) with off-white `#f6f5f1` text. Sky `#d3e7ee` with sky-ink `#12313b` marks anything recorded on Monad. Primary buttons are near-black `#171815` pills with off-white `#f6f5f1` text on a warm stone ground `#eceae4`. Headings are Urbanist at weight 600 with tight tracking, body text is Geist, and codes are Geist Mono. Corners are soft (999px pills, 28px cards, 22px secondary cards, 14px items), surfaces layer stone, screen and white card without shadows (only the virtual card and the signed-out feature cards carry a soft ink shadow), and motion only happens when money moves, a decision lands, Monad confirms, or a request or state changes on a demo screen.
 seo:
   title: "Trellis Design System: lime for money, sky for Monad"
   metaDescription: "Trellis tokens and components: lime money cards with lime-ink text, sky chain badges, near-black pills on warm stone, Urbanist + Geist + Geist Mono."
@@ -444,12 +444,21 @@ Buttons are 48px tall pills with 12px × 34px padding; the download pill is 44px
 
 ## Motion
 
-Motion only when money moves, a decision lands, or Monad confirms.
+Motion only when money moves, a decision lands, Monad confirms, or a request
+or state changes on a demo screen.
 
 - One easing curve: cubic-bezier(0.2, 0.8, 0.2, 1).
 - Three durations: 350ms (quick), 600ms (base), 900ms (slow).
 - Short distances (a few pixels of rise, scale from 0.97 at most), no overshoot.
 - Nothing loops.
+- Presets (app `components/trellis/motion.ts`): staggered rise-in for
+  sequences (90ms gap), decision badge and step-trace lines one by one, a
+  slight press on tappable tiles, fade-and-collapse for answered requests,
+  balances counting to their new value (900ms), bars easing to a new width
+  (900ms), overlays and changed chain badges fading.
+- Scope: demo screens only (sign-in, Add money, Swipe, Approvals, parent home
+  and settlement, wallet balances, card freeze). Never delay a decision or a
+  button.
 - Respect `prefers-reduced-motion`: show the final state.
 
 ## Components
