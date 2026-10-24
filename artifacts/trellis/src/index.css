@@ -1,0 +1,123 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Brand tokens. Real values are injected at startup on <html> from
+ * src/brand/brand.config.ts (see src/brand/brand-css.ts). The values here are
+ * neutral placeholders only so Tailwind generates the utilities
+ * (bg-primary, rounded-card, font-heading, ...). Do not put brand values here.
+ */
+@theme {
+  --color-signature: transparent;
+  --color-primary: transparent;
+  --color-primary-hover: transparent;
+  --color-tint: transparent;
+  --color-ink: currentColor;
+  --color-ink-muted: currentColor;
+  --color-surface: transparent;
+  --color-surface-alt: transparent;
+  --color-hairline: transparent;
+  --color-approved: currentColor;
+  --color-approved-bg: transparent;
+  --color-rejected: currentColor;
+  --color-rejected-bg: transparent;
+  --color-pending: currentColor;
+  --color-pending-bg: transparent;
+  --color-chain: currentColor;
+  --color-chain-bg: transparent;
+
+  --radius-pill: 0;
+  --radius-card: 0;
+  --radius-card-sm: 0;
+  --radius-tag: 0;
+  --radius-input: 0;
+
+  --font-heading: ui-sans-serif, system-ui, sans-serif;
+  --font-body: ui-sans-serif, system-ui, sans-serif;
+}
+
+/* shadcn/ui aliases, pointed at the brand tokens */
+@theme inline {
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-ink);
+  --color-border: var(--color-hairline);
+  --color-input: var(--color-hairline);
+  --color-ring: var(--color-primary);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-ink);
+  --color-card-border: var(--color-hairline);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-ink);
+  --color-popover-border: var(--color-hairline);
+  --color-primary-foreground: var(--color-surface);
+  --color-primary-border: var(--color-primary-hover);
+  --color-secondary: var(--color-tint);
+  --color-secondary-foreground: var(--color-primary);
+  --color-muted: var(--color-surface-alt);
+  --color-muted-foreground: var(--color-ink-muted);
+  --color-accent: var(--color-tint);
+  --color-accent-foreground: var(--color-primary);
+  --color-destructive: var(--color-rejected);
+  --color-destructive-foreground: var(--color-surface);
+
+  --font-sans: var(--font-body);
+  --radius-sm: var(--radius-tag);
+  --radius-md: var(--radius-input);
+  --radius-lg: var(--radius-input);
+  --radius-xl: var(--radius-card-sm);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-hairline);
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    font-family: var(--font-body);
+    background: var(--color-surface-alt);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  /* Type scale: reference sizes, Inter, negative heading tracking */
+  .type-display-xxl { font-family: var(--font-heading); font-size: 63px; font-weight: 500; line-height: 1; letter-spacing: -1.89px; }
+  .type-display-xl  { font-family: var(--font-heading); font-size: 51px; font-weight: 500; line-height: 1.05; letter-spacing: -1.02px; }
+  .type-display-md  { font-family: var(--font-heading); font-size: 33px; font-weight: 500; line-height: 1.05; letter-spacing: -0.67px; }
+  .type-title       { font-family: var(--font-heading); font-size: 22px; font-weight: 600; line-height: 1.2; letter-spacing: -0.44px; }
+  .type-body-lg     { font-size: 22px; font-weight: 400; line-height: 1.4; }
+  .type-body-md     { font-size: 18px; font-weight: 400; line-height: 1.4; }
+  .type-body-lead   { font-size: 18px; font-weight: 500; line-height: 1.4; }
+  .type-body-sm     { font-size: 16px; font-weight: 400; line-height: 1.4; }
+  .type-link-md     { font-size: 18px; font-weight: 700; line-height: 1.33; }
+  .type-link-sm     { font-size: 16px; font-weight: 700; line-height: 1.38; }
+  .type-caption     { font-size: 14px; font-weight: 400; line-height: 1.43; }
+  .type-label       { font-size: 12px; font-weight: 600; line-height: 1.3; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* Atmospheric signature blue: header sky only */
+  .header-sky {
+    background: linear-gradient(180deg, var(--color-signature) 0%, var(--color-signature) 55%, var(--color-surface) 100%);
+  }
+
+  /* Trellis lattice texture, used on hero card + virtual card */
+  .lattice {
+    background-image:
+      repeating-linear-gradient(45deg, color-mix(in srgb, var(--color-surface) 13%, transparent) 0 1px, transparent 1px 26px),
+      repeating-linear-gradient(-45deg, color-mix(in srgb, var(--color-surface) 13%, transparent) 0 1px, transparent 1px 26px);
+  }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { scrollbar-width: none; }
+}

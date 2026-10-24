@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><!-- generated-from-brand-config -->
+  <title>Trellis logo</title>
+  <rect width="64" height="64" rx="18" fill="#008cff"/>
+  <g fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 52V22"/>
+    <path d="M18 42l14-12 14 12"/>
+    <path d="M22 30l10-8 10 8"/>
+  </g>
+  <path d="M32 21c0-6 4-9.5 9.5-9.5 0 5.5-3.5 9.5-9.5 9.5z" fill="#ffffff"/>
+</svg>

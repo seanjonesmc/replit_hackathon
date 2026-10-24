@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <!-- Every value below is filled from src/brand/brand.config.ts by vite-brand-plugin.ts -->
+    <title>%BRAND_TITLE%</title>
+    <meta name="description" content="%BRAND_TAGLINE%" />
+    <meta name="theme-color" content="%BRAND_THEME%" />
+    <meta property="og:title" content="%BRAND_NAME%" />
+    <meta property="og:description" content="%BRAND_TAGLINE%" />
+    <meta property="og:image" content="%BRAND_OG%" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="%BRAND_NAME%" />
+    <meta name="twitter:description" content="%BRAND_TAGLINE%" />
+    <link rel="icon" type="image/svg+xml" href="%BRAND_FAVICON%" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link data-brand-fonts href="%BRAND_FONTS_URL%" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

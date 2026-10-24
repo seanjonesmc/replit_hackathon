@@ -1,0 +1,156 @@
+import { type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { CheckCircle2, Clock, Loader2, ShieldCheck, XCircle, ArrowUpRight } from 'lucide-react';
+import { BRAND } from '@brand/brand.config';
+import { cn } from '@/lib/utils';
+import type { Decision } from '@/lib/preview-data';
+
+export const brandAsset = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
+
+/* ---------- Logo ---------- */
+export function LogoMark({ className }: { className?: string }) {
+  return <img src={brandAsset(BRAND.logo.mark)} alt={BRAND.logo.alt} className={cn('size-9 rounded-[28%]', className)} data-testid="img-logo-mark" />;
+}
+
+export function Wordmark({ onDark, className }: { onDark?: boolean; className?: string }) {
+  return (
+    <span className={cn('inline-flex items-center gap-2.5', className)} data-testid="text-app-name">
+      <LogoMark className={onDark ? 'ring-2 ring-surface/70' : undefined} />
+      <span className={cn('font-heading text-[24px] font-semibold tracking-[-0.6px]', onDark ? 'text-surface' : 'text-ink')}>
+        {BRAND.appName}
+      </span>
+    </span>
+  );
+}
+
+/* ---------- Pill button ---------- */
+type Variant = 'primary' | 'outline' | 'tint' | 'onDark';
+interface PillProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: Variant;
+  size?: 'md' | 'sm';
+  loading?: boolean;
+  forceState?: 'hover' | 'pressed' | 'focus';
+  icon?: ReactNode;
+  block?: boolean;
+}
+
+const variantCls: Record<Variant, string> = {
+  primary: 'bg-primary text-surface hover:bg-primary-hover',
+  outline: 'bg-surface text-ink border border-ink hover:bg-ink/[0.04]',
+  tint: 'bg-tint text-primary hover:bg-primary/15',
+  onDark: 'bg-surface text-ink hover:bg-surface/90',
+};
+const forcedCls: Record<Variant, string> = {
+  primary: 'bg-primary-hover',
+  outline: 'bg-ink/[0.04]',
+  tint: 'bg-primary/15',
+  onDark: 'bg-surface/90',
+};
+
+export function PillButton({ variant = 'primary', size = 'md', loading, forceState, icon, block, className, children, disabled, ...rest }: PillProps) {
+  return (
+    <button
+      {...rest}
+      disabled={disabled || loading}
+      className={cn(
+        'relative inline-flex select-none items-center justify-center gap-2 rounded-pill font-bold transition-[background-color,transform,opacity] duration-200 ease-out active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
+        size === 'md' ? 'h-12 px-[34px] text-[18px]' : 'h-10 px-5 text-[15px]',
+        variantCls[variant],
+        forceState === 'hover' && forcedCls[variant],
+        forceState === 'pressed' && cn(forcedCls[variant], 'scale-[0.97]'),
+        forceState === 'focus' && 'outline-2 outline-offset-2 outline-primary',
+        block && 'w-full',
+        className,
+      )}
+    >
+      {loading ? <Loader2 className="size-5 animate-spin" /> : icon}
+      {children}
+    </button>
+  );
+}
+
+/* ---------- Status pill (always icon + label) ---------- */
+const statusMeta: Record<Decision, { label: string; cls: string; Icon: typeof CheckCircle2 }> = {
+  approved: { label: 'Approved', cls: 'bg-approved-bg text-approved', Icon: CheckCircle2 },
+  rejected: { label: 'Declined', cls: 'bg-rejected-bg text-rejected', Icon: XCircle },
+  pending: { label: 'Pending', cls: 'bg-pending-bg text-pending', Icon: Clock },
+};
+
+export function StatusPill({ status, className }: { status: Decision; className?: string }) {
+  const m = statusMeta[status];
+  return (
+    <span className={cn('inline-flex h-7 items-center gap-1.5 rounded-pill px-3 text-[13px] font-semibold', m.cls, className)} data-testid={`status-${status}`}>
+      <m.Icon className="size-4" strokeWidth={2.4} />
+      {m.label}
+    </span>
+  );
+}
+
+/* ---------- Verified badge ----------
+ * verified: only render with a real explorer href (never fabricated).
+ * confirming: chain call in flight.
+ * preview: design-preview sample, nothing was sent.
+ */
+export function VerifiedBadge({ state, href }: { state: 'verified' | 'confirming' | 'preview'; href?: string }) {
+  const base = 'inline-flex h-7 items-center gap-1.5 rounded-pill px-3 text-[13px] font-semibold';
+  if (state === 'confirming')
+    return (
+      <span className={cn(base, 'bg-surface-alt text-ink-muted')} data-testid="badge-confirming">
+        <Loader2 className="size-3.5 animate-spin" /> Confirming
+      </span>
+    );
+  if (state === 'preview')
+    return (
+      <span className={cn(base, 'border border-dashed border-chain/50 bg-surface text-chain')} data-testid="badge-preview">
+        <ShieldCheck className="size-3.5" /> Preview, not on chain
+      </span>
+    );
+  const inner = (
+    <>
+      <ShieldCheck className="size-3.5" /> {BRAND.copy.verifiedLabel}
+      <ArrowUpRight className="size-3.5" />
+    </>
+  );
+  return href ? (
+    <a href={href} target="_blank" rel="noreferrer" className={cn(base, 'bg-chain-bg text-chain hover:underline')} data-testid="link-verified">
+      {inner}
+    </a>
+  ) : (
+    <span className={cn(base, 'bg-chain-bg text-chain')} data-testid="badge-verified-specimen">{inner}</span>
+  );
+}
+
+/* ---------- Tag ---------- */
+export function Tag({ children, tone = 'chain' }: { children: ReactNode; tone?: 'chain' | 'rejected' | 'neutral' }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center rounded-tag px-2 py-1 text-[13px] font-medium',
+        tone === 'chain' && 'bg-chain-bg text-chain',
+        tone === 'rejected' && 'bg-rejected-bg text-rejected',
+        tone === 'neutral' && 'bg-surface-alt text-ink-muted',
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+/* ---------- Avatar ---------- */
+export function InitialAvatar({ name, className }: { name: string; className?: string }) {
+  const ini = name.split(/\s+/).filter(Boolean).map((p) => p[0]).slice(-2).join('').toUpperCase();
+  return (
+    <span className={cn('grid size-10 shrink-0 place-items-center rounded-full bg-surface-alt text-[14px] font-semibold text-ink', className)}>
+      {ini}
+    </span>
+  );
+}
+
+/* ---------- Section heading ---------- */
+export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
+  return (
+    <div className="mb-3 flex items-end justify-between px-1">
+      <h2 className="type-title">{children}</h2>
+      {action}
+    </div>
+  );
+}

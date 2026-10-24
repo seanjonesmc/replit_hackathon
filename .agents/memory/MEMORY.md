@@ -1,0 +1,1 @@
+- [Product scope and branding](product-scope.md) — phased testnet-only family spending demo with strict centralized branding and an immutable reference.
