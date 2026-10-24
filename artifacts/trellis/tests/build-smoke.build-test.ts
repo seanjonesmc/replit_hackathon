@@ -75,6 +75,12 @@ describe(`trellis production build under BASE_PATH=${BASE_PATH}`, () => {
     }
   });
 
+  it('ships the app shell and its placeholder screens', () => {
+    for (const marker of ['app-shell', 'nav-role-switcher', 'empty-coming-soon']) {
+      expect(bundledJs, `${marker} missing from the production bundle`).toContain(marker);
+    }
+  });
+
   it.each(brandAssetPaths)('ships %s from the canonical root public/ folder', (p) => {
     const built = path.join(outDir, p);
     expect(fs.existsSync(built), `${p} missing from build output`).toBe(true);

@@ -8,8 +8,9 @@ root `src/brand/`, assets in root `public/brand/`.
 
 `pages/brand.tsx` lazy-loads `BrandPreview` only when `import.meta.env.DEV` is
 true, so production builds drop the preview and its samples and render
-`PreviewUnavailable` instead (checked by `pnpm test:build`). The root route is a
-separate branded holding screen with no sample data.
+`PreviewUnavailable` instead (checked by `pnpm test:build`). The preview renders
+outside the app shell; its shell sample runs on an in-memory router, so clicks
+never leave /brand.
 
 Every sample block carries the preview-data label. Interactions change local
 presentation state only and say so; no APIs, persistence, verified badges or

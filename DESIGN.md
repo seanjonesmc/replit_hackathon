@@ -184,6 +184,13 @@ Decision colors are **always paired with an icon and a label**, never color alon
 - Mobile-first, designed at **390px** wide.
 - On wider screens, center the app in a **430px** phone-width column
   (`max-w-phone`) on the `color.surfaceAlt` sand background.
+- App shell: the role switcher is pinned at the top on `color.signature`, the
+  screen scrolls, and the role's tab bar is pinned at the bottom. Both bars stay
+  in the column's flow (sticky), so content is never hidden behind them, and
+  they pad for the phone's safe areas (`.pt-safe`, `.pb-safe`).
+- Roles, tabs and their URLs (`/<role>/<tab>`) live in one route map,
+  `artifacts/trellis/src/lib/route-map.ts`. The root opens the last-used role
+  (the parent by default).
 - Full-screen components (onboarding step, decision result) fill their column.
 - At narrow widths, stack compositions and wrap pills. Avoid horizontal page
   overflow.
@@ -204,8 +211,9 @@ through props, and never import preview samples.
 | Full-screen decision result card | Built | Icon + label, amount, merchant, plain-English reason, reason code in small text, decision time, chain status; `BRAND.copy.askParentLabel` button for declined and pending |
 | Empty states | Built | Tint icon circle, title, one sentence, optional action |
 | Loading skeletons | Built | Shapes match hero, bucket and activity row; announced once as “Loading” |
-| Role switcher | Planned | Pill segmented control pinned at the top |
-| Bottom tab bar per role | Planned | Not linked to /brand |
+| Role switcher | Built | Pill segmented control on the `color.signature` top bar; one link per role (BRAND.demo name + role) to that role's first tab |
+| Bottom tab bar per role | Built | Icon + label per tab; active tab gets a `color.tint` pill, bold label and `aria-current`; optional count badge; never links to /brand |
+| Coming-soon screen | Built | Tab title on the header sky plus an empty state; placeholder until a screen is built, no sample data or actions |
 | Swipe-simulator merchant grid | Planned | Later phase |
 | Policy card | Planned | Later phase |
 
@@ -252,12 +260,13 @@ from the shared components above and shows: logo, app name and tagline; color
 swatches with values; the type scale; spacing and radii; buttons in every state;
 status pills, badges, tags and avatars; the hero balance card, virtual card,
 bucket cards and activity rows; an onboarding step and the decision result card
-in phone-sized frames (with replay controls); empty-state and loading samples.
+in phone-sized frames (with replay controls); empty-state and loading samples;
+the role switcher and each role's tab bar, including a clickable shell in a
+phone frame that keeps its own address.
 
 All samples are labelled as preview data and do not call APIs or persist
 anything. Production builds do not include the preview; /brand shows an honest
-“not available” message there. Until the app shell lands, the root shows a
-minimal branded holding screen (logo, app name, tagline, no sample data).
+“not available” message there. /brand renders outside the app shell.
 
 ## Canonical assets
 

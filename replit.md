@@ -63,7 +63,8 @@ test locations, and phase gates.
 ## Current baseline
 
 Phase 0 provides brand configuration/assets, styling, shared primitives and app
-components, an editable root `DESIGN.md`, a branded holding screen at the root,
+components, an editable root `DESIGN.md`, the app shell (role switcher, per-role
+tab bars and a coming-soon placeholder for every main screen; no data yet),
 and a development-only component preview at the hidden `/brand` route. The API
 exposes health and sign-in (`/api/login`, `/api/callback`, `/api/logout`,
 `/api/auth/user`) and the family routes (`/api/family`, `/api/overview`, bank

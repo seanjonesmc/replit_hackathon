@@ -15,6 +15,7 @@ import { demo } from '@/lib/preview-data';
 import { CardsSection } from './CardsSection';
 import { FlowsSection } from './FlowsSection';
 import { Panel, Specimen } from './preview-kit';
+import { ShellSection } from './ShellSection';
 import { StatesSection } from './StatesSection';
 
 const swatches: { name: string; token: string; cls: string; key: keyof typeof BRAND.colors }[] = [
@@ -73,6 +74,7 @@ const nav = [
   ['cards', 'App cards'],
   ['flows', 'Onboarding & decisions'],
   ['states', 'Empty & loading'],
+  ['shell', 'Role switcher & tabs'],
 ] as const;
 
 /** Development-only brand and component preview, served at the hidden /brand route. */
@@ -288,6 +290,7 @@ export default function BrandPreview() {
         <CardsSection />
         <FlowsSection />
         <StatesSection />
+        <ShellSection />
       </main>
     </div>
   );

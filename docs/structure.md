@@ -140,6 +140,10 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | `api-server` | `artifacts/api-server/tests/family.test.ts`            | every family route returns 401 JSON signed out; 400 for invalid ids/amounts (no database) |
 | `trellis`    | `artifacts/trellis/vite-brand-plugin.test.ts`          | BRAND-filled `index.html`, base-path asset URLs, SVG output  |
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
+| `trellis`    | `artifacts/trellis/src/lib/route-map.test.ts`          | roles, tabs and URLs; BRAND.demo names; last-used role       |
+| `trellis`    | `artifacts/trellis/src/components/trellis/shell-nav.test.tsx` | role switcher and tab bar links, current marks, count badge |
+| `trellis`    | `artifacts/trellis/src/App.test.tsx`                   | root and deep-link routing, role/tab switching, not-found, placeholders, sub-path base |
+| `trellis`    | `artifacts/trellis/src/index-css.test.ts`              | every CSS variable `index.css` reads is defined or has a fallback; safe-area padding present |
 | `workspace`  | `scripts/tests/design-reference.test.ts`               | reference checksum; no code references the reference        |
 | `workspace`  | `scripts/tests/product-spec.test.ts`                   | `docs/product-spec.md` size and checksum (never edit it)     |
 | `workspace`  | `scripts/tests/brand-values.test.ts`                   | no hex colors, or current or past BRAND app name, demo/bank names or fonts, in source outside `src/brand/`, generated files and listed exceptions; BRAND values recorded in `src/brand/brand-history.ts` |
@@ -151,7 +155,7 @@ or BRAND asset paths:
 
 | Project         | File                                               | Guards                                                                 |
 | --------------- | -------------------------------------------------- | ---------------------------------------------------------------------- |
-| `trellis-build` | `artifacts/trellis/tests/build-smoke.build-test.ts` | build with `BASE_PATH=/smoke/sub-path/`: favicon, `og:image` and entry script are prefixed; every BRAND asset is in the output and matches root `public/` |
+| `trellis-build` | `artifacts/trellis/tests/build-smoke.build-test.ts` | build with `BASE_PATH=/smoke/sub-path/`: favicon, `og:image` and entry script are prefixed; every BRAND asset is in the output and matches root `public/`; the app shell ships and the /brand preview does not |
 
 It writes to the gitignored `generated-artifacts/trellis-build-smoke/`, never to
 the artifact's real `dist/`. The `.build-test.ts` suffix keeps it out of `pnpm test`.

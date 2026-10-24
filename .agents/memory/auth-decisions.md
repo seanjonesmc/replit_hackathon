@@ -18,4 +18,4 @@ Manual signed-in checks against the dev API (curl) work by inserting a temporary
 
 **Why:** No test database exists and the browser login can't be scripted from the shell; this exercises the real guard and Postgres.
 
-**How to apply:** If the checks moved money or linked banks, truncate the family tables (families … chain_events, RESTART IDENTITY CASCADE) and restart the API so the demo is reseeded fresh.
+**How to apply:** Leave the dev demo family as the seed made it; if a manual check changed family data, reset it so the API reseeds on restart.

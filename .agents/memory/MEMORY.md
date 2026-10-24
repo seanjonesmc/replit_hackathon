@@ -6,3 +6,5 @@
 - [/brand route vs asset folder](brand-route-asset-folder.md) — /brand route and public/brand/ share a path; published-site behavior unverified.
 - [On-chain authorize constraints](chain-authorize-contract.md) — approve needs a bucket and a matching code; categories must be lowercase; matters when wiring the engine.
 - [pnpm installs here](pnpm-workspace-installs.md) — never `pnpm add` with catalog: (rewrites workspace yaml); peers must be listed explicitly.
+- [happy-dom quirks](happy-dom-quirks.md) — to fake blocked storage, spy on the window.localStorage getter; Storage.prototype spies do nothing.
+- [Effect return values](effect-return-values.md) — Chrome's scrollTo returns a Promise; expression-bodied effects crash on cleanup. Use braces.
