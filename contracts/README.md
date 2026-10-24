@@ -14,6 +14,9 @@ ethers v6). Sources are in `src/`, tests in `test/`, testnet deployment scripts 
   writes the contract ABIs into `lib/chain/src/abis/`, which the API and the
   deploy scripts share. Run it after changing a contract; the `ChainAbis` test
   fails while the committed ABIs differ from the compiled ones.
+- `pnpm run contracts:deploy:dry-run` / `pnpm run contracts:deploy` (root) deploy
+  both contracts and seed the demo family, in-process or on Monad testnet. See
+  [scripts/README.md](scripts/README.md).
 
 See [docs/stack-decisions.md](../docs/stack-decisions.md) for secret names and the
 on-chain rules. Monad testnet only. Never commit private keys, local environment

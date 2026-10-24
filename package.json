@@ -11,7 +11,9 @@
     "test:build": "vitest run --config vitest.build.config.ts",
     "contracts:compile": "pnpm --filter @workspace/contracts run compile",
     "contracts:test": "pnpm --filter @workspace/contracts run test",
-    "contracts:export-abis": "pnpm --filter @workspace/contracts run export-abis"
+    "contracts:export-abis": "pnpm --filter @workspace/contracts run export-abis",
+    "contracts:deploy:dry-run": "pnpm --filter @workspace/contracts run deploy:dry-run",
+    "contracts:deploy": "pnpm --filter @workspace/contracts run deploy:monad"
   },
   "private": true,
   "dependencies": {

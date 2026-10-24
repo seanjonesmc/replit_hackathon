@@ -5,6 +5,7 @@
  */
 export * from "./abis";
 export * from "./codes";
+export * from "./demo-seed";
 export * from "./errors";
 export * from "./explorer";
 export * from "./ids";
@@ -25,6 +26,8 @@ export {
   type Bucket,
   type Bytes32,
   type Card,
+  type Merchant,
+  type NetworkCounts,
   type ChainClientOptions,
   type ChainEventRecord,
   type ChainReadiness,

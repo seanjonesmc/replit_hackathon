@@ -96,6 +96,8 @@ export interface WriteConfirmation<TIds extends object = NoIds> {
   confirmedAt: Date;
   /** From broadcast until the client saw the receipt. */
   confirmationMs: number;
+  /** Gas the transaction used, from its receipt. */
+  gasUsed: bigint;
   /** IDs the call created (authorization, bucket, card or contribution). */
   ids: TIds;
   events: ChainEventRecord[];
@@ -142,6 +144,21 @@ export interface Card {
   status: CardStatus;
 }
 
+export interface Merchant {
+  name: string;
+  mcc: number;
+  category: string;
+  payoutAddress: string;
+}
+
+/** How many of each record the network holds; IDs run from 1 to the count. */
+export interface NetworkCounts {
+  buckets: bigint;
+  contributions: bigint;
+  cards: bigint;
+  authorizations: bigint;
+}
+
 export interface Authorization {
   cardId: bigint;
   merchantId: Bytes32;
@@ -179,6 +196,7 @@ interface RawLog {
 interface RawReceipt {
   status: string;
   blockNumber: string;
+  gasUsed: string;
   logs: RawLog[];
 }
 
@@ -525,6 +543,34 @@ export class ChainClient {
     };
   }
 
+  /** Throws ChainCallRevertedError (UnknownMerchant) if it is not registered. */
+  async getMerchant(merchantId: Bytes32): Promise<Merchant> {
+    const [merchant] = await this.#read("network", "getMerchant", [merchantId]);
+    return {
+      name: merchant.name,
+      mcc: Number(merchant.mcc),
+      category: merchant.category,
+      payoutAddress: merchant.payoutAddress,
+    };
+  }
+
+  /** `category` must be a plain lowercase name, e.g. "bar". */
+  async isCategoryBlocked(category: string): Promise<boolean> {
+    const [blocked] = await this.#read("network", "isCategoryBlocked", [category]);
+    return blocked as boolean;
+  }
+
+  async getCounts(): Promise<NetworkCounts> {
+    const count = async (method: string) =>
+      (await this.#read("network", method, []))[0] as bigint;
+    return {
+      buckets: await count("bucketCount"),
+      contributions: await count("contributionCount"),
+      cards: await count("cardCount"),
+      authorizations: await count("authorizationCount"),
+    };
+  }
+
   /** tUSD balance (cents) of any address, e.g. a merchant payout wallet. */
   async getTusdBalance(address: string): Promise<bigint> {
     const [balance] = await this.#read("token", "balanceOf", [address]);
@@ -771,6 +817,7 @@ export class ChainClient {
       blockNumber,
       confirmedAt: new Date(Number(BigInt(block.timestamp)) * 1000),
       confirmationMs,
+      gasUsed: BigInt(receipt.gasUsed),
       events,
     };
   }

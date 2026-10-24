@@ -1,4 +1,4 @@
-import { sha256, toUtf8Bytes } from "ethers";
+import { dataSlice, getAddress, sha256, toUtf8Bytes } from "ethers";
 
 /**
  * The contracts' `bytes32` ID for a stable key: the SHA-256 of its UTF-8
@@ -22,4 +22,13 @@ export function memberChainId(roleKey: string): string {
 /** ID of a merchant, from its slug (e.g. `trader-joes`). */
 export function merchantChainId(slug: string): string {
   return chainId(`demo-family:merchant:${slug}`);
+}
+
+/**
+ * A seeded merchant's payout wallet: the last 20 bytes of a namespaced chain
+ * ID, so it is the same on every deployment. Nobody holds its key; captured
+ * tUSD simply accumulates there, like a merchant's settlement account.
+ */
+export function merchantPayoutAddress(slug: string): string {
+  return getAddress(dataSlice(chainId(`demo-family:merchant-payout:${slug}`), 12));
 }

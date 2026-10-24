@@ -1,0 +1,23 @@
+---
+name: Monad testnet deploy
+description: Cost, verification and config facts for deploying/seeding the contracts on Monad testnet, and how to typecheck contracts scripts.
+---
+
+- A full deploy + demo seed costs about 6.6M gas on Monad, ~6% more than Hardhat's
+  in-process rehearsal; at ~102 gwei (Oct 2026) that's ~0.67 MON. The script
+  refuses to start below rehearsal × 1.5, so the wallet needs ~1 MON.
+  **Why:** Monad reprices some opcodes; the rehearsal underestimates.
+  **How to apply:** when asking someone to fund a deployer, ask for ~1 MON per run.
+- `hardhat verify sourcify --network monadTestnet` gives an exact match on
+  sourcify.dev for chain 10143 in seconds; no API key needed.
+- Contract addresses, chain ID and explorer URL are per-environment variables
+  (not Secrets); only the deployer key is a Secret. Development points at the
+  dev deployment; production must get its own deployment and wallet.
+- When a user says the wallet is funded but the script reads 0 MON, check the
+  balance on two public RPCs and give them the explorer link for the exact
+  address their key derives to; the faucet may have funded another account.
+- contracts/tsconfig (nodenext) cannot resolve lib/chain's extensionless
+  re-exports, and the root typecheck skips contracts/. Check contracts scripts with
+  `tsc -p tsconfig.json --noEmit --module preserve --moduleResolution bundler`.
+- A fresh task env may lack the contracts → @workspace/chain symlink; run
+  `pnpm install --frozen-lockfile` if hardhat run reports ERR_MODULE_NOT_FOUND.

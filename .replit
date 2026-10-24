@@ -53,3 +53,11 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[userenv]
+
+[userenv.development]
+MOCKUSD_ADDRESS = "0x81b8eB2dc2B7EA27d27b84d2fbE839CC89dAc061"
+MONAD_CHAIN_ID = "10143"
+MONAD_EXPLORER_URL = "https://testnet.monadvision.com"
+NETWORK_ADDRESS = "0x0B7D36CDb2af14DB03Ae947bb845d8bDf4Aa9E17"

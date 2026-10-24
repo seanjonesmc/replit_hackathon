@@ -86,9 +86,11 @@ up by the phase that introduces it, not earlier.
   ethers toolbox, in the reserved `contracts/` area. The API uses ethers v6.**
   _Why:_ the spec names Hardhat and ethers v6; the ethers toolbox keeps contract
   scripts and the API on the same library. _Phase:_ 3.
-- **Configuration lives in Secrets under the spec's names: `MONAD_RPC_URL`,
-  `MONAD_CHAIN_ID`, `DEPLOYER_PRIVATE_KEY`, `MOCKUSD_ADDRESS`, `NETWORK_ADDRESS`,
-  `MONAD_EXPLORER_URL`.** _Why:_ Replit has no blockchain connector, and the
+- **Configuration uses the spec's names: `MONAD_RPC_URL`, `MONAD_CHAIN_ID`,
+  `DEPLOYER_PRIVATE_KEY`, `MOCKUSD_ADDRESS`, `NETWORK_ADDRESS`,
+  `MONAD_EXPLORER_URL`. The deployer key is a Secret; the addresses, chain ID and
+  URLs are public, so they are per-environment variables (a paid RPC URL with a
+  key in it goes in Secrets).** _Why:_ Replit has no blockchain connector, and the
   operator key must never be in the repo. _Phase:_ 3.
 - **Defaults from Monad's docs:** public RPC `https://testnet-rpc.monad.xyz`,
   the MonadVision explorer at `https://testnet.monadvision.com`, and test gas

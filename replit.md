@@ -14,6 +14,8 @@ Use the existing managed workflows; they supply `PORT` and the frontend
 - `pnpm test` — baseline regression checks (Vitest, root `vitest.config.ts`); add `--project api-server|trellis|chain|workspace` to run one
 - `pnpm run contracts:compile` / `pnpm run contracts:test` — compile Solidity and run contract tests (Hardhat 3, in-process network, no secrets)
 - `pnpm run contracts:export-abis` — regenerate `lib/chain/src/abis/` after a contract change
+- `pnpm run contracts:deploy:dry-run` — deploy and seed the demo family on the in-process network (no secrets)
+- `pnpm run contracts:deploy` — deploy and seed on Monad testnet (chain 10143 only; needs a funded `DEPLOYER_PRIVATE_KEY`)
 - `pnpm run build` — typecheck and build workspace packages (frontend needs `PORT` and `BASE_PATH`)
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API client and validation schemas after OpenAPI changes
 - `curl --fail http://localhost:80/api/healthz` — API health through the shared proxy
@@ -90,8 +92,9 @@ sign-in and signed-out rejection, seeding (against a throwaway
 `<db>_seed_test` database), the screen reads, BRAND asset URLs under the
 frontend base path, the byte-for-byte reference checksum, and the rule engine's
 preset swipes. Contracts use Hardhat 3; MockUSD and FamilyCardNetwork (simulated
-bank, pot buckets, cards, merchants and authorizations) exist and nothing is
-deployed. The API's AI service layer (`services/ai/`: policy builder and AI
+bank, pot buckets, cards, merchants and authorizations) are deployed and seeded
+with the demo family on Monad testnet for development only (addresses in the
+development environment variables; no production deployment yet). The API's AI service layer (`services/ai/`: policy builder and AI
 guard) exists; the decision engine calls the AI guard for swipes no hard rule
 decided, and the policy builder is not yet wired to routes.
 
@@ -106,7 +109,8 @@ Agreed decisions, with reasons and the phase that introduces each, are recorded 
   databases; the app seeds the demo family when none exists) and Replit Auth
   (presenter-only login).
 - Phase 3: Monad testnet only (chain 10143); Hardhat 3 with its ethers toolbox in
-  `contracts/`, ethers v6 in the API; configuration in Secrets under the spec's names.
+  `contracts/`, ethers v6 in the API; configuration under the spec's names (the deployer key in
+  Secrets; addresses, chain ID and URLs as per-environment variables).
 - Phase 4: Anthropic Claude through Replit AI Integrations, strict validated JSON,
   failures fall back to Pending.
 - Phase 6: Server-Sent Events with automatic polling fallback.

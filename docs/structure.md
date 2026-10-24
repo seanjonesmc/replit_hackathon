@@ -56,7 +56,7 @@ contracts/
   hardhat.config.ts         Hardhat 3 config (local and Monad testnet networks)
   src/                      Solidity sources
   test/                     Contract tests (Hardhat mocha + ethers)
-  scripts/                  ABI export to lib/chain; future testnet deployment scripts
+  scripts/                  ABI export to lib/chain; Monad testnet deploy and demo-family seed
 scripts/src/                Workspace maintenance commands
 design/reference/           Immutable Venmo reference
 docs/                       Contributor architecture documentation

@@ -6,7 +6,9 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "export-abis": "hardhat run scripts/export-abis.ts"
+    "export-abis": "hardhat run scripts/export-abis.ts",
+    "deploy:dry-run": "hardhat run scripts/deploy-and-seed.ts",
+    "deploy:monad": "hardhat run --network monadTestnet scripts/deploy-and-seed.ts"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^4.2.1",
