@@ -134,12 +134,24 @@ of these later features merely to populate the reserved folders.
 - Frontend: colocate component/hook tests as `*.test.tsx`/`*.test.ts` with the owning
   feature or shared component. Future browser flows belong in `artifacts/trellis/tests/`.
 - API: service unit tests alongside services; HTTP/integration tests in
-  `artifacts/api-server/tests/`.
+  `artifacts/api-server/tests/`. Tests that read or write Postgres go in
+  `artifacts/api-server/tests/db/` (the `api-server-db` project) and use the
+  test database below; no other API test may touch the database.
 - Libraries: colocate tests with their source; database integration tests belong
   in `lib/db/tests/` and must use an explicit test database.
 - Solidity: `contracts/test/`, run by Hardhat 3 with `pnpm run contracts:test`.
   This includes the `lib/chain` client driven against the in-process network
   (`ChainClient.ts`) and the committed-ABI check (`ChainAbis.ts`).
+
+**Test database.** The `api-server-db` project points `DATABASE_URL` at
+`<dev db>_test` on the same server (set in root `vitest.config.ts`), never at
+the development database. Its global setup (`tests/db/global-setup.ts`)
+creates that database through the server's `postgres` maintenance database,
+pushes the schema fresh, and drops it after the run, so a schema change that
+breaks these tests fails there. Its files run one at a time and empty every
+table first with `resetTestDatabase()` (`tests/db/test-database.ts`), which
+refuses any database whose name doesn't end in `_test`. Tests that call
+`processSwipe` pass `aiGuard: null` and stub the chain hand-off.
 
 Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 `pnpm test`; select one project with `pnpm test --project <name>`:
@@ -156,7 +168,8 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | `api-server` | `artifacts/api-server/src/services/decisions/outcome.test.ts` | the AI guard can't pay from a bucket other than the category's, and its approvals stay within bucket limits; a card frozen or a bucket drained before the swipe is stored rejects it (no database) |
 | `api-server` | `artifacts/api-server/tests/spending.test.ts`          | every spending route returns 401 JSON signed out (no database) |
 | `api-server` | `artifacts/api-server/tests/family-auth.test.ts`       | every per-screen `/family/*` read returns 401 without a valid session |
-| `api-server` | `artifacts/api-server/tests/demo-seed.test.ts`         | seeding (family, then spending) is idempotent (also concurrently); BRAND identities, agreed limits (including Transit and the late-night window), merchants, blocked categories, authorizations; funding dated before the history; every screen read returns contract-valid data. Uses a throwaway `<dev db>_seed_test` database, pushed fresh each run and dropped after |
+| `api-server-db` | `artifacts/api-server/tests/db/demo-seed.test.ts`   | seeding (family, then spending) is idempotent (also concurrently); BRAND identities, agreed limits (including Transit and the late-night window), merchants, blocked categories, authorizations; funding dated before the history; every screen read returns contract-valid data (test database) |
+| `api-server-db` | `artifacts/api-server/tests/db/swipe-money.test.ts` | the spending seed leaves Food $118.75, School $200, Social $25; an approval moves available → spent before the swipe returns; rejected and pending swipes move nothing; racing swipes never overspend a bucket (locked re-check at store time); a temporary pass approves once, even when two swipes race for it (AI guard off, test database) |
 | `trellis`    | `artifacts/trellis/vite-brand-plugin.test.ts`          | BRAND-filled `index.html`, base-path asset URLs, SVG output  |
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
 | `trellis`    | `artifacts/trellis/src/lib/route-map.test.ts`          | roles, tabs and URLs; BRAND.demo names; last-used role       |

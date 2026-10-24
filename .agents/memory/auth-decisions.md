@@ -10,13 +10,13 @@ Sign-in is web-only: the standard template's mobile token-exchange and mobile-lo
 
 Auth tests stub the session store (`vi.mock` of the server's auth lib) instead of writing rows to Postgres.
 
-**Why:** The project rule is that database tests must use an explicit test database, and none exists; the dev database must not collect test rows.
+**Why:** Non-DB API tests must never touch Postgres; the dev database must not collect test rows.
 
-**How to apply:** Same pattern for later route tests that need a signed-in user; prove real Postgres behaviour with a browser run (the tester can set login claims) and clean up its rows afterwards.
+**How to apply:** Same pattern for route tests that only need a signed-in user. Real Postgres behaviour belongs in the `api-server-db` test project (see db-tests.md), or a browser run whose rows are cleaned up afterwards.
 
 Manual signed-in checks against the dev API (curl) work by inserting a temporary `users` + `sessions` row (session JSON needs `user` and a future `expires_at`) and sending `Cookie: sid=<id>`; delete both rows afterwards. The session `user` must carry every auth-user field (id, email, firstName, lastName, profileImageUrl — null where unknown), otherwise `/api/auth/user` fails its response validation with a 500 while the family routes still work. Browser test runs also leave real login rows in `users`/`sessions`; delete them afterwards.
 
-**Why:** No test database exists and the browser login can't be scripted from the shell; this exercises the real guard and Postgres.
+**Why:** The browser login can't be scripted from the shell; this exercises the real guard against the dev Postgres.
 
 **How to apply:** Leave the dev demo family as the seed made it; if a manual check changed family data, reset it so the API reseeds on restart.
 

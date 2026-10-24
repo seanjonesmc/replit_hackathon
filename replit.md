@@ -11,7 +11,7 @@ Use the existing managed workflows; they supply `PORT` and the frontend
 - `pnpm --filter @workspace/api-server run dev` — build and start API, `/api`
 - `pnpm --filter @workspace/mockup-sandbox run dev` — existing design sandbox, `/__mockup`
 - `pnpm run typecheck` — build shared library declarations, then check all apps, scripts, and their tests
-- `pnpm test` — baseline regression checks (Vitest, root `vitest.config.ts`); add `--project api-server|trellis|chain|workspace` to run one
+- `pnpm test` — baseline regression checks (Vitest, root `vitest.config.ts`); add `--project api-server|api-server-db|trellis|chain|workspace` to run one (`api-server-db` uses its own `<db>_test` database, never the dev one)
 - `pnpm run contracts:compile` / `pnpm run contracts:test` — compile Solidity and run contract tests (Hardhat 3, in-process network, no secrets)
 - `pnpm run contracts:export-abis` — regenerate `lib/chain/src/abis/` after a contract change
 - `pnpm run contracts:deploy:dry-run` — deploy and seed the demo family on the in-process network (no secrets)
@@ -93,10 +93,10 @@ demo family; any signed-in account sees it. Every mirrored row stays
 later-phase controls (approve/decline, asking a parent, the policy builder) are
 shown disabled. Directory READMEs reserve responsibilities, not implemented
 functionality or authorization boundaries. Vitest checks cover API health,
-sign-in and signed-out rejection, seeding (against a throwaway
-`<db>_seed_test` database), the screen reads, BRAND asset URLs under the
-frontend base path, the byte-for-byte reference checksum, and the rule engine's
-preset swipes. Contracts use Hardhat 3; MockUSD and FamilyCardNetwork (simulated
+sign-in and signed-out rejection, seeding and swipe money movement (against
+the throwaway `<db>_test` test database), the screen reads, BRAND asset URLs
+under the frontend base path, the byte-for-byte reference checksum, and the
+rule engine's preset swipes. Contracts use Hardhat 3; MockUSD and FamilyCardNetwork (simulated
 bank, pot buckets, cards, merchants and authorizations) are deployed and seeded
 with the demo family on Monad testnet for development only (addresses in the
 development environment variables; no production deployment yet). The API's AI service layer (`services/ai/`: policy builder and AI

@@ -1,8 +1,6 @@
-import { execFileSync } from "node:child_process";
-import path from "node:path";
 import { eq, min, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createDatabase, type Database } from "@workspace/db";
+import { db, pool } from "@workspace/db";
 import {
   authorizationsTable,
   bankAccountsTable,
@@ -16,7 +14,7 @@ import {
   policiesTable,
 } from "@workspace/db/schema";
 import { BRAND } from "@brand/brand.config";
-import { seedSpendingDemo } from "../src/services/decisions";
+import { seedSpendingDemo } from "../../src/services/decisions";
 import {
   GetCardAndPolicyResponse,
   GetDependentWalletResponse,
@@ -29,40 +27,20 @@ import {
   getDependentWallet,
   getParentOverview,
   seedDemoFamily,
-} from "../src/services/family";
+} from "../../src/services/family";
+import { resetTestDatabase } from "./test-database";
 
 /**
- * Seeds a throwaway copy of the database (`<dev db>_seed_test`), never the
- * development data, the way the server does at start: the family first, then
- * the decision engine's merchants, policy, card and history. The schema is
- * pushed fresh each run, so a schema change that breaks seeding fails here.
+ * Seeds the empty test database (never the development data) the way the
+ * server does at start: the family first, then the decision engine's
+ * merchants, policy, card and history.
  */
-const workspaceRoot = path.resolve(import.meta.dirname, "../../..");
-const devUrl = process.env.DATABASE_URL;
-if (!devUrl) throw new Error("DATABASE_URL must be set to run the seed tests");
-
-const testUrl = new URL(devUrl);
-const testDbName = `${testUrl.pathname.slice(1)}_seed_test`;
-testUrl.pathname = `/${testDbName}`;
-
-let conn: ReturnType<typeof createDatabase> | undefined;
-let db: Database;
 
 /** Both seeds, in the order the server runs them. */
 async function seedAll() {
   const family = await seedDemoFamily(db);
   await seedSpendingDemo(db);
   return family;
-}
-
-/** Runs a statement on the development server's default database (create/drop only). */
-async function adminQuery(text: string) {
-  const admin = createDatabase(devUrl!);
-  try {
-    await admin.pool.query(text);
-  } finally {
-    await admin.pool.end();
-  }
 }
 
 async function countRows() {
@@ -86,24 +64,8 @@ async function countRows() {
   return counts;
 }
 
-beforeAll(async () => {
-  const quoted = `"${testDbName.replace(/"/g, '""')}"`;
-  await adminQuery(`DROP DATABASE IF EXISTS ${quoted} WITH (FORCE)`);
-  await adminQuery(`CREATE DATABASE ${quoted}`);
-  execFileSync("pnpm", ["--filter", "@workspace/db", "run", "push-force"], {
-    cwd: workspaceRoot,
-    env: { ...process.env, DATABASE_URL: testUrl.toString() },
-    stdio: "pipe",
-  });
-  conn = createDatabase(testUrl.toString());
-  db = conn.db;
-}, 180_000);
-
-afterAll(async () => {
-  await conn?.pool.end();
-  const quoted = `"${testDbName.replace(/"/g, '""')}"`;
-  await adminQuery(`DROP DATABASE IF EXISTS ${quoted} WITH (FORCE)`);
-});
+beforeAll(resetTestDatabase);
+afterAll(() => pool.end());
 
 describe("demo family seeding", () => {
   it("creates the family once, then never duplicates it", async () => {
