@@ -78,10 +78,9 @@ docs/                       Contributor architecture documentation
 
 1. **Structure baseline:** preserve existing files, document boundaries, check
    types and startup. No product functionality is implied by placeholders.
-2. **Phase 0 completion (separate work):** finish central-brand-driven design
-   specification and development component preview. Existing brand source refers
-   to a root `DESIGN.md` which has not yet been created. Preserve the reference
-   byte-for-byte; create editable design guidance separately.
+2. **Phase 0:** central-brand-driven design specification in root `DESIGN.md`
+   and development component preview in `features/branding`. Preserve the
+   reference byte-for-byte; maintain editable design guidance separately.
 3. **Later product phases:** implement onboarding/access, models/contracts,
    policies/decisions, simulated funding and testnet integration only under their
    approved phase requirements. This map does not invent phase numbering or policy.

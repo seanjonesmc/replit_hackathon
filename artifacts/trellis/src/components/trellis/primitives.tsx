@@ -51,6 +51,7 @@ export function PillButton({ variant = 'primary', size = 'md', loading, forceSta
     <button
       {...rest}
       disabled={disabled || loading}
+      aria-busy={loading || undefined}
       className={cn(
         'relative inline-flex select-none items-center justify-center gap-2 rounded-pill font-bold transition-[background-color,transform,opacity] duration-200 ease-out active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
         size === 'md' ? 'h-12 px-[34px] text-[18px]' : 'h-10 px-5 text-[15px]',
@@ -62,7 +63,7 @@ export function PillButton({ variant = 'primary', size = 'md', loading, forceSta
         className,
       )}
     >
-      {loading ? <Loader2 className="size-5 animate-spin" /> : icon}
+      {loading ? <Loader2 className="size-5 animate-spin" aria-hidden="true" /> : icon}
       {children}
     </button>
   );
@@ -79,7 +80,7 @@ export function StatusPill({ status, className }: { status: Decision; className?
   const m = statusMeta[status];
   return (
     <span className={cn('inline-flex h-7 items-center gap-1.5 rounded-pill px-3 text-[13px] font-semibold', m.cls, className)} data-testid={`status-${status}`}>
-      <m.Icon className="size-4" strokeWidth={2.4} />
+      <m.Icon className="size-4" strokeWidth={2.4} aria-hidden="true" />
       {m.label}
     </span>
   );
@@ -148,7 +149,7 @@ export function InitialAvatar({ name, className }: { name: string; className?: s
 /* ---------- Section heading ---------- */
 export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="mb-3 flex items-end justify-between px-1">
+    <div className="mb-3 flex flex-wrap items-end justify-between gap-2 px-1">
       <h2 className="type-title">{children}</h2>
       {action}
     </div>

@@ -50,8 +50,8 @@ test locations, and phase gates.
 
 ## Current baseline
 
-Phase 0 is partial: brand configuration/assets, styling, shared primitives, and
-sample data exist; the homepage still displays the scaffold placeholder. The API
+Phase 0 provides brand configuration/assets, styling, shared primitives, an
+editable root `DESIGN.md`, and a development-only component preview. The API
 currently exposes health only and the database schema is empty. Directory READMEs
 reserve responsibilities, not implemented functionality or authorization boundaries.
 Baseline Vitest checks cover API health, BRAND asset URLs under the frontend

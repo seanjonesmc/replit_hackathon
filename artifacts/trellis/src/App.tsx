@@ -1,9 +1,10 @@
-import { type ReactNode } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
+import PreviewUnavailable from '@/features/branding/PreviewUnavailable';
 import {
   Route,
   Switch,
@@ -13,18 +14,22 @@ import {
 
 const queryClient = new QueryClient();
 
+const BrandPreview = import.meta.env.DEV
+  ? lazy(() => import('@/features/branding/BrandPreview'))
+  : null;
+
 function Home() {
+  if (!BrandPreview) return <PreviewUnavailable />;
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Replit Agent is building...
-        </h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Your app will appear here once it's ready.
-        </p>
-      </div>
-    </div>
+    <Suspense
+      fallback={
+        <div className="min-h-[100dvh] bg-surface-alt p-6" aria-busy="true" aria-label="Loading preview">
+          <div className="mx-auto h-48 max-w-6xl animate-pulse rounded-card bg-surface" />
+        </div>
+      }
+    >
+      <BrandPreview />
+    </Suspense>
   );
 }
 
