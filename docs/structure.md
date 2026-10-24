@@ -43,6 +43,7 @@ lib/
 src/brand/
   brand.config.ts           Single source for brand values
   brand-css.ts              Derived CSS variables
+  brand-history.ts          Every brand value ever used, for the brand-values test only
   assets.ts                 Existing derived SVG asset helpers
 public/brand/               Canonical brand assets
 contracts/
@@ -70,7 +71,8 @@ docs/                       Contributor architecture documentation
 - BRAND remains the only source of brand values. The brand values written in the
   spec (and quoted in saved plans) are expected there; these files are allowed
   exceptions in any search for hardcoded brand values, alongside `src/brand/`
-  and `DESIGN.md`.
+  and `DESIGN.md`. `scripts/tests/brand-values.test.ts` runs that search on
+  every `pnpm test`; it lists each other allowed exception with its reason.
 
 ## Dependency rules
 
@@ -140,6 +142,7 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
 | `workspace`  | `scripts/tests/design-reference.test.ts`               | reference checksum; no code references the reference        |
 | `workspace`  | `scripts/tests/product-spec.test.ts`                   | `docs/product-spec.md` size and checksum (never edit it)     |
+| `workspace`  | `scripts/tests/brand-values.test.ts`                   | no hex colors, or current or past BRAND app name, demo/bank names or fonts, in source outside `src/brand/`, generated files and listed exceptions; BRAND values recorded in `src/brand/brand-history.ts` |
 
 A production build smoke check is opt-in because it runs a real `vite build`
 (a few seconds). Run it with `pnpm test:build` (root `vitest.build.config.ts`)

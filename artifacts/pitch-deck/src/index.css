@@ -3,7 +3,8 @@
 /*
  * Theme tokens. Every --brand-* value is injected into :root from the root
  * BRAND config (src/brand/brand.config.ts) by deck-brand-plugin.ts, following
- * the Trellis design system. Do not hardcode brand values here.
+ * the project design system (artifacts/trellis-design). Do not hardcode brand
+ * values here.
  */
 @theme inline {
   --color-signature: var(--brand-signature);

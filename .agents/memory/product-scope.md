@@ -31,3 +31,9 @@ The user approved the Venmo-derived first set of header, navigation, links, butt
 **Why:** This establishes the accepted visual direction rather than reopening stylistic choices during subsequent component or app work.
 
 **How to apply:** Extend that approved palette, geometry, typography, and flat-surface treatment consistently; retain the requested Inter substitution.
+
+Values BRAND used before a rebrand stay forbidden in app source afterwards; the record of past brand values only ever grows.
+
+**Why:** a rebrand that only changes BRAND would otherwise leave old names or fonts on screens with no check noticing.
+
+**How to apply:** on a rebrand, record the new values alongside the old ones rather than replacing them. Allow a hardcoded value only when it is genuinely not a brand value (scaffold defaults, contrast fallbacks), always with a written reason.

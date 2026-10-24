@@ -95,7 +95,7 @@
 @layer utilities {
   .tnum { font-variant-numeric: tabular-nums; }
 
-  /* Type scale: reference sizes, Inter, negative heading tracking */
+  /* Type scale: reference sizes, BRAND heading font, negative heading tracking */
   .type-display-xxl { font-family: var(--font-heading); font-size: 63px; font-weight: 500; line-height: 1; letter-spacing: -1.89px; }
   .type-display-xl  { font-family: var(--font-heading); font-size: 51px; font-weight: 500; line-height: 1.05; letter-spacing: -1.02px; }
   .type-display-md  { font-family: var(--font-heading); font-size: 33px; font-weight: 500; line-height: 1.05; letter-spacing: -0.67px; }
@@ -114,7 +114,7 @@
     background: linear-gradient(180deg, var(--color-signature) 0%, var(--color-signature) 55%, var(--color-surface) 100%);
   }
 
-  /* Trellis lattice texture, used on hero card + virtual card */
+  /* Brand lattice texture, used on hero card + virtual card */
   .lattice {
     background-image:
       repeating-linear-gradient(45deg, color-mix(in srgb, var(--color-surface) 13%, transparent) 0 1px, transparent 1px 26px),

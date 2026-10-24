@@ -4,7 +4,7 @@
     "position": 1,
     "filepath": "src/pages/slides/Cover.tsx",
     "title": "Cover",
-    "description": "Trellis name, tagline and testnet-only label",
+    "description": "App name, tagline and testnet-only label",
     "speakerNotes": ""
   },
   {
@@ -27,7 +27,7 @@
     "id": "860515a8-91ac-419b-b0df-928a2664f389",
     "position": 4,
     "filepath": "src/pages/slides/WhatItDoes.tsx",
-    "title": "What Trellis does",
+    "title": "What it does",
     "description": "Pot, buckets, approval and transparency",
     "speakerNotes": ""
   },

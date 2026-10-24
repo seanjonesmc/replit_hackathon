@@ -2,7 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": true,
-    "rootDir": "."
+    // Tests import the root BRAND config (src/brand/), outside this package.
+    "rootDir": ".."
   },
   "include": ["src", "tests"]
 }

@@ -69,6 +69,22 @@ catalog:
 
 autoInstallPeers: false
 
+# These Replit Vite plugins import types from 'vite' without declaring it as a
+# peer, so they resolve whichever vite copy happens to be hoisted. The pitch
+# deck pins yaml, which gives it its own vite copy; when that copy is hoisted,
+# other artifacts' vite.config.ts fail typecheck. Declaring the peer makes each
+# artifact's plugins use that artifact's vite.
+packageExtensions:
+  '@replit/vite-plugin-cartographer':
+    peerDependencies:
+      vite: '*'
+  '@replit/vite-plugin-dev-banner':
+    peerDependencies:
+      vite: '*'
+  '@replit/vite-plugin-runtime-error-modal':
+    peerDependencies:
+      vite: '*'
+
 onlyBuiltDependencies:
   - '@swc/core'
   - esbuild

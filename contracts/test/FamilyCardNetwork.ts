@@ -19,16 +19,16 @@ describe("FamilyCardNetwork simulated bank", function () {
   it("emits BankLinked when a bank is linked", async function () {
     const { cardNetwork } = await deployNetwork();
 
-    await expect(cardNetwork.linkBankAccount(PARENT, "Demo Bank", "4417"))
+    await expect(cardNetwork.linkBankAccount(PARENT, "Example Bank", "4417"))
       .to.emit(cardNetwork, "BankLinked")
-      .withArgs(PARENT, "Demo Bank", "4417");
+      .withArgs(PARENT, "Example Bank", "4417");
     expect(await cardNetwork.hasLinkedBank(PARENT)).to.equal(true);
   });
 
   it("credits the bank balance and mints matching tUSD to the network", async function () {
     const { token, cardNetwork } = await deployNetwork();
     const networkAddress = await cardNetwork.getAddress();
-    await cardNetwork.linkBankAccount(PARENT, "Demo Bank", "4417");
+    await cardNetwork.linkBankAccount(PARENT, "Example Bank", "4417");
     await cardNetwork.linkBankAccount(PARENT, "Second Bank", "0021");
 
     await expect(cardNetwork.bankDeposit(PARENT, 50000n))
@@ -50,7 +50,7 @@ describe("FamilyCardNetwork simulated bank", function () {
       .to.be.revertedWithCustomError(cardNetwork, "NoLinkedBank")
       .withArgs(PARENT);
 
-    await cardNetwork.linkBankAccount(PARENT, "Demo Bank", "4417");
+    await cardNetwork.linkBankAccount(PARENT, "Example Bank", "4417");
     await expect(
       cardNetwork.bankDeposit(PARENT, 0n),
     ).to.be.revertedWithCustomError(cardNetwork, "ZeroAmount");
@@ -60,12 +60,12 @@ describe("FamilyCardNetwork simulated bank", function () {
     const { cardNetwork, other } = await deployNetwork();
 
     await expect(
-      cardNetwork.connect(other).linkBankAccount(PARENT, "Demo Bank", "4417"),
+      cardNetwork.connect(other).linkBankAccount(PARENT, "Example Bank", "4417"),
     )
       .to.be.revertedWithCustomError(cardNetwork, "OwnableUnauthorizedAccount")
       .withArgs(other.address);
 
-    await cardNetwork.linkBankAccount(PARENT, "Demo Bank", "4417");
+    await cardNetwork.linkBankAccount(PARENT, "Example Bank", "4417");
     await expect(cardNetwork.connect(other).bankDeposit(PARENT, 100n))
       .to.be.revertedWithCustomError(cardNetwork, "OwnableUnauthorizedAccount")
       .withArgs(other.address);
@@ -78,7 +78,7 @@ describe("FamilyCardNetwork pot and buckets", function () {
   async function deployWithFundedBanks() {
     const deployed = await deployNetwork();
     const { cardNetwork } = deployed;
-    await cardNetwork.linkBankAccount(PARENT, "Demo Bank", "4417");
+    await cardNetwork.linkBankAccount(PARENT, "Example Bank", "4417");
     await cardNetwork.bankDeposit(PARENT, 50000n);
     await cardNetwork.linkBankAccount(GRANDPARENT, "Other Bank", "9902");
     await cardNetwork.bankDeposit(GRANDPARENT, 20000n);

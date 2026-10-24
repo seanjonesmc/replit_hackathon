@@ -30,7 +30,12 @@ t.typography.fontFamily.serif.$value = [BRAND.fonts.heading,"sans-serif"];
 t.typography.fontFamily.mono.$value = ["monospace"];
 t.radius.base.$value = BRAND.radius.card;
 const htmlUrl = new URL("../index.html", import.meta.url);
-writeFileSync(htmlUrl, readFileSync(htmlUrl,"utf8").replace(/https:\/\/fonts\.googleapis\.com\/css2[^"]+/g,BRAND.fonts.googleFontsUrl));
+const escHtml = (s) => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const dsName = escHtml(`${BRAND.appName} Design System`);
+writeFileSync(htmlUrl, readFileSync(htmlUrl,"utf8")
+  .replace(/https:\/\/fonts\.googleapis\.com\/css2[^"]+/g,BRAND.fonts.googleFontsUrl)
+  .replace(/<title>[^<]*<\/title>/,`<title>${dsName}</title>`)
+  .replace(/(<meta name="description" content=")[^"]*(")/,`$1${dsName} — design system preview built on Replit.$2`));
 writeFileSync(url,JSON.stringify(t,null,2)+"\n");
 writeFileSync(new URL("../src/brand-snapshot.tsx",import.meta.url),
   "// Generated from root BRAND. Do not edit.\nexport const brand = "+JSON.stringify({name:BRAND.appName,tagline:BRAND.tagline,colors:c,radius:BRAND.radius,fonts:BRAND.fonts},null,2)+" as const;\n");

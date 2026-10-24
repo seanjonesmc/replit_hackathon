@@ -275,8 +275,12 @@ repaint text inside the PNG. Replace it deliberately when rebranding.
    fonts, radii, spacing, demo identities, reusable copy).
 2. Replace files in `/public/brand/`, keeping the same filenames. Generated SVGs
    update themselves; replace `og.png` by hand.
-3. Optionally update `/DESIGN.md` so the token values shown here match.
-4. Restart the Trellis workflow and open **/brand** to verify. No other file
+3. Add the new app name, demo names, bank names and fonts to
+   `/src/brand/brand-history.ts`, keeping the old ones. `pnpm test` lists any
+   that are missing, and keeps flagging the old values if a screen still
+   hardcodes them.
+4. Optionally update `/DESIGN.md` so the token values shown here match.
+5. Restart the Trellis workflow and open **/brand** to verify. No other file
    should need changes.
 
 Before shipping a rebrand, also check page title, description, theme color,
