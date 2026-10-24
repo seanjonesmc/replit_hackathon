@@ -70,3 +70,4 @@ Thumbs.db
 /contracts/typechain/
 /contracts/typechain-types/
 /contracts/deployments/
+/contracts/ignition/deployments/
