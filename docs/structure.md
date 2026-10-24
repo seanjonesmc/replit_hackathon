@@ -49,8 +49,24 @@ contracts/
 scripts/src/                Workspace maintenance commands
 design/reference/           Immutable Venmo reference
 docs/                       Contributor architecture documentation
+  product-spec.md           User's original product spec, byte-for-byte (see below)
+  stack-decisions.md        Agreed stack, with reasons and introducing phase
+  plans/                    Saved, agreed phase and task plans
   research/                 Sourced pitch research (problem statement)
+  pitch/                    Pitch materials (demo video script)
 ```
+
+## Product spec and decisions
+
+- [`docs/product-spec.md`](product-spec.md) is the user's original master prompt,
+  kept byte-for-byte. Never edit it; record changes elsewhere.
+- Where they differ, [`docs/stack-decisions.md`](stack-decisions.md) and later
+  agreed decisions (approved plans in [`docs/plans/`](plans/), `replit.md`) take
+  precedence over the spec.
+- BRAND remains the only source of brand values. The brand values written in the
+  spec (and quoted in saved plans) are expected there; these files are allowed
+  exceptions in any search for hardcoded brand values, alongside `src/brand/`
+  and `DESIGN.md`.
 
 ## Dependency rules
 
@@ -99,7 +115,7 @@ of these later features merely to populate the reserved folders.
   `artifacts/api-server/tests/`.
 - Libraries: colocate tests with their source; database integration tests belong
   in `lib/db/tests/` and must use an explicit test database.
-- Solidity: `contracts/test/`, once the testnet toolchain is approved.
+- Solidity: `contracts/test/`, once Phase 3 installs the agreed toolchain (Hardhat 3).
 
 Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 `pnpm test`; select one project with `pnpm test --project <name>`:

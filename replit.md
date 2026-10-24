@@ -28,6 +28,15 @@ is a separate, explicitly authorized development operation, not a startup step.
 See [docs/structure.md](docs/structure.md) for the full map, planned modules,
 test locations, and phase gates.
 
+- [docs/product-spec.md](docs/product-spec.md) — the user's original product spec
+  (master prompt), byte-for-byte; never edit it. Where it differs, the
+  [stack decision record](docs/stack-decisions.md) and later agreed decisions
+  (approved plans in [docs/plans/](docs/plans/), this file) take precedence.
+  BRAND remains the only source of brand values: the brand values written in the
+  spec (and quoted in saved plans) are expected there, and these files are allowed
+  exceptions in any search for hardcoded brand values.
+- [docs/stack-decisions.md](docs/stack-decisions.md) — agreed stack, with reasons and phases
+- `docs/plans/` — saved, agreed plans for individual phases and tasks
 - `artifacts/trellis/` — existing React/Vite frontend
 - `artifacts/api-server/` — existing Express API
 - `lib/` — API specification, generated client/validators, database, future shared logic
@@ -59,6 +68,21 @@ base path, and the byte-for-byte reference checksum. No blockchain tooling.
 
 ## Stack
 
-pnpm workspaces, Node.js, TypeScript, React/Vite, Express 5, PostgreSQL/Drizzle,
-OpenAPI/Orval, Zod, and esbuild. Keep existing package choices and workspace
-security settings.
+Agreed decisions, with reasons and the phase that introduces each, are recorded in
+[docs/stack-decisions.md](docs/stack-decisions.md); keep this summary in step with it.
+
+- In place: pnpm workspaces, Node.js, TypeScript, React/Vite/Tailwind (mobile-first),
+  Express 5 with contract-first OpenAPI/Orval and Zod, Drizzle, esbuild, Vitest.
+- Phase 1: Replit's built-in PostgreSQL (separate development and production
+  databases; the app seeds the demo family when none exists) and Replit Auth
+  (presenter-only login).
+- Phase 3: Monad testnet only (chain 10143); Hardhat 3 with its ethers toolbox in
+  `contracts/`, ethers v6 in the API; configuration in Secrets under the spec's names.
+- Phase 4: Anthropic Claude through Replit AI Integrations, strict validated JSON,
+  failures fall back to Pending.
+- Phase 6: Server-Sent Events with automatic polling fallback.
+- Hosting: static front end; API on an always-on Reserved VM (publish target `vm`).
+- Not used: Stripe, Plaid, email, file storage or other connectors.
+
+Keep existing package choices and workspace security settings. Install each tool
+only in the phase that introduces it.

@@ -6,7 +6,7 @@ Build in phases and verify each before proceeding. The initial request explicitl
 
 **Why:** The user needs a reliable one-day hackathon demo, not an unverified all-at-once implementation.
 
-**How to apply:** Keep Phase 0 to branding, shared components, and the development preview; follow the uploaded master prompt for later phases.
+**How to apply:** Follow the product spec (now committed in the repo) for later phases, with the agreed stack record and approved plans overriding it where they differ.
 
 The bank and card stack is simulated on Monad testnet only. No real money, real bank linking, real cards, refunds, receipt uploads, recurring allowances, push notifications, or multiple families.
 
