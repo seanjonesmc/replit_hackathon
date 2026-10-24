@@ -11,8 +11,8 @@ export function PhoneColumn({ children }: { children: ReactNode }) {
   );
 }
 
-/** One tab's screen inside the app shell: padding plus a stable test id per tab. */
-export function Screen({ tab, children }: { tab: TabDef; children: ReactNode }) {
+/** One tab's (or sub-screen's) screen inside the app shell: padding plus a stable test id. */
+export function Screen({ tab, children }: { tab: Pick<TabDef, 'role' | 'id'>; children: ReactNode }) {
   return (
     <section className="flex-1 px-4 pb-8 pt-5" data-testid={`screen-${tab.role}-${tab.id}`}>
       {children}

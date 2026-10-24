@@ -65,22 +65,33 @@ const forcedCls: Record<Variant, string> = {
   onDark: 'bg-surface/90',
 };
 
+/** The pill button's look, for a link that acts as a pill button (e.g. a router Link). */
+export function pillButtonClass({
+  variant = 'primary',
+  size = 'md',
+  forceState,
+  block,
+  className,
+}: Pick<PillProps, 'variant' | 'size' | 'forceState' | 'block' | 'className'> = {}) {
+  return cn(
+    'relative inline-flex select-none items-center justify-center gap-2 rounded-pill font-bold transition-[background-color,transform,opacity] duration-200 ease-out active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
+    size === 'md' ? 'h-12 px-[34px] text-[18px]' : 'h-10 px-5 text-[15px]',
+    variantCls[variant],
+    forceState === 'hover' && forcedCls[variant],
+    forceState === 'pressed' && cn(forcedCls[variant], 'scale-[0.97]'),
+    forceState === 'focus' && 'outline-2 outline-offset-2 outline-primary',
+    block && 'w-full',
+    className,
+  );
+}
+
 export function PillButton({ variant = 'primary', size = 'md', loading, forceState, icon, block, className, children, disabled, ...rest }: PillProps) {
   return (
     <button
       {...rest}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={cn(
-        'relative inline-flex select-none items-center justify-center gap-2 rounded-pill font-bold transition-[background-color,transform,opacity] duration-200 ease-out active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
-        size === 'md' ? 'h-12 px-[34px] text-[18px]' : 'h-10 px-5 text-[15px]',
-        variantCls[variant],
-        forceState === 'hover' && forcedCls[variant],
-        forceState === 'pressed' && cn(forcedCls[variant], 'scale-[0.97]'),
-        forceState === 'focus' && 'outline-2 outline-offset-2 outline-primary',
-        block && 'w-full',
-        className,
-      )}
+      className={pillButtonClass({ variant, size, forceState, block, className })}
     >
       {loading ? <Loader2 className="size-5 animate-spin" aria-hidden="true" /> : icon}
       {children}

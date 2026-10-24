@@ -11,3 +11,8 @@ dollar-to-USDC step and follows the contribution's real chain status until it
 links to the explorer or the write fails. The USDC is the project's test
 dollar token on Monad testnet, and the screens say so. Attribution of
 purchases to contributions is a later phase. No real-money behavior.
+
+The flow itself (`AddMoneyFlow`) takes the funding member as input, so the
+parent's Add money screen (opened from her home) reuses it to fund buckets as
+herself, from her own linked bank. Money always goes into a bucket, never to
+the dependent directly.

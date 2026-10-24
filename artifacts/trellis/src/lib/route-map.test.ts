@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BRAND } from '@brand/brand.config';
-import { ALL_TABS, ROLES, firstTabPath, getRole, matchTab, readLastRole, saveLastRole } from './route-map';
+import { ALL_TABS, ROLES, SUB_SCREENS, firstTabPath, getRole, matchScreen, matchTab, readLastRole, saveLastRole } from './route-map';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -41,6 +41,31 @@ describe('route map', () => {
     expect(matchTab('/Dependent/Swipe')?.label).toBe('Swipe');
     for (const miss of ['/', '/parent', '/brand', '/parent/nope', '/parent/home/extra', '~/elsewhere']) {
       expect(matchTab(miss), miss).toBeNull();
+    }
+  });
+});
+
+describe('sub-screens', () => {
+  it("gives the parent an Add money screen opened from Home, off the tab bar", () => {
+    expect(SUB_SCREENS.map((s) => [s.path, s.label, s.tab.path])).toEqual([['/parent/add-money', 'Add money', '/parent/home']]);
+    expect(getRole('parent').tabs.map((t) => t.path)).not.toContain('/parent/add-money');
+  });
+
+  it('keeps sub-screen URLs apart from tab URLs', () => {
+    const tabPaths = new Set<string>(ALL_TABS.map((t) => t.path));
+    for (const s of SUB_SCREENS) {
+      expect(tabPaths.has(s.path), s.path).toBe(false);
+      expect(s.path).toBe(`/${s.role}/${s.id}`);
+      expect(s.tab.role).toBe(s.role);
+    }
+  });
+
+  it('matches tabs and sub-screens, each with the tab the tab bar marks', () => {
+    expect(matchScreen('/parent/approvals')).toEqual({ path: '/parent/approvals', tab: matchTab('/parent/approvals') });
+    expect(matchScreen('/Parent/Add-Money/')).toEqual({ path: '/parent/add-money', tab: matchTab('/parent/home') });
+    expect(matchTab('/parent/add-money')).toBeNull();
+    for (const miss of ['/', '/parent', '/brand', '/dependent/add-money', '/parent/add-money/extra']) {
+      expect(matchScreen(miss), miss).toBeNull();
     }
   });
 });

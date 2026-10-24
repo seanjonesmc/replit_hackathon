@@ -81,6 +81,18 @@ async function grandparent() {
   return { member: member!, bank: bank!, food: food! };
 }
 
+const parentName = BRAND.demo.parent;
+
+async function parent() {
+  const [member] = await db.select().from(membersTable).where(eq(membersTable.role, "parent"));
+  const [bank] = await db
+    .select()
+    .from(bankAccountsTable)
+    .where(eq(bankAccountsTable.memberId, member!.id));
+  const [school] = await db.select().from(bucketsTable).where(eq(bucketsTable.name, "School"));
+  return { member: member!, bank: bank!, school: school! };
+}
+
 // ---- A fake chain client ----------------------------------------------------
 
 const ADDRESS = "0x0b7d36cdb2af14db03ae947bb845d8bdf4aa9e17";
@@ -203,6 +215,70 @@ describe("sending money to a bucket", () => {
       ),
     ).rejects.toThrow();
     expect(await db.select().from(bankDepositsTable)).toHaveLength(depositsBefore.length);
+  });
+});
+
+describe("the parent sending money to a bucket", () => {
+  it("uses her own bank, raises the bucket and the pot, and the feed names her", async () => {
+    const { member, bank, school } = await parent();
+    const { bank: grandparentBank } = await grandparent();
+    // Her seeded bank is linked under her on-chain id (the deploy seed derives the same one).
+    expect(member.onchainId).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(bank.bankName).toBe(BRAND.demo.banks[0]);
+
+    const result = await sendMoneyToBucket(
+      { bucketId: school.id, memberId: member.id, bankAccountId: bank.id, amountCents: 2500 },
+      db,
+    );
+    expect(result.funder.id).toBe(member.id);
+    expect(result.bankAccount.id).toBe(bank.id);
+    expect(result.contribution.note).toBe(`School, from ${parentName}`);
+    expect(result.bucket.availableCents).toBe(school.availableCents + 2500);
+    expect(result.bankAccount.balanceCents).toBe(bank.balanceCents);
+    // The grandparent's bank is untouched.
+    const [gpAfter] = await db
+      .select()
+      .from(bankAccountsTable)
+      .where(eq(bankAccountsTable.id, grandparentBank.id));
+    expect(gpAfter!.balanceCents).toBe(grandparentBank.balanceCents);
+
+    const activity = await getActivity(member.familyId, db);
+    expect(activity.find((a) => a.id === `contribution-${result.contribution.id}`)).toMatchObject({
+      summary: `${parentName} added $25.00 to School`,
+      detail: `School, from ${parentName}`,
+      direction: "in",
+    });
+    const { contributions } = await listMemberContributions(member.id, db);
+    expect(contributions[0]?.contribution.id).toBe(result.contribution.id);
+  });
+
+  it("can't send from the grandparent's bank", async () => {
+    const { member, school } = await parent();
+    const { bank: grandparentBank } = await grandparent();
+    await expect(
+      sendMoneyToBucket(
+        { bucketId: school.id, memberId: member.id, bankAccountId: grandparentBank.id, amountCents: 2500 },
+        db,
+      ),
+    ).rejects.toThrow(/isn't one of/);
+  });
+
+  it("mirrors her deposit and funding on chain under her own on-chain id", async () => {
+    const { member, bank, school } = await parent();
+    const { deposit, contribution } = await sendMoneyToBucket(
+      { bucketId: school.id, memberId: member.id, bankAccountId: bank.id, amountCents: 1000 },
+      db,
+    );
+    const chain = fakeChain();
+    const outcome = await mirrorSendMoneyOnChain(
+      { deposit, contribution, bucketName: "School", funderOnchainId: member.onchainId },
+      chain.deps(),
+    );
+    expect(outcome.contribution.status).toBe("confirmed");
+    expect(chain.calls).toEqual([
+      `bankDeposit ${member.onchainId} 1000`,
+      `fundBucket ${member.onchainId} 2 1000`,
+    ]);
   });
 });
 

@@ -1,8 +1,8 @@
-import { ChevronRight, Hand } from 'lucide-react';
+import { ChevronRight, Hand, Plus } from 'lucide-react';
 import { Link } from 'wouter';
 import { useGetFamily, useGetParentOverview, useListActivity } from '@workspace/api-client-react';
 import { HeroBalanceCard } from '@/components/trellis/hero-balance-card';
-import { InitialAvatar, SectionTitle } from '@/components/trellis/primitives';
+import { InitialAvatar, SectionTitle, pillButtonClass } from '@/components/trellis/primitives';
 import { ActivityRowSkeleton, BucketCardSkeleton, HeroBalanceCardSkeleton, LoadingRegion, Skeleton } from '@/components/trellis/skeletons';
 import { ErrorState } from '@/components/trellis/states';
 import { FamilyActivityRow } from '@/features/family/FamilyActivityRow';
@@ -85,7 +85,13 @@ export default function ParentHome() {
         caption={`Across ${o.buckets.length} ${o.buckets.length === 1 ? 'bucket' : 'buckets'} · test dollars`}
         data-testid="card-family-pot"
       >
-        {members.length > 0 && <MemberAvatars names={members} />}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {members.length > 0 ? <MemberAvatars names={members} /> : <span />}
+          <Link href="/parent/add-money" className={pillButtonClass({ size: 'sm' })} data-testid="link-add-money">
+            <Plus className="size-5" aria-hidden="true" />
+            Add money
+          </Link>
+        </div>
       </HeroBalanceCard>
       <div className="mt-4">
         <ApprovalsLink count={o.pendingApprovalsCount} />

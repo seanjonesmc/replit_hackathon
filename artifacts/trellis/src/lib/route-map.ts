@@ -79,6 +79,46 @@ export const ROLES: readonly RoleDef[] = ROLE_DEFS.map((role) => ({
 
 export const ALL_TABS: readonly TabDef[] = ROLES.flatMap((role) => role.tabs);
 
+/* ---------- Sub-screens ---------- */
+
+/**
+ * Screens opened from inside a tab rather than from the tab bar. Each belongs
+ * to one tab of its role: the shell keeps that role's tab bar with the owning
+ * tab marked. URLs are `/<role>/<id>` like tabs, and must not clash with them.
+ */
+const SUB_SCREEN_DEFS = [{ role: 'parent', id: 'add-money', label: 'Add money', tab: 'home' }] as const;
+
+type SubScreenInput = (typeof SUB_SCREEN_DEFS)[number];
+
+/** Every sub-screen URL, e.g. `/parent/add-money`. */
+export type SubScreenPath = `/${SubScreenInput['role']}/${SubScreenInput['id']}`;
+
+/** Every URL the shell draws a screen for. */
+export type ScreenPath = TabPath | SubScreenPath;
+
+export interface SubScreenDef {
+  role: RoleId;
+  id: string;
+  path: SubScreenPath;
+  label: string;
+  /** The tab it is opened from; the tab bar marks it. */
+  tab: TabDef;
+}
+
+export const SUB_SCREENS: readonly SubScreenDef[] = SUB_SCREEN_DEFS.map((s) => ({
+  role: s.role,
+  id: s.id,
+  label: s.label,
+  path: `/${s.role}/${s.id}` as SubScreenPath,
+  tab: getTab(`/${s.role}/${s.tab}`),
+}));
+
+export function getSubScreen(path: SubScreenPath): SubScreenDef {
+  const screen = SUB_SCREENS.find((s) => s.path === path);
+  if (!screen) throw new Error(`Unknown sub-screen: ${path}`);
+  return screen;
+}
+
 export const DEFAULT_ROLE: RoleId = 'parent';
 
 export function isRoleId(value: unknown): value is RoleId {
@@ -107,8 +147,28 @@ export function firstTabPath(id: RoleId): TabPath {
  * Matches like the router does: case-insensitive, optional trailing slash.
  */
 export function matchTab(location: string): TabDef | null {
-  const path = location.toLowerCase().replace(/(.)\/$/, '$1');
+  const path = normalize(location);
   return ALL_TABS.find((tab) => tab.path === path) ?? null;
+}
+
+/** A screen the shell draws: a tab, or a sub-screen with the tab it belongs to. */
+export interface ShellScreen {
+  path: ScreenPath;
+  /** The tab bar's active tab. */
+  tab: TabDef;
+}
+
+/** Like `matchTab`, but also matches sub-screens. */
+export function matchScreen(location: string): ShellScreen | null {
+  const tab = matchTab(location);
+  if (tab) return { path: tab.path, tab };
+  const path = normalize(location);
+  const sub = SUB_SCREENS.find((s) => s.path === path);
+  return sub ? { path: sub.path, tab: sub.tab } : null;
+}
+
+function normalize(location: string): string {
+  return location.toLowerCase().replace(/(.)\/$/, '$1');
 }
 
 /* ---------- Last-used role ---------- */

@@ -7,10 +7,11 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SessionProvider, useSession } from '@/features/shell/session';
 import { SessionSplash, SignedOut } from '@/features/shell/SignedOut';
-import { ALL_TABS, ROLES, firstTabPath, readLastRole, type TabPath } from '@/lib/route-map';
+import { ALL_TABS, ROLES, SUB_SCREENS, firstTabPath, readLastRole, type ScreenPath } from '@/lib/route-map';
 import NotFound from '@/pages/not-found';
 import BrandPage from '@/pages/brand';
 import ParentHomePage from '@/pages/parent/home';
+import ParentAddMoneyPage from '@/pages/parent/add-money';
 import ParentApprovalsPage from '@/pages/parent/approvals';
 import ParentActivityPage from '@/pages/parent/activity';
 import ParentCardPage from '@/pages/parent/card';
@@ -31,9 +32,10 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
 });
 
-/** One page per tab in the route map; the type makes a missing page a compile error. */
-const screens: Record<TabPath, ComponentType> = {
+/** One page per tab and sub-screen in the route map; the type makes a missing page a compile error. */
+const screens: Record<ScreenPath, ComponentType> = {
   '/parent/home': ParentHomePage,
+  '/parent/add-money': ParentAddMoneyPage,
   '/parent/approvals': ParentApprovalsPage,
   '/parent/activity': ParentActivityPage,
   '/parent/card': ParentCardPage,
@@ -63,8 +65,8 @@ function SignedInApp() {
               <Redirect to={firstTabPath(role.id)} replace />
             </Route>
           ))}
-          {ALL_TABS.map((tab) => (
-            <Route key={tab.path} path={tab.path} component={screens[tab.path]} />
+          {[...ALL_TABS, ...SUB_SCREENS].map((s) => (
+            <Route key={s.path} path={s.path} component={screens[s.path]} />
           ))}
           <Route component={NotFound} />
         </Switch>

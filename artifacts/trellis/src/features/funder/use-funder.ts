@@ -1,14 +1,28 @@
-import { useGetFamily, useListMemberBankAccounts, useListMemberContributions } from '@workspace/api-client-react';
+import {
+  useGetFamily,
+  useListMemberBankAccounts,
+  useListMemberContributions,
+  type Member,
+} from '@workspace/api-client-react';
 import { isChainInFlight } from '@/lib/chain';
 
+/** Picks which family member is adding money. */
+export type PickFundingMember = (members: Member[]) => Member | undefined;
+
+/** The grandparent (or, failing that, the first funder). */
+export const pickGrandparent: PickFundingMember = (members) =>
+  members.find((m) => m.relationship === 'grandparent') ?? members.find((m) => m.role === 'funder');
+
+/** The parent, who funds buckets as herself. */
+export const pickParent: PickFundingMember = (members) => members.find((m) => m.role === 'parent');
+
 /**
- * The grandparent's view: finds their member record in the family, then loads
- * their linked bank and their contributions.
+ * One family member as a funder: finds their member record in the family,
+ * then loads their linked bank and their contributions.
  */
-export function useFunderContributions() {
+export function useFundingMember(pick: PickFundingMember) {
   const family = useGetFamily();
-  const members = family.data?.members ?? [];
-  const funder = members.find((m) => m.relationship === 'grandparent') ?? members.find((m) => m.role === 'funder');
+  const funder = pick(family.data?.members ?? []);
   const enabled = funder !== undefined;
   const banks = useListMemberBankAccounts(funder?.id ?? 0, { query: { enabled } });
   // Poll while a contribution's chain write is in flight, until it is mined or fails.
@@ -39,4 +53,16 @@ export function useFunderContributions() {
       }
     },
   };
+}
+
+export type FundingMember = ReturnType<typeof useFundingMember>;
+
+/** The grandparent's view. */
+export function useFunderContributions(): FundingMember {
+  return useFundingMember(pickGrandparent);
+}
+
+/** The parent's view when she adds money herself. */
+export function useParentFunding(): FundingMember {
+  return useFundingMember(pickParent);
 }

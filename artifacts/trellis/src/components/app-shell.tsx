@@ -3,12 +3,13 @@ import { useLocation } from 'wouter';
 import { RoleSwitcherSlot } from '@/components/trellis/role-switcher-slot';
 import { TabBar } from '@/components/trellis/tab-bar';
 import { Wordmark } from '@/components/trellis/primitives';
-import { matchTab, saveLastRole, type TabDef, type TabPath } from '@/lib/route-map';
+import { matchScreen, saveLastRole, type ShellScreen, type TabPath } from '@/lib/route-map';
 
 /**
- * Wraps the router. On a role tab URL it draws the phone-width shell: the
- * screen, with the role switcher on its heading's line, and that role's tab
- * bar pinned at the bottom. Any other URL (/brand, not found) renders on its own.
+ * Wraps the router. On a role tab URL (or a sub-screen opened from a tab) it
+ * draws the phone-width shell: the screen, with the role switcher on its
+ * heading's line, and that role's tab bar pinned at the bottom. Any other URL
+ * (/brand, not found) renders on its own.
  */
 interface AppShellProps {
   children: ReactNode;
@@ -18,26 +19,27 @@ interface AppShellProps {
 
 export function AppShell({ children, badges }: AppShellProps) {
   const [location] = useLocation();
-  const tab = matchTab(location);
-  if (!tab) return <>{children}</>;
+  const screen = matchScreen(location);
+  if (!screen) return <>{children}</>;
   return (
-    <ShellLayout tab={tab} badges={badges}>
+    <ShellLayout screen={screen} badges={badges}>
       {children}
     </ShellLayout>
   );
 }
 
-function ShellLayout({ tab, badges, children }: { tab: TabDef; badges?: AppShellProps['badges']; children: ReactNode }) {
+function ShellLayout({ screen, badges, children }: { screen: ShellScreen; badges?: AppShellProps['badges']; children: ReactNode }) {
+  const { tab } = screen;
   // Effect bodies stay in braces: newer browsers return a Promise from
   // scrollTo, and React would call any returned value as a cleanup.
   useEffect(() => {
     saveLastRole(tab.role);
   }, [tab.role]);
 
-  // A new tab starts at the top, like a new screen.
+  // A new tab or sub-screen starts at the top, like a new screen.
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [tab.path]);
+  }, [screen.path]);
 
   return (
     <div className="min-h-[100dvh] bg-surface-ground">

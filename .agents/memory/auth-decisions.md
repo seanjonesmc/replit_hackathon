@@ -25,3 +25,7 @@ Live swipe checks (curl or a browser tester) should only make swipes that end RE
 **Why:** The demo family must stay as the seed made it, and there is no one-tap reset yet.
 
 **How to apply:** Tell testers which merchant tiles they may tap; afterwards delete their authorizations, login users/sessions, unfreeze the card if needed, and restart the API to clear the OIDC override.
+
+A task environment's dev database can lag the schema (e.g. a column added by a just-merged task is missing, so a live write 500s). Run `pnpm --filter db push` (what post-merge does) before live API checks.
+
+**Why:** a live parent send failed with "column note does not exist" until the push ran (2026-10-24).

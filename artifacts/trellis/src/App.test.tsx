@@ -108,6 +108,17 @@ describe('app shell routing', () => {
     expect(byTestId('app-shell')).not.toBeNull();
   });
 
+  it("opens the parent's Add money inside the shell, with Home marked in the tab bar", () => {
+    open('/parent/add-money');
+    expect(screen()).toBe('parent-add-money');
+    expect(byTestId('app-shell')).not.toBeNull();
+    expect(byTestId('link-tab-parent-home')?.getAttribute('aria-current')).toBe('page');
+    expect(byTestId('link-back-home')?.getAttribute('href')).toBe('/parent/home');
+    expect(window.localStorage.getItem('demo:last-role')).toBe('parent');
+    click('link-back-home');
+    expect(screen()).toBe('parent-home');
+  });
+
   it("sends a bare role URL to that role's first tab", () => {
     open('/funder');
     expect(window.location.pathname).toBe('/funder/add-money');

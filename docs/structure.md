@@ -6,13 +6,13 @@ Directories with responsibility READMEs are reserved for later phases.
 ```text
 artifacts/
   trellis/src/
-    App.tsx                  Providers, sign-in gate and routing (one page per route-map tab)
-    pages/                   Route entry points: one per tab (wraps its feature screen), /brand, not-found
-    components/app-shell.tsx Role switcher and per-role tab bar around every tab URL
+    App.tsx                  Providers, sign-in gate and routing (one page per route-map tab or sub-screen)
+    pages/                   Route entry points: one per tab or sub-screen (wraps its feature screen), /brand, not-found
+    components/app-shell.tsx Role switcher and per-role tab bar around every tab and sub-screen URL
     features/
       shell/                 Session context, signed-out welcome, per-tab screen wrapper and header
-      parent/                Parent screens: home, approvals, activity, card & policy, settings
-      funder/                Grandparent screens: add money, where my money went
+      parent/                Parent screens: home, add money (sub-screen of home), approvals, activity, card & policy, settings
+      funder/                Grandparent screens: add money, where my money went; the Add money flow the parent reuses
       dependent/             Dependent wallet and swipe simulator
       family/                Adapters from API data to the shared components; query refresh after swipes and card changes
       onboarding/            Shared role onboarding flow (later phase)
@@ -170,13 +170,16 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | `api-server` | `artifacts/api-server/tests/family-auth.test.ts`       | every per-screen `/family/*` read returns 401 without a valid session |
 | `api-server-db` | `artifacts/api-server/tests/db/demo-seed.test.ts`   | seeding (family, then spending) is idempotent (also concurrently); BRAND identities, agreed limits (including Transit and the late-night window), merchants, blocked categories, authorizations; funding dated before the history; every screen read returns contract-valid data (test database) |
 | `api-server-db` | `artifacts/api-server/tests/db/swipe-money.test.ts` | the spending seed leaves Food $118.75, School $200, Social $25; an approval moves available → spent before the swipe returns; rejected and pending swipes move nothing; racing swipes never overspend a bucket (locked re-check at store time); a temporary pass approves once, even when two swipes race for it (AI guard off, test database) |
+| `api-server` | `artifacts/api-server/tests/send-money.test.ts`        | one-tap send (deposit + contribution) for the grandparent and the parent: own bank only, default note, bucket and feed update naming the sender, deposit rollback; the chain mirror sends both writes under the sender's on-chain id, or marks both failed (own throwaway database, fake chain client) |
 | `trellis`    | `artifacts/trellis/vite-brand-plugin.test.ts`          | BRAND-filled `index.html`, base-path asset URLs, SVG output  |
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
-| `trellis`    | `artifacts/trellis/src/lib/route-map.test.ts`          | roles, tabs and URLs; BRAND.demo names; last-used role       |
+| `trellis`    | `artifacts/trellis/src/lib/route-map.test.ts`          | roles, tabs and URLs; sub-screens and the tab they mark; BRAND.demo names; last-used role |
 | `trellis`    | `artifacts/trellis/src/components/trellis/shell-nav.test.tsx` | role switcher and tab bar links, current marks, count badge |
-| `trellis`    | `artifacts/trellis/src/App.test.tsx`                   | root and deep-link routing, role/tab switching, not-found, the swipe tab, sub-path base |
+| `trellis`    | `artifacts/trellis/src/App.test.tsx`                   | root and deep-link routing, role/tab switching, not-found, the swipe tab, the parent's Add money sub-screen, sub-path base |
 | `trellis`    | `artifacts/trellis/src/lib/swipe-presets.test.ts`      | the spec's six demo swipes and amounts, grid order, 2:10am on the family clock (never in the future), swipe payloads |
 | `trellis`    | `artifacts/trellis/src/features/dependent/SwipeSimulator.test.tsx` | grid from `GET /api/merchants`, the swipe request, the result card (decision, Rule/AI guard, ms), feed and approvals refetch, frozen card, server errors (`fetch` mocked) |
+| `trellis`    | `artifacts/trellis/src/features/funder/AddMoneyFlow.test.tsx` | the parent adds money as herself from her own bank (not the grandparent's), default and own notes, the shared confirmation; the grandparent's tab unchanged (`fetch` mocked) |
+| `trellis`    | `artifacts/trellis/src/features/parent/ParentHome.test.tsx` | Add money link on the family pot card (`fetch` mocked) |
 | `trellis`    | `artifacts/trellis/src/features/parent/CardFreezeControl.test.tsx` | freeze and unfreeze from the parent's card screen, inactive card, server errors (`fetch` mocked) |
 | `trellis`    | `artifacts/trellis/src/index-css.test.ts`              | every CSS variable `index.css` reads is defined or has a fallback; safe-area padding present |
 | `workspace`  | `scripts/tests/design-reference.test.ts`               | reference checksum; no code references the reference        |
