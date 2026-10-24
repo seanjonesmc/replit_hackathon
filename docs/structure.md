@@ -21,9 +21,9 @@ artifacts/
   api-server/src/
     app.ts                   Express setup and middleware registration
     index.ts                 Startup
-    routes/                  HTTP handlers (currently health only)
-    middlewares/             Request middleware
-    lib/                     Server-only infrastructure, including logger
+    routes/                  HTTP handlers (health, sign-in)
+    middlewares/             Request middleware, incl. session loader and requireAuth guard
+    lib/                     Server-only infrastructure (logger, sign-in sessions)
     services/
       ai/                    Policy builder and AI guard (Anthropic via AI Integrations)
       policies/              Future policy management
@@ -36,7 +36,8 @@ lib/
   api-spec/openapi.yaml      API contract source of truth
   api-client-react/src/     Generated client/hooks plus custom fetch adapter
   api-zod/src/              Generated API validation
-  db/src/schema/            Future database models, exported by index.ts
+  db/src/schema/            Database models (sign-in users/sessions so far), exported by index.ts
+  replit-auth-web/src/      Browser sign-in hook (useAuth), not yet used by any screen
   shared/                   Reserved pure cross-package utilities
 src/brand/
   brand.config.ts           Single source for brand values
@@ -90,7 +91,10 @@ docs/                       Contributor architecture documentation
   exports, a composite TS config and root project reference; declare each consumer's
   `workspace:*` dependency. Shared code must not depend on artifacts.
 - Database models belong in `lib/db/src/schema/`, one model per file, exported from
-  its existing index. No models, migrations, or database changes are part of this task.
+  its existing index. Schema changes are pushed to the development database only.
+- Every family route mounts behind the API's `requireAuth` guard (401 JSON when
+  signed out). Browser sign-in state and redirects use `@workspace/replit-auth-web`,
+  never the generated API client.
 
 ## Build phases and gates
 
@@ -125,6 +129,7 @@ Baseline checks (Vitest, configured once in root `vitest.config.ts`) run with
 | ------------ | ------------------------------------------------------ | ----------------------------------------------------------- |
 | `api-server` | `artifacts/api-server/tests/health.test.ts`            | `GET /api/healthz` status and contract-valid payload         |
 | `api-server` | `artifacts/api-server/src/services/ai/*.test.ts`       | policy builder and AI guard with the model stubbed: valid parse, PENDING fallback, rule pass-through |
+| `api-server` | `artifacts/api-server/tests/auth.test.ts`              | `GET /api/auth/user` signed in/out; `requireAuth` 401 JSON (session store stubbed, no database) |
 | `trellis`    | `artifacts/trellis/vite-brand-plugin.test.ts`          | BRAND-filled `index.html`, base-path asset URLs, SVG output  |
 | `trellis`    | `artifacts/trellis/src/components/trellis/primitives.test.ts` | runtime `brandAsset` URLs under `BASE_URL`            |
 | `workspace`  | `scripts/tests/design-reference.test.ts`               | reference checksum; no code references the reference        |

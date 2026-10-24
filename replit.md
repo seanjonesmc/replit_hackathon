@@ -19,8 +19,8 @@ Use the existing managed workflows; they supply `PORT` and the frontend
 For manual frontend commands outside the workflow, supply `PORT=20757 BASE_PATH=/`;
 for the API supply `PORT=8080`. Keep these aligned with the managed artifact
 configuration. The API dev command builds once; restart it after server edits.
-`DATABASE_URL` is required when using `@workspace/db`, not by the current health
-route. Never commit credentials. Schema push (`pnpm --filter @workspace/db run push`)
+The API now requires `DATABASE_URL` at startup (and in its tests), because sign-in
+sessions live in Postgres. Never commit credentials. Schema push (`pnpm --filter @workspace/db run push`)
 is a separate, explicitly authorized development operation, not a startup step.
 
 ## Folder map and implementation boundaries
@@ -62,10 +62,14 @@ test locations, and phase gates.
 
 Phase 0 provides brand configuration/assets, styling, shared primitives, an
 editable root `DESIGN.md`, and a development-only component preview. The API
-currently exposes health only and the database schema is empty. Directory READMEs
-reserve responsibilities, not implemented functionality or authorization boundaries.
-Baseline Vitest checks cover API health, BRAND asset URLs under the frontend
-base path, and the byte-for-byte reference checksum. No blockchain tooling.
+exposes health and sign-in (`/api/login`, `/api/callback`, `/api/logout`,
+`/api/auth/user`); the database holds only the sign-in `users` and `sessions`
+tables. Family routes must mount behind the `requireAuth` guard. The browser
+sign-in hook (`lib/replit-auth-web`) is not yet wired into any screen. Directory
+READMEs reserve responsibilities, not implemented functionality or authorization
+boundaries. Baseline Vitest checks cover API health and sign-in, BRAND asset URLs
+under the frontend base path, and the byte-for-byte reference checksum. No
+blockchain tooling.
 The API's AI service layer (`services/ai/`: policy builder and AI guard) exists
 but is not yet wired to routes or a decision engine.
 
