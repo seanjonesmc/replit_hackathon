@@ -25,3 +25,9 @@ The user subsequently requested a separate reusable design-system artifact based
 **Why:** The visual system should be reviewed independently while folder-structure work proceeds separately. This changes the original app-only preview approach, not the central-brand requirement.
 
 **How to apply:** Keep BRAND authoritative and generate the design system's interchange tokens from it. Complete the component review before migrating the app. Any future canvas mockup migration must use the design-system-specific sandbox entry and repoint existing frames.
+
+The user approved the Venmo-derived first set of header, navigation, links, buttons, and hero bands with no revision notes.
+
+**Why:** This establishes the accepted visual direction rather than reopening stylistic choices during subsequent component or app work.
+
+**How to apply:** Extend that approved palette, geometry, typography, and flat-surface treatment consistently; retain the requested Inter substitution.

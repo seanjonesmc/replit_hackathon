@@ -1,0 +1,2 @@
+import { Badge } from "../../components/ui/badge";
+export default function BadgeDemo(){return <><h1>Small, useful context.</h1><p className="lead">A pale-blue tag with a crisp corner. Labels describe; they don’t pretend to be buttons.</p><div className="specimen-row"><Badge>Design preview</Badge><Badge>Shared</Badge><Badge>For your family</Badge></div><p className="caption">One source-backed variant. Status and blockchain verification badges belong to the app layer and must use truthful state.</p></>;}

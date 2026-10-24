@@ -23,7 +23,7 @@ Rewrite every local import for a module this package provides:
 - `@/components/ui/<name>` →
   `@workspace/trellis-design/components/ui/<name>`
 - `@/lib/utils` (`cn`) → `@workspace/trellis-design/lib/utils`
-- `@/hooks/use-toast` → `@workspace/trellis-design/hooks/use-toast`
+- Keep local toast hooks and Toaster: this package does not provide them.
 
 Judge component ownership by the imported module, not by the file doing the
 import. App-specific components may remain local, but they must import shared
@@ -34,7 +34,7 @@ primitives from this package.
 - Delete package-provided files from the app's `src/components/ui/`; remove the
   directory if it becomes empty.
 - Delete local `src/lib/utils.ts` when it only provided `cn`.
-- Delete local `src/hooks/use-toast.ts` after every caller uses the package hook.
+- Preserve all components and hooks that this package does not ship.
 - Remove dependencies used only by the deleted local component library when the
   design-system package already supplies them transitively.
 
@@ -44,5 +44,5 @@ Grep for `@/components/ui/`, `@/lib/utils`, and `@/hooks/use-toast`. Every
 remaining match must refer to an app-specific module or export the package does
 not provide. Run typecheck and the dev server after deleting local copies.
 
-Migration is complete when no package-provided component, `cn`, toast hook, or
+Migration is complete when no package-provided component, `cn`, or
 theme token block remains local.

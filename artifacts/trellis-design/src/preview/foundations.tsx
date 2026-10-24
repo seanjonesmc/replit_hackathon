@@ -4,7 +4,7 @@ export function Overview(){return <>
  <p className="eyebrow">A shared visual language</p><h1>Built for trust.<br/>Made for family.</h1>
  <p className="lead">The foundations of {brand.name}: confident blue, warm sand, and simple, human details.</p>
  <div className="palette-strip">{["primary","signature","surfaceAlt","ink"].map(k=><div key={k} style={{background:brand.colors[k as keyof typeof brand.colors]}}/>)}</div>
- <div className="section-heading"><h2>The first five families</h2><span className="caption">Pilot · ready for review</span></div>
+ <p className="caption">Explore the full catalog: <a href="#page=cards">Cards</a> · <a href="#page=badges">Badges</a> · <a href="#page=footer">Footer</a> · <a href="#page=download">Download pills</a></p><div className="section-heading"><h2>The approved foundation</h2><span className="caption">9 families · complete catalog</span></div>
  <p className="caption">Adapted from the Venmo reference. Inter replaces the proprietary fonts. Dark mode is a derived theme, not part of the source.</p>
  <div className="specimen"><h3>01 / Header gradient</h3><HeaderDemo/></div>
  <div className="specimen"><h3>02 / Top navigation</h3><NavigationDemo/></div>

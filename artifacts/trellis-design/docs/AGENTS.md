@@ -7,7 +7,7 @@ on it and import its theme and components directly.
 
 ## What's here
 
-- `tokens.json` — the single source of truth (DTCG format): colors (full light
+- `tokens.json` — generated DTCG interchange snapshot from root BRAND: colors (full light
   and dark sets), typography, spacing, and radius.
 - `scripts/build-tokens.mjs` — generates the outputs below from `tokens.json`.
 - `src/index.css` — GENERATED token theme (web), exported as `./styles.css`.
@@ -73,8 +73,8 @@ the root config; make it self-contained before exporting as a template.
 Never hand-edit `src/index.css` or `src/generated/tokens.tsx`.
 
 Read `docs/references/component-inventory.md` and the linked per-family reference
-before modifying components. Only HeaderGradient, TopNav, Link, Button, HeroBand
-are currently shipped. Remaining families wait for pilot approval. Stock
+before modifying components. HeaderGradient, TopNav, Link, Button, HeroBand, Card, Badge, Footer, and DownloadPill
+are shipped. All source-backed families are complete. Stock
 scaffold files are archived under `docs/scaffold`, not exported or rendered.
 The preview intentionally uses plain elements for its shell. Dark mode is derived.
 `DESIGN.md` is a retained reference copy; root design/reference remains unchanged.

@@ -9,9 +9,9 @@ Source: ../../../../design/reference/venmo.DESIGN.md, curated visual specificati
 | Link (nav, inline, row, footer) | components/link.md | none | first link appears third | 1 | implemented |
 | Button (primary, hover, outline) | components/button.md | Radix Slot, CVA | fourth source family | 1 | implemented |
 | HeroBand (light, sand) | components/hero-band.md | none | follows buttons | 1 | implemented |
-| Card (hero, product, photography, pale) | components/card.md | none | follows hero bands | 2 | pending |
-| Badge | components/badge.md | none | after inline link | 2 | pending |
-| Footer | components/footer.md | Link | after badge | 2 | pending |
-| DownloadPill | components/download-pill.md | none | final source family | 2 | pending |
+| Card (hero, product, photography, pale) | components/card.md | none | follows hero bands | 2 | implemented |
+| Badge | components/badge.md | none | after inline link | 2 | implemented |
+| Footer | components/footer.md | Link | after badge | 2 | implemented |
+| DownloadPill | components/download-pill.md | none | final source family | 2 | implemented |
 
-Pilot presents exactly five normalized families. Remaining components await visual approval. App-specific virtual cards, balances, decisions, and onboarding remain in the app layer.
+All nine normalized families are implemented. The first five were approved before the remaining four were built. App-specific virtual cards, balances, decisions, and onboarding remain in the app layer.

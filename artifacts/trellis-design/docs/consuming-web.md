@@ -21,23 +21,22 @@ Tailwind v3 consumers keep their existing `@tailwind` directives and add
 
 ## Components and helpers
 
-Import every provided primitive, `cn`, and toast API directly from this package:
+Import provided primitives and `cn` directly from this package:
 
 ```tsx
 import { Button } from "@workspace/trellis-design/components/ui/button";
 import { cn } from "@workspace/trellis-design/lib/utils";
-import {
-  toast,
-  useToast,
-} from "@workspace/trellis-design/hooks/use-toast";
+import { Card, CardTitle } from "@workspace/trellis-design/components/ui/card";
 ```
 
 Use the package component whenever it provides the required family. Keep
 product-specific compositions in the app, but compose them from package
 primitives rather than recreating those primitives locally.
 
-The packaged `Toaster` and toast hook share one in-memory store. Do not call a
-local toast hook while rendering the packaged `Toaster`.
+This package does not ship inputs, toast hooks, or a Toaster. Keep those local.
+Shipped modules: button, header-gradient, top-nav, link, hero-band, card, badge, footer, download-pill.
+Button variants: default/outline. Card variants: product/hero/photography/feature.
+Badge has one static tag treatment. Check local prop usage before replacing imports.
 
 ## Verify
 

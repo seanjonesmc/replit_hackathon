@@ -24,6 +24,9 @@
 .swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin:36px 0}
 .swatches>div>div{height:90px;border-radius:8px;border:1px solid hsl(var(--border));margin-bottom:12px}
 .guidelines{padding-left:20px;list-style:disc;line-height:1.8;margin-top:20px}
-.browser footer{font-size:12px;color:hsl(var(--muted-foreground));padding-top:48px}
+.browser main>footer{font-size:12px;color:hsl(var(--muted-foreground));padding-top:48px}
+.card-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:32px 0}
+.media-slot{display:flex;align-items:center;justify-content:center;min-height:180px;background:hsl(var(--secondary));border-radius:var(--brand-radius-cardSm);font-size:14px;padding:24px;margin-bottom:24px}
+@media(max-width:1000px){.card-gallery{grid-template-columns:1fr}}
 .money{font-variant-numeric:tabular-nums}
 @media(max-width:760px){.browser{display:block}.browser aside{position:relative;height:auto;padding:20px}.browser nav{display:flex;flex-wrap:wrap;gap:24px}.browser nav section{margin:16px 0}.browser main{padding:0 24px 24px}.swatches{grid-template-columns:repeat(2,1fr)}}

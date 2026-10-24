@@ -8,5 +8,5 @@ Inter replaces Athletics, Scto Grotesk A, and footer fonts at the user's request
 Dark mode is derived, not extracted. Decisions use the app's semantic colors with icons and labels.
 Use original project branding, never Venmo marks or regulatory claims.
 
-Only the first five families are implemented. Read docs/references/component-inventory.md and the per-family reference before changes.
+All nine source-backed families are implemented. Read docs/references/component-inventory.md and the per-family reference before changes.
 Root BRAND remains the authoring source; tokens.json and brand snapshot/variables are generated interchange outputs. Run pnpm tokens after editing BRAND. This project-specific build adapter needs root BRAND; template export must first make it self-contained.
